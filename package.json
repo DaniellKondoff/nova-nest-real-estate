@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup:env": "node -e \"const fs=require('fs');fs.copyFileSync('env.example','.env.local');console.log('Created .env.local from env.example');\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",
