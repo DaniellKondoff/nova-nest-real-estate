@@ -66,7 +66,7 @@ const nextConfig: NextConfig = {
   i18n: {
     locales: ["bg", "en"],
     defaultLocale: "bg",
-    localeDetection: true,
+    localeDetection: false,
   },
   images: {
     formats: ["image/avif", "image/webp"],
@@ -80,7 +80,6 @@ const nextConfig: NextConfig = {
     ].filter(Boolean) as any,
   },
   experimental: {
-    appDir: true,
     serverComponentsExternalPackages: ["@supabase/supabase-js"],
   },
   async headers() {
@@ -102,9 +101,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // Old to new SEO-friendly structures
-      { source: "/imoti", destination: "/imoti-stara-zagora", permanent: true },
-      { source: "/imoti/", destination: "/imoti-stara-zagora", permanent: true },
-      { source: "/imoti/stara-zagora", destination: "/imoti-stara-zagora", permanent: true },
+      // Removed redirects to allow `/imoti` to resolve to its page
       { source: "/apartamenti/centrum", destination: "/apartamenti-centrum-stara-zagora", permanent: true },
       { source: "/apartamenti/centar", destination: "/apartamenti-centrum-stara-zagora", permanent: true },
       { source: "/kusti/samara", destination: "/kushi-samara-stara-zagora", permanent: true },

@@ -18,7 +18,7 @@ export const LONG_TAIL_KEYWORDS: string[] = [
 
 // URL structure mapping
 export const URLS = {
-  propertiesCity: "/imoti-stara-zagora",
+  propertiesCity: "/imoti",
   apartmentsCenter: "/apartamenti-centrum-stara-zagora",
   housesSamara: "/kushi-samara-stara-zagora",
 } as const;
@@ -37,7 +37,7 @@ export const BUSINESS = {
     addressCountry: "BG",
   },
   geo: { latitude: 42.4258, longitude: 25.6345 },
-  openingHours: ["Mo-Fr 09:00-18:00", "Sa 10:00-14:00"],
+  openingHours: ["Mo-Fr 09:00-18:00", "Sa 10:00-14:00"] as string[],
   priceRange: "$$",
   social: {
     facebook: "https://www.facebook.com/novanest.bg",
