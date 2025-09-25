@@ -63,11 +63,6 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   trailingSlash: true,
-  i18n: {
-    locales: ["bg", "en"],
-    defaultLocale: "bg",
-    localeDetection: false,
-  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -79,8 +74,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
     ].filter(Boolean) as any,
   },
-  experimental: {
-    serverComponentsExternalPackages: ["@supabase/supabase-js"],
+  serverExternalPackages: ["@supabase/supabase-js"],
+  turbopack: {
+    root: process.cwd(),
   },
   async headers() {
     return [
