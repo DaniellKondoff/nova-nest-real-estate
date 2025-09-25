@@ -6,12 +6,18 @@ import { getPropertyById } from "@/lib/queries/properties";
 import { isAdminUser } from "@/lib/auth";
 import { AdminPropertySchema } from "@/lib/validations";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
+import { ok, fail, notFound, unauthorized } from "@/lib/api";
 
 type PropertyRow = Tables<"properties">;
 type NeighborhoodRow = Tables<"neighborhoods">;
 type CategoryRow = Tables<"property_categories">;
 type ImageRow = Tables<"property_images">;
 
+/**
+ * Get property details by ID, enriched with category and neighborhood
+ *
+ * Authentication: not required
+ */
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const idNum = Number(params.id);
@@ -21,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
     const property = await getPropertyById(idNum);
     if (!property) {
-      return Response.json({ error: "Имотът не е намерен." } satisfies ErrorResponse, { status: 404 });
+      return notFound("Имотът не е намерен.");
     }
 
     // Fetch category
@@ -50,19 +56,24 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         images: (property.images as any) ?? [],
       },
     };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const message = formatErrorMessage(err);
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status: err instanceof ValidationError ? 400 : 500 });
+    return fail(body.error, { status: err instanceof ValidationError ? 400 : 500 });
   }
 }
 
+/**
+ * Update a property by ID (admin only)
+ *
+ * Authentication: admin required
+ */
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
-      throw new AuthError("Неоторизиран достъп. Само администратори могат да редактират имоти.");
+      return unauthorized("Неоторизиран достъп. Само администратори могат да редактират имоти.");
     }
 
     const idNum = Number(params.id);
@@ -90,20 +101,25 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 
     const body: SuccessResponse<PropertyRow> = { data: data as PropertyRow };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : err instanceof AuthError ? 401 : 500;
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 
+/**
+ * Delete a property by ID (admin only)
+ *
+ * Authentication: admin required
+ */
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
-      throw new AuthError("Неоторизиран достъп. Само администратори могат да изтриват имоти.");
+      return unauthorized("Неоторизиран достъп. Само администратори могат да изтриват имоти.");
     }
 
     const idNum = Number(params.id);
@@ -122,15 +138,15 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     }
 
     if (!count) {
-      return Response.json({ error: "Имотът не е намерен." } satisfies ErrorResponse, { status: 404 });
+      return notFound("Имотът не е намерен.");
     }
 
-    return Response.json({ data: true } satisfies SuccessResponse<boolean>, { status: 200 });
+    return ok(true);
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : err instanceof AuthError ? 401 : 500;
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

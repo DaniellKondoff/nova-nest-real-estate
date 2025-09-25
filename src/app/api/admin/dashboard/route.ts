@@ -3,11 +3,17 @@ import { isAdminUser } from "@/lib/auth";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail, unauthorized } from "@/lib/api";
 
+/**
+ * Admin dashboard summary statistics
+ *
+ * Authentication: admin required
+ */
 export async function GET(_req: NextRequest) {
   try {
     const isAdmin = await isAdminUser();
-    if (!isAdmin) throw new AuthError("Неоторизиран достъп.");
+    if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const supabase = getSupabaseClient();
 
@@ -36,10 +42,10 @@ export async function GET(_req: NextRequest) {
     };
 
     const body: SuccessResponse<typeof data> = { data };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const status = err instanceof AuthError ? 401 : 500;
-    return Response.json({ error: formatErrorMessage(err) } satisfies ErrorResponse, { status });
+    return fail(formatErrorMessage(err), { status, code: status === 401 ? "UNAUTHORIZED" : "SERVER_ERROR" });
   }
 }
 

@@ -4,6 +4,7 @@ import { isAdminUser } from "@/lib/auth";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail, unauthorized } from "@/lib/api";
 
 const QuerySchema = z.object({
   is_published: z
@@ -32,10 +33,15 @@ const CreateSchema = z.object({
   is_featured: z.boolean().optional(),
 });
 
+/**
+ * List testimonials with filters and pagination (admin)
+ *
+ * Authentication: admin required
+ */
 export async function GET(req: NextRequest) {
   try {
     const isAdmin = await isAdminUser();
-    if (!isAdmin) throw new AuthError("Неоторизиран достъп.");
+    if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const url = new URL(req.url);
     const raw = Object.fromEntries(url.searchParams.entries());
@@ -63,17 +69,25 @@ export async function GET(req: NextRequest) {
     const body: SuccessResponse<{ items: any[]; total: number; page: number; limit: number }> = {
       data: { items: (data as any[]) ?? [], total: count ?? 0, page: parsed.page, limit: parsed.limit },
     };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
+    if (err instanceof z.ZodError) {
+      return fail("Невалидни параметри.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+    }
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;
-    return Response.json({ error: formatErrorMessage(err) } satisfies ErrorResponse, { status });
+    return fail(formatErrorMessage(err), { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 
+/**
+ * Create a testimonial (admin)
+ *
+ * Authentication: admin required
+ */
 export async function POST(req: NextRequest) {
   try {
     const isAdmin = await isAdminUser();
-    if (!isAdmin) throw new AuthError("Неоторизиран достъп.");
+    if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const payload = await req.json();
     const parsed = await CreateSchema.parseAsync(payload);
@@ -106,10 +120,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body: SuccessResponse<any> = { data: data as any };
-    return Response.json(body, { status: 201 });
+    return ok(body.data, { status: 201 });
   } catch (err) {
+    if (err instanceof z.ZodError) {
+      return fail("Невалидни данни.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+    }
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;
-    return Response.json({ error: formatErrorMessage(err) } satisfies ErrorResponse, { status });
+    return fail(formatErrorMessage(err), { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

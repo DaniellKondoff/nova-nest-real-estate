@@ -6,6 +6,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { Database } from "@/types/database.generated";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail, notFound, unauthorized } from "@/lib/api";
 
 const MaxFiles = 12;
 
@@ -19,11 +20,17 @@ const FormSchema = z.object({
   alt_text_bg: z.string().trim().min(0).optional(),
 });
 
+/**
+ * Upload one or more images for a property (admin)
+ *
+ * Authentication: admin required
+ * Upload constraints: max 12 files. TODO: enforce content-type and max size on edge.
+ */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
-      throw new AuthError("Неоторизиран достъп. Само администратори могат да качват снимки.");
+      return unauthorized("Неоторизиран достъп. Само администратори могат да качват снимки.");
     }
 
     const propertyId = Number(params.id);
@@ -47,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       .maybeSingle();
     if (propErr) throw new DatabaseError("Проблем при проверка на имота.");
     if (!prop) {
-      return Response.json({ error: "Имотът не е намерен." } satisfies ErrorResponse, { status: 404 });
+      return notFound("Имотът не е намерен.");
     }
 
     // Existing images to determine primary/order
@@ -94,11 +101,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const body: SuccessResponse<{ images: typeof uploaded }> = {
       data: { images: uploaded },
     };
-    return Response.json(body, { status: 201 });
+    return ok(body.data, { status: 201 });
   } catch (err) {
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: formatErrorMessage(err) };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

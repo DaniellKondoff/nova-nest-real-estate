@@ -4,6 +4,7 @@ import { isAdminUser } from "@/lib/auth";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail, unauthorized } from "@/lib/api";
 
 const QuerySchema = z.object({
   status: z
@@ -19,11 +20,25 @@ const QuerySchema = z.object({
   sort: z.enum(["newest", "oldest"]).default("newest"),
 });
 
+/**
+ * List inquiries for admin operators
+ *
+ * Authentication: admin required
+ * Query params:
+ * - status: one of new|in_progress|responded|closed
+ * - inquiry_type: general|property_interest|viewing_request|valuation|selling|renting
+ * - from, to: ISO dates
+ * - page: number >= 1, default 1
+ * - limit: 1..100, default 20
+ * - sort: newest|oldest, default newest
+ *
+ * Returns paginated inquiries with joined property and assigned agent.
+ */
 export async function GET(req: NextRequest) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
-      throw new AuthError("Неоторизиран достъп.");
+      return unauthorized("Неоторизиран достъп.");
     }
 
     const url = new URL(req.url);
@@ -59,11 +74,14 @@ export async function GET(req: NextRequest) {
         limit: parsed.limit,
       },
     };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
+    if (err instanceof z.ZodError) {
+      return fail("Невалидни параметри.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+    }
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: formatErrorMessage(err) };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

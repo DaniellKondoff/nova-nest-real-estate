@@ -6,6 +6,7 @@ import { getPublishedProperties } from "@/lib/queries/properties";
 import { isAdminUser, getCurrentUser } from "@/lib/auth";
 import { AdminPropertySchema } from "@/lib/validations";
 import { formatErrorMessage, ValidationError, AuthError, DatabaseError } from "@/lib/errors";
+import { ok, fail, unauthorized } from "@/lib/api";
 
 type PropertyRow = Tables<"properties">;
 
@@ -15,6 +16,11 @@ function parseNumber(value: string | null): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+/**
+ * List public properties with simple server-side filters and pagination
+ *
+ * Authentication: not required
+ */
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -59,19 +65,24 @@ export async function GET(req: NextRequest) {
     const body: SuccessResponse<{ items: PropertyRow[]; meta: { total: number; limit: number; offset: number } }> = {
       data: { items, meta: { total, limit, offset } },
     };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const message = formatErrorMessage(err);
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status: 500 });
+    return fail(body.error, { status: 500, code: "SERVER_ERROR" });
   }
 }
 
+/**
+ * Create a property (admin only)
+ *
+ * Authentication: admin required
+ */
 export async function POST(req: Request) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
-      throw new AuthError("Неоторизиран достъп. Само администратори могат да създават имоти.");
+      return unauthorized("Неоторизиран достъп. Само администратори могат да създават имоти.");
     }
 
     const json = await req.json();
@@ -99,12 +110,12 @@ export async function POST(req: Request) {
     }
 
     const body: SuccessResponse<PropertyRow> = { data: data as PropertyRow };
-    return Response.json(body, { status: 201 });
+    return ok(body.data, { status: 201 });
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : err instanceof AuthError ? 401 : 500;
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

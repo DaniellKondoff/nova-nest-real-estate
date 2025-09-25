@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail } from "@/lib/api";
 
 const QuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
@@ -10,6 +11,11 @@ const QuerySchema = z.object({
   radius: z.coerce.number().min(0.1).max(50).default(5), // km
 });
 
+/**
+ * Geospatial property lookup by center point and radius (km)
+ *
+ * Authentication: not required
+ */
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -29,12 +35,15 @@ export async function GET(req: NextRequest) {
     const body: SuccessResponse<{ properties: any[] }> = {
       data: { properties: (data as any[]) ?? [] },
     };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status });
+    if (err instanceof z.ZodError) {
+      return fail("Невалидни параметри.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+    }
+    return fail(body.error, { status });
   }
 }
 

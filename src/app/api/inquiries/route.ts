@@ -5,6 +5,7 @@ import { formatErrorMessage, ValidationError, DatabaseError } from "@/lib/errors
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import type { Database } from "@/types/database.generated";
 import { ContactInquirySchema } from "@/lib/validations";
+import { ok, fail } from "@/lib/api";
 
 const InquiryCreateSchema = ContactInquirySchema.extend({
   inquiryType: z.enum(["general", "property_interest", "viewing_request", "valuation", "selling", "renting"]),
@@ -16,6 +17,32 @@ const InquiryCreateSchema = ContactInquirySchema.extend({
 
 export async function POST(req: NextRequest) {
   try {
+    /**
+     * Create a new public inquiry
+     *
+     * Authentication: not required
+     * Rate limiting: TODO - add IP-based throttling to protect against abuse
+     *
+     * Request body example:
+     * {
+     *   "fullName": "Иван Иванов",
+     *   "email": "ivan@example.com",
+     *   "phone": "+359 88 123 4567",
+     *   "message": "Интересувам се от имота.",
+     *   "propertyId": 123,
+     *   "inquiryType": "property_interest",
+     *   "subject": "Запитване за оглед",
+     *   "utm_source": "google",
+     *   "utm_medium": "cpc",
+     *   "utm_campaign": "brand"
+     * }
+     *
+     * Success response example (201):
+     * { "data": { "success": true } }
+     *
+     * Error response example (400):
+     * { "error": "Невалидни данни.", "code": "VALIDATION_ERROR", "details": { "issues": [...] } }
+     */
     const payload = await req.json();
     const parsed = await InquiryCreateSchema.parseAsync(payload);
 
@@ -42,11 +69,15 @@ export async function POST(req: NextRequest) {
     }
 
     const body: SuccessResponse<{ success: true }> = { data: { success: true } };
-    return Response.json(body, { status: 201 });
+    return ok(body.data, { status: 201 });
   } catch (err) {
+    // Surface Zod validation issues for AI-friendly debugging
+    if (err instanceof z.ZodError) {
+      return fail("Невалидни данни.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+    }
     const status = err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: formatErrorMessage(err) };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

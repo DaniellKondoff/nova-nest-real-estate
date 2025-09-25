@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAllPropertyCategories } from "@/lib/queries/categories";
 import { formatErrorMessage, ValidationError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail } from "@/lib/api";
 
 const QuerySchema = z.object({
   is_active: z
@@ -11,6 +12,11 @@ const QuerySchema = z.object({
     .optional(),
 });
 
+/**
+ * Get property categories for filters and UI
+ *
+ * Authentication: not required
+ */
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -36,12 +42,15 @@ export async function GET(req: NextRequest) {
     const body: SuccessResponse<{ categories: typeof mapped }> = {
       data: { categories: mapped },
     };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status });
+    if (err instanceof z.ZodError) {
+      return fail("Невалидни параметри.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+    }
+    return fail(body.error, { status });
   }
 }
 

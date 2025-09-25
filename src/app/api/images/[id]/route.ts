@@ -4,12 +4,19 @@ import { deletePropertyImage } from "@/lib/storage";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail, notFound, unauthorized } from "@/lib/api";
 
+/**
+ * Delete a property image by ID
+ *
+ * Authentication: admin required
+ * Side-effects: attempts to remove the physical file; DB row is always removed if possible
+ */
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
-      throw new AuthError("Неоторизиран достъп. Само администратори могат да изтриват снимки.");
+      return unauthorized("Неоторизиран достъп. Само администратори могат да изтриват снимки.");
     }
 
     const imageId = Number(params.id);
@@ -25,7 +32,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       .maybeSingle();
     if (imgErr) throw new DatabaseError("Неуспешно зареждане на изображение.");
     if (!image) {
-      return Response.json({ error: "Изображението не е намерено." } satisfies ErrorResponse, { status: 404 });
+      return notFound("Изображението не е намерено.");
     }
 
     // Delete from storage: derive path from URL by splitting after bucket public URL
@@ -59,11 +66,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       }
     }
 
-    return Response.json({ data: true } satisfies SuccessResponse<boolean>, { status: 200 });
+    return ok(true);
   } catch (err) {
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: formatErrorMessage(err) };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

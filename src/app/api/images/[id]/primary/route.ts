@@ -3,12 +3,19 @@ import { isAdminUser } from "@/lib/auth";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail, notFound, unauthorized } from "@/lib/api";
 
+/**
+ * Promote an image to primary for its property
+ *
+ * Authentication: admin required
+ * Consistency: relies on DB constraint/trigger to keep a single primary
+ */
 export async function PUT(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
-      throw new AuthError("Неоторизиран достъп. Само администратори могат да задават основно изображение.");
+      return unauthorized("Неоторизиран достъп. Само администратори могат да задават основно изображение.");
     }
 
     const imageId = Number(params.id);
@@ -24,7 +31,7 @@ export async function PUT(_req: NextRequest, { params }: { params: { id: string 
       .maybeSingle();
     if (imgErr) throw new DatabaseError("Неуспешно зареждане на изображение.");
     if (!image) {
-      return Response.json({ error: "Изображението не е намерено." } satisfies ErrorResponse, { status: 404 });
+      return notFound("Изображението не е намерено.");
     }
 
     // Rely on DB trigger/constraint to ensure only one primary per property
@@ -42,11 +49,11 @@ export async function PUT(_req: NextRequest, { params }: { params: { id: string 
     if (refetchErr || !updated) throw new DatabaseError("Неуспешно извличане на обновено изображение.");
 
     const body: SuccessResponse<typeof updated> = { data: updated as any };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: formatErrorMessage(err) };
-    return Response.json(body, { status });
+    return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
 

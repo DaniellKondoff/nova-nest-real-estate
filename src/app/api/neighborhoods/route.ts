@@ -4,6 +4,7 @@ import { getAllNeighborhoods } from "@/lib/queries/neighborhoods";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import { ok, fail } from "@/lib/api";
 
 const QuerySchema = z.object({
   is_active: z
@@ -12,6 +13,11 @@ const QuerySchema = z.object({
     .optional(),
 });
 
+/**
+ * Get neighborhoods metadata for filters and maps
+ *
+ * Authentication: not required
+ */
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -33,12 +39,15 @@ export async function GET(req: NextRequest) {
     const body: SuccessResponse<{ neighborhoods: any[] }> = {
       data: { neighborhoods },
     };
-    return Response.json(body, { status: 200 });
+    return ok(body.data);
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : 500;
     const body: ErrorResponse = { error: message };
-    return Response.json(body, { status });
+    if (err instanceof z.ZodError) {
+      return fail("Невалидни параметри.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+    }
+    return fail(body.error, { status });
   }
 }
 
