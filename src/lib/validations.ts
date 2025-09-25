@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Property, PropertyCondition, PropertyStatus, HeatingType, PropertyType, Currency, Location, PropertyFeatures, BulgarianFeatures, PropertyImage } from "@/types/property";
+import type { Database } from "@/types/database.generated";
 
 // Bulgarian phone: +359 XX XXX XXXX or 08X XXX XXXX
 export const bgPhoneRegex = /^(?:\+359\s?\d{2}\s?\d{3}\s?\d{4}|0?8\d\s?\d{3}\s?\d{3})$/;
@@ -154,5 +155,50 @@ export const validators = {
   priceSchema,
   imageUploadSchema,
 };
+
+// New requested schemas
+export const PropertySearchSchema = z.object({
+  searchTerm: z.string().trim().min(1).optional(),
+  categoryId: z.number().int().positive().optional(),
+  neighborhoodId: z.number().int().positive().optional(),
+  operationType: z.enum(["sale", "rent"]) as unknown as z.ZodType<Database["public"]["Enums"]["property_operation_type"]>,
+  minPrice: z.number().int().min(0).optional(),
+  maxPrice: z.number().int().min(0).optional(),
+  minArea: z.number().int().min(0).optional(),
+  maxArea: z.number().int().min(0).optional(),
+}).refine((val) => (val.minPrice && val.maxPrice ? val.minPrice <= val.maxPrice : true), {
+  message: "Минималната цена не може да е по-голяма от максималната.",
+  path: ["minPrice"],
+}).refine((val) => (val.minArea && val.maxArea ? val.minArea <= val.maxArea : true), {
+  message: "Минималната площ не може да е по-голяма от максималната.",
+  path: ["minArea"],
+});
+
+export const ContactInquirySchema = z.object({
+  fullName: z.string().min(2, "Въведете име."),
+  email: z.string().regex(emailRegex, "Невалиден email."),
+  phone: z.string().regex(bgPhoneRegex, "Невалиден български телефон."),
+  message: z.string().min(10, "Съобщението е твърде кратко."),
+  propertyId: z.number().int().positive().optional(),
+});
+
+export const AdminPropertySchema = z.object({
+  title_bg: z.string().min(3, "Въведете заглавие."),
+  description_bg: z.string().min(10, "Въведете описание."),
+  category_id: z.number().int().positive(),
+  neighborhood_id: z.number().int().positive(),
+  operation_type: z.enum(["sale", "rent"]) as unknown as z.ZodType<Database["public"]["Enums"]["property_operation_type"]>,
+  status: z.enum(["available", "under_offer", "sold", "rented", "archived"]) as unknown as z.ZodType<Database["public"]["Enums"]["property_status"]>,
+  price_eur: z.number().min(0).nullable().optional(),
+  price_bgn: z.number().min(0).nullable().optional(),
+  area_sqm: z.number().min(0).nullable().optional(),
+  rooms: z.number().int().min(0).nullable().optional(),
+  bedrooms: z.number().int().min(0).nullable().optional(),
+  bathrooms: z.number().int().min(0).nullable().optional(),
+  floor: z.number().int().min(0).nullable().optional(),
+  year_built: z.number().int().min(1800).max(new Date().getFullYear()).nullable().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+});
 
 
