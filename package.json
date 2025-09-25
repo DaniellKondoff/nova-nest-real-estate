@@ -10,6 +10,7 @@
     "setup:env": "node -e \"const fs=require('fs');fs.copyFileSync('env.example','.env.local');console.log('Created .env.local from env.example');\""
   },
   "dependencies": {
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.46.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
