@@ -4,6 +4,7 @@
  * used on the Bulgarian market, including local specifics like heating types
  * and building features frequently referenced in listings.
  */
+import type { Tables, Enums } from "@/types/database.generated";
 
 /**
  * Supported listing currencies in Bulgaria.
@@ -172,4 +173,86 @@ export interface Property extends PropertyBase {
 
 export type { Property as NovaNestProperty };
 
+
+// Enhanced types aligned with Supabase schema
+
+// Note: Keep existing enums above intact to avoid breaking current imports.
+// Below we provide DB-aligned app types for new features.
+
+export type DbPropertyStatus = Enums<"property_status">;
+export type OperationType = Enums<"property_operation_type">;
+
+// App-level status that allows a draft state in UI forms while persisting
+// to DB-only values. Use DbPropertyStatus when writing to the database.
+export type PropertyMarketStatus = DbPropertyStatus | "draft";
+
+// Rich joined type for property details views and API responses
+export interface PropertyWithDetails {
+  property: Tables<"properties">;
+  neighborhood: Tables<"neighborhoods"> | null;
+  category: Tables<"property_categories"> | null;
+  images: Tables<"property_images">[];
+  features?: Tables<"property_features">[];
+}
+
+// Search filters used across UI and API
+export interface PropertySearchFilters {
+  operationType?: OperationType;
+  status?: DbPropertyStatus[];
+  categoryId?: number;
+  neighborhoodId?: number;
+  minPriceEur?: number;
+  maxPriceEur?: number;
+  minArea?: number;
+  maxArea?: number;
+  minBedrooms?: number;
+  minBathrooms?: number;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  hasElevator?: boolean;
+  hasTerrace?: boolean;
+  hasBalcony?: boolean;
+  featureIds?: number[];
+  searchTerm?: string;
+  sort?:
+    | "newest"
+    | "price_asc"
+    | "price_desc"
+    | "area_desc"
+    | "area_asc";
+}
+
+// Admin form data for creating/updating properties
+export interface PropertyFormData {
+  title_bg: string;
+  description_bg?: string | null;
+  operation_type: OperationType;
+  status?: DbPropertyStatus;
+  category_id: number;
+  neighborhood_id: number;
+  address_bg?: string | null;
+  price_eur?: number | null;
+  price_bgn?: number | null;
+  area_sqm?: number | null;
+  rooms?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  floor?: number | null;
+  year_built?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  is_featured?: boolean;
+  is_new?: boolean;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string | null;
+  og_image?: string | null;
+  featureIds?: number[]; // property_feature ids
+  images?: Array<{
+    url: string;
+    alt_text_bg?: string | null;
+    is_primary?: boolean;
+    sort_order?: number;
+  }>;
+}
 
