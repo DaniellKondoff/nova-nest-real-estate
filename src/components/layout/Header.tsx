@@ -35,6 +35,9 @@ const DEFAULT_NAV_ITEMS: NavLinkItem[] = [
  */
 const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS }) => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  // Mobile menu open/close state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
   // Track scroll depth to toggle an elevated shadow style
   useEffect(() => {
@@ -51,7 +54,22 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
     };
   }, []);
 
-  const headerBase = "sticky top-0 z-50 hidden lg:block transition-shadow duration-300";
+  // Lock body scroll while the mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      // Ensure scroll is restored if the component unmounts
+      document.body.style.overflow = "unset";
+    };
+  }, [isMobileMenuOpen]);
+
+  // Header is visible on all screens; desktop-specific elements are handled per-section
+  const headerBase = "sticky top-0 z-50 transition-shadow duration-300";
   const backgroundStyling =
     // Navy background with 95% opacity + subtle bottom border + glass blur at 8px
     "bg-[#1a2642]/95 backdrop-blur-[8px] border-b border-white/10";
@@ -107,7 +125,41 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
             </ul>
           </nav>
 
-          {/* Right: Call-to-action area */}
+          {/* Right (mobile): Hamburger menu button */}
+          <div className="flex items-center lg:hidden">
+            <button
+              type="button"
+              onClick={toggleMobileMenu}
+              aria-label={isMobileMenuOpen ? "Затвори меню" : "Отвори меню"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
+              className="h-12 w-12 p-2 rounded-lg bg-transparent hover:bg-[#d4af37]/10 transition-all duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+            >
+              {/* Three lines hamburger that animates into an X when open */}
+              <span className="relative flex h-full w-full flex-col items-center justify-center gap-[5px]" aria-hidden="true">
+                {/* Top line: rotates 45° and moves to center when open */}
+                <span
+                  className={`block h-0.5 w-6 rounded-full bg-white transition-all duration-300 ease-in-out ${
+                    isMobileMenuOpen ? "translate-y-[7px] rotate-45" : "translate-y-0 rotate-0"
+                  }`}
+                />
+                {/* Middle line: fades and scales out when open */}
+                <span
+                  className={`block h-0.5 w-6 rounded-full bg-white transition-all duration-300 ease-in-out ${
+                    isMobileMenuOpen ? "opacity-0 scale-x-0" : "opacity-100 scale-x-100"
+                  }`}
+                />
+                {/* Bottom line: rotates -45° and moves to center when open */}
+                <span
+                  className={`block h-0.5 w-6 rounded-full bg-white transition-all duration-300 ease-in-out ${
+                    isMobileMenuOpen ? "-translate-y-[7px] -rotate-45" : "translate-y-0 rotate-0"
+                  }`}
+                />
+              </span>
+            </button>
+          </div>
+
+          {/* Right (desktop): Call-to-action area */}
           <div className="hidden lg:flex items-center gap-4">
             {/* Phone number - hidden on lg, visible on xl */}
             <a
