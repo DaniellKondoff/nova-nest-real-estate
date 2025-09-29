@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { Phone } from "lucide-react";
 import Logo from "./Logo";
 
 interface NavLinkItem {
@@ -107,20 +108,24 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
           </nav>
 
           {/* Right: Call-to-action area */}
-          <div className="flex items-center gap-3">
-            <Link
-              href="/imoti"
-              className="rounded-md bg-white/10 px-4 py-2 text-sm font-semibold text-white outline-none transition-colors hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]/0"
-              aria-label="Виж всички имоти"
+          <div className="hidden lg:flex items-center gap-4">
+            {/* Phone number - hidden on lg, visible on xl */}
+            <a
+              href="tel:+359XXXXXXXXX"
+              className="hidden xl:flex items-center gap-2 text-white transition-all duration-200 ease-in-out hover:scale-105 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642] hover:drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]"
+              aria-label="Позвънете на нашия телефон"
             >
-              Виж имоти
-            </Link>
+              <Phone className="w-5 h-5 text-[#d4af37]" aria-hidden="true" />
+              <span className="font-medium text-[15px]">+359 XXX XXX XXX</span>
+            </a>
+
+            {/* CTA Button */}
             <Link
-              href="/kontakt"
-              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-[#1a2642] outline-none transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]/0"
-              aria-label="Свържи се с нас"
+              href="/contact"
+              className="rounded-lg bg-gradient-to-r from-[#d4af37] to-[#c49b33] px-6 py-2.5 text-[15px] font-semibold text-[#1a2642] shadow-md transition-all duration-200 ease-in-out hover:from-[#e0bd4d] hover:to-[#e0bd4d] hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+              aria-label="Свържете се с нас"
             >
-              Контакт
+              Свържете се
             </Link>
           </div>
         </div>
