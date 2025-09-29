@@ -37,7 +37,16 @@ function formatIssues(issues: z.ZodIssue[]): string {
 }
 
 export const env: PublicEnv = (() => {
-  const parsed = clientEnvSchema.safeParse(process.env);
+  // Build an explicit object so Next.js inlines these keys in client bundles
+  const raw = {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME,
+    NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  };
+  const parsed = clientEnvSchema.safeParse(raw);
   if (!parsed.success) {
     const message =
       "Missing or invalid public environment variables:\n" +
@@ -57,7 +66,14 @@ export const env: PublicEnv = (() => {
 
 // Note: Call this ONLY on the server. Do not import in client components.
 export function getServerEnv(): ServerEnv {
-  const parsed = serverEnvSchema.safeParse(process.env);
+  // Explicit object for clarity
+  const raw = {
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL,
+    GOOGLE_MY_BUSINESS_API_KEY: process.env.GOOGLE_MY_BUSINESS_API_KEY,
+  };
+  const parsed = serverEnvSchema.safeParse(raw as Record<string, unknown>);
   if (!parsed.success) {
     const message =
       "Missing or invalid server-only environment variables:\n" +

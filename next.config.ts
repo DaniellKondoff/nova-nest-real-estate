@@ -70,6 +70,8 @@ const nextConfig: NextConfig = {
         ? { protocol: "https", hostname: SUPABASE_HOST, pathname: "/storage/v1/object/**" }
         : undefined,
       { protocol: "https", hostname: PROPERTY_IMAGES_HOST, pathname: "/**" },
+      // Allow example.com for development/demo image sources
+      { protocol: "https", hostname: "example.com", pathname: "/**" },
       { protocol: "https", hostname: "maps.gstatic.com", pathname: "/**" },
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
     ].filter(Boolean) as any,

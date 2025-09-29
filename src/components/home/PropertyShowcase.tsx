@@ -1,6 +1,9 @@
 "use client";
 import React from "react";
 import { Inter } from "next/font/google";
+import { Home as HomeIcon } from "lucide-react";
+import PropertyCard, { type PropertyCardProps } from "@/components/property/PropertyCard";
+import { getBrowserClient } from "@/lib/supabase/client";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,10 +36,71 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
   const { className } = props;
 
   const [activeFilter, setActiveFilter] = React.useState<PropertyFilterKey>("all");
+  const [properties, setProperties] = React.useState<PropertyCardProps[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  // Placeholder data until real properties are wired in
-  const properties: Array<unknown> = [];
-  const filteredProperties = properties; // Filtering will be implemented later
+  const fetchProperties = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const supabase = getBrowserClient();
+      const operationType = activeFilter === "all" ? undefined : (activeFilter === "sale" ? "sale" : "rent");
+      const { data: featured, error: rpcError } = await supabase.rpc("get_featured_properties", {
+        limit_count: 6,
+        operation_type_filter: operationType as any,
+      });
+      if (rpcError) throw rpcError;
+      const ids = (featured ?? []).map((p: any) => p.id);
+      if (!ids.length) {
+        setProperties([]);
+        return;
+      }
+      const { data: detailed, error: selError } = await supabase
+        .from("properties")
+        .select(
+          "id,title_bg,price_eur,operation_type,address_bg,area_sqm,rooms,bedrooms,is_new,created_at, neighborhood:neighborhood_id(name_bg), images:property_images(url,is_primary,alt_text_bg)"
+        )
+        .in("id", ids as any);
+      if (selError) throw selError;
+      const mapped: PropertyCardProps[] = (detailed as any[]).map((p) => {
+        const primaryImage = (p.images || []).find((img: any) => img.is_primary) || (p.images || [])[0];
+        return {
+          id: String(p.id),
+          title_bg: p.title_bg,
+          price_eur: p.price_eur ?? 0,
+          operation_type: p.operation_type === "rent" ? "rent" : "sale",
+          address_bg: p.address_bg ?? "",
+          neighborhood: { name_bg: p.neighborhood?.name_bg ?? "" },
+          area_sqm: p.area_sqm ?? undefined,
+          rooms: p.rooms ?? undefined,
+          bedrooms: p.bedrooms ?? undefined,
+          primary_image: { image_url: primaryImage?.url ?? "/images/window.svg", alt_text_bg: primaryImage?.alt_text_bg ?? p.title_bg },
+          is_new: p.is_new ?? false,
+          created_at: p.created_at ?? new Date().toISOString(),
+          href: `/imoti/${p.id}`,
+        } as PropertyCardProps;
+      });
+      setProperties(mapped);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      setError("Неуспешно зареждане на имоти");
+    } finally {
+      setLoading(false);
+    }
+  }, [activeFilter]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await fetchProperties();
+      if (cancelled) return;
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchProperties]);
 
   return (
     <section
@@ -96,11 +160,31 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
 
         {/* Property Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProperties.length === 0 ? (
-            <div className="col-span-full text-center text-[#2d3748]">
-              Скоро ще добавим препоръчани имоти.
+          {loading ? (
+            <div className="col-span-full text-center text-[#2d3748] animate-pulse" role="status" aria-live="polite">
+              Зареждане на имоти...
             </div>
-          ) : null}
+          ) : error ? (
+            <div className="col-span-full flex flex-col items-center gap-4 text-center">
+              <div className="text-[#2d3748]">{error}</div>
+              <button
+                type="button"
+                onClick={fetchProperties}
+                className="rounded-lg bg-[#d4af37] px-6 py-3 text-white transition-colors hover:bg-[#c49d2f]"
+              >
+                Опитайте отново
+              </button>
+            </div>
+          ) : properties.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center gap-2 text-center text-[#2d3748]">
+              <HomeIcon className="h-6 w-6" aria-hidden />
+              <div>Няма налични имоти в момента</div>
+            </div>
+          ) : (
+            properties.map((p) => (
+              <PropertyCard key={p.id} {...p} />
+            ))
+          )}
         </div>
 
         {/* View All Button */}
