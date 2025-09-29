@@ -96,7 +96,6 @@ export default function Logo({
           src={imageByVariant}
           alt="Nova Nest Real Estate - Недвижими имоти Стара Загора"
           priority={priority}
-          quality={95}
           // Maintain aspect ratio automatically using only height class
           className={cn(heightClass, "w-auto select-none")}
           sizes="(max-width: 767px) 160px, (max-width: 1023px) 200px, 240px"
