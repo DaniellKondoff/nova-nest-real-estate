@@ -58,9 +58,25 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
         </div>
 
         {/* Filter Tabs */}
-        <div role="tablist" aria-label="Филтри за имоти" className="mb-16 flex justify-center gap-4">
+        <div
+          role="tablist"
+          aria-label="Филтри за имоти"
+          className="mb-16 flex items-center justify-center gap-3"
+        >
           {TABS.map((tab) => {
             const isActive = activeFilter === tab.key;
+            const base =
+              "px-6 py-3 rounded-lg text-base md:text-lg font-medium transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-white border-2";
+            const inactive = "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200";
+            const active = "bg-[#d4af37] text-white border-[#d4af37]";
+            const className = [base, isActive ? active : inactive].join(" ");
+            const handleSelect = () => setActiveFilter(tab.key);
+            const handleKeyDown: React.KeyboardEventHandler<HTMLButtonElement> = (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleSelect();
+              }
+            };
             return (
               <button
                 key={tab.key}
@@ -68,13 +84,9 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
                 role="tab"
                 aria-selected={isActive}
                 aria-pressed={isActive}
-                className={[
-                  "px-4 py-2 rounded-full border transition-colors",
-                  isActive
-                    ? "bg-[#1a2642] text-white border-[#1a2642]"
-                    : "bg-white text-[#1a2642] border-[#1a2642]/30 hover:border-[#1a2642]",
-                ].join(" ")}
-                onClick={() => setActiveFilter(tab.key)}
+                className={className}
+                onClick={handleSelect}
+                onKeyDown={handleKeyDown}
               >
                 {tab.label}
               </button>
