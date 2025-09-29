@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Logo from "./Logo";
 
 interface NavLinkItem {
@@ -18,9 +19,10 @@ interface HeaderProps {
 
 const DEFAULT_NAV_ITEMS: NavLinkItem[] = [
   { label: "Начало", href: "/" },
-  { label: "Имоти", href: "/imoti" },
-  { label: "За нас", href: "/za-nas" },
-  { label: "Контакт", href: "/kontakt" },
+  { label: "За нас", href: "/about" },
+  { label: "Услуги", href: "/services" },
+  { label: "Обяви", href: "/properties" },
+  { label: "Контакти", href: "/contact" },
 ];
 
 /**
@@ -55,6 +57,13 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
   const shadowStyling = isScrolled ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]" : "shadow-none";
   const textColor = "text-white font-sans";
 
+  const pathname = usePathname();
+
+  const isActive = (href: string): boolean => {
+    if (href === "/") return pathname === "/";
+    return pathname?.startsWith(href) ?? false;
+  };
+
   return (
     <header
       className={[headerBase, backgroundStyling, shadowStyling, textColor, className].filter(Boolean).join(" ")}
@@ -72,18 +81,28 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
           </div>
 
           {/* Center: Primary navigation */}
-          <nav aria-label="Primary" className="flex items-center">
+          <nav className="hidden lg:flex items-center gap-8" aria-label="Main navigation">
             <ul className="flex items-center gap-8">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]/0"
-                  >
-                    <span className="text-[15px] font-medium">{item.label}</span>
-                  </Link>
-                </li>
-              ))}
+              {navItems.map((item) => {
+                const active = isActive(item.href);
+                const baseClasses =
+                  "text-white text-base font-medium px-3 py-2 rounded-md transition-all duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]";
+                const hoverClasses = "hover:bg-[#d4af37]/10 hover:scale-105";
+                const activeClasses =
+                  "bg-[#d4af37]/15 text-[#d4af37] font-semibold underline decoration-2 decoration-[#d4af37] underline-offset-4";
+
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={[baseClasses, hoverClasses, active ? activeClasses : ""].join(" ")}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
