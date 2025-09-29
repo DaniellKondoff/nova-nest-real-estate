@@ -2,6 +2,7 @@
 import React from "react";
 import { Inter } from "next/font/google";
 import { Home as HomeIcon } from "lucide-react";
+import { motion, type Variants, AnimatePresence } from "framer-motion";
 import PropertyCard, { type PropertyCardProps } from "@/components/property/PropertyCard";
 import { getBrowserClient } from "@/lib/supabase/client";
 
@@ -102,6 +103,26 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
     };
   }, [fetchProperties]);
 
+  // Animation variants
+  const tabsVariants: Variants = {
+    hidden: { opacity: 0, y: -20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  };
+
+  const gridVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { delay: 0.2, when: "beforeChildren", staggerChildren: 0.15 },
+    },
+  };
+
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
+  };
+
   return (
     <section
       aria-labelledby="property-showcase-heading"
@@ -122,10 +143,14 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
         </div>
 
         {/* Filter Tabs */}
-        <div
+        <motion.div
           role="tablist"
           aria-label="Филтри за имоти"
           className="mb-16 flex items-center justify-center gap-3"
+          variants={tabsVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px", amount: 0.15 }}
         >
           {TABS.map((tab) => {
             const isActive = activeFilter === tab.key;
@@ -156,7 +181,7 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
               </button>
             );
           })}
-        </div>
+        </motion.div>
 
         {/* Property Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -181,9 +206,22 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
               <div>Няма налични имоти в момента</div>
             </div>
           ) : (
-            properties.map((p) => (
-              <PropertyCard key={p.id} {...p} />
-            ))
+            <motion.div
+              key={activeFilter}
+              className="contents"
+              variants={gridVariants}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-100px", amount: 0.2 }}
+            >
+              <AnimatePresence>
+                {properties.map((p) => (
+                  <motion.div key={p.id} variants={cardVariants} layout exit="exit">
+                    <PropertyCard {...p} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
         </div>
 
