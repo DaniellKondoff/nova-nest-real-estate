@@ -1,6 +1,8 @@
+"use client";
 import React from "react";
 import { Inter } from "next/font/google";
 import ServiceCard from "@/components/home/ServiceCard";
+import { motion, type Variants } from "framer-motion";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -62,6 +64,27 @@ const services: ServiceItem[] = [
 ];
 
 export default function ServicesSection(): React.ReactElement {
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        delay: 0.2,
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
+  };
+
   return (
     <section
       aria-labelledby="services-heading"
@@ -83,16 +106,23 @@ export default function ServicesSection(): React.ReactElement {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px", amount: 0.2 }}
+        >
           {services.map((item) => (
-            <ServiceCard
-              key={item.id}
-              icon={item.icon}
-              title_bg={item.title_bg}
-              description_bg={item.description_bg}
-            />
+            <motion.div key={item.id} variants={cardVariants}>
+              <ServiceCard
+                icon={item.icon}
+                title_bg={item.title_bg}
+                description_bg={item.description_bg}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
