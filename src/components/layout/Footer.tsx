@@ -118,10 +118,10 @@ export default function Footer() {
         Container: centered with max width 1280px, horizontal padding 24px.
         Vertical padding: 48px on mobile (py-12), 64px on desktop (lg:py-16).
       */}
-      <div className="mx-auto max-w-[1280px] px-6 py-12 lg:py-16">
+      <div className="mx-auto max-w-[1280px] px-5 md:px-6 py-10 md:py-12 lg:py-16 2xl:max-w-[1440px]">
         {/* Newsletter subscription – centered, gold-tinted card */}
         <section className="mb-12">
-          <div className="mx-auto w-full max-w-[600px] rounded-xl border border-[#d4af37]/20 bg-[#d4af37]/10 px-6 py-6 lg:px-8 lg:py-8">
+          <div className="mx-auto w-full max-w-[600px] rounded-xl border border-[#d4af37]/20 bg-[#d4af37]/10 px-5 py-5 md:px-7 md:py-7 lg:px-8 lg:py-8">
             <h3 className="text-xl font-semibold text-white text-center mb-2">Абонирайте се за новини</h3>
             <p className="text-sm text-white/80 text-center mb-5">Получавайте най-новите обяви и новини директно на вашия имейл</p>
             <form onSubmit={handleSubmit} noValidate>
@@ -146,7 +146,7 @@ export default function Footer() {
                       "w-full",
                       "rounded-lg border bg-white/10",
                       "border-white/20 text-white placeholder-white/60",
-                      "px-4 py-3 text-[15px]",
+                      "px-4 py-[14px] text-[16px] min-h-[48px]",
                       "transition-colors duration-200",
                       "focus:border-[#d4af37] focus:bg-white/15",
                       "focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:ring-offset-2 focus:ring-offset-[#1a2642]",
@@ -164,11 +164,11 @@ export default function Footer() {
                     disabled={isSubmitting}
                     className={[
                       "w-full sm:w-auto whitespace-nowrap",
-                      "rounded-lg px-8 py-3 text-[15px] font-semibold",
+                      "rounded-lg px-8 py-3 text-[15px] font-semibold min-h-[48px]",
                       "bg-gradient-to-r from-[#d4af37] to-[#c49b33] text-[#1a2642]",
                       "shadow-md transition-all duration-200 ease-out",
                       "hover:-translate-y-0.5 hover:shadow-lg hover:from-[#e0bd4d] hover:to-[#e0bd4d]",
-                      "active:-translate-y-0 active:shadow",
+                      "active:scale-95 active:opacity-80 active:-translate-y-0 active:shadow",
                       isSubmitting ? "opacity-80 cursor-not-allowed" : "",
                       focusRing,
                     ].join(" ")}
@@ -186,13 +186,8 @@ export default function Footer() {
             </form>
           </div>
         </section>
-        {/*
-          Responsive grid:
-          - Mobile (<768px): 1 column, 40px gap (gap-10)
-          - Tablet (768–1023px): 2 columns, 32px col gap & 48px row gap (md:gap-x-8 md:gap-y-12)
-          - Desktop (≥1024px): 4 columns, 32px gap (lg:gap-8)
-        */}
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-12 lg:grid-cols-4 lg:gap-8">
+        {/* Grid: mobile-first single column; tablet 2 cols (24px col / 40px row); desktop 4 cols (32px gap) */}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-6 md:gap-y-10 lg:grid-cols-4 lg:gap-8">
           {/* Column 1: Company Info */}
           <section aria-labelledby="footer-company" className="space-y-4">
             {/* Logo: light variant, small size for footer, no priority (below fold) */}
@@ -215,7 +210,7 @@ export default function Footer() {
                 className={[
                   "w-10 h-10 inline-flex items-center justify-center rounded-md",
                   "text-white/80 transition-all duration-200",
-                  "hover:text-[#d4af37] hover:scale-110",
+                  "hover:text-[#d4af37] hover:scale-110 active:scale-95 active:opacity-80",
                   focusRing,
                 ].join(" ")}
               >
@@ -229,7 +224,7 @@ export default function Footer() {
                 className={[
                   "w-10 h-10 inline-flex items-center justify-center rounded-md",
                   "text-white/80 transition-all duration-200",
-                  "hover:text-[#d4af37] hover:scale-110",
+                  "hover:text-[#d4af37] hover:scale-110 active:scale-95 active:opacity-80",
                   focusRing,
                 ].join(" ")}
               >
@@ -243,7 +238,7 @@ export default function Footer() {
                 className={[
                   "w-10 h-10 inline-flex items-center justify-center rounded-md",
                   "text-white/80 transition-all duration-200",
-                  "hover:text-[#d4af37] hover:scale-110",
+                  "hover:text-[#d4af37] hover:scale-110 active:scale-95 active:opacity-80",
                   focusRing,
                 ].join(" ")}
               >
@@ -257,7 +252,7 @@ export default function Footer() {
                 className={[
                   "w-10 h-10 inline-flex items-center justify-center rounded-md",
                   "text-white/80 transition-all duration-200",
-                  "hover:text-[#d4af37] hover:scale-110",
+                  "hover:text-[#d4af37] hover:scale-110 active:scale-95 active:opacity-80",
                   focusRing,
                 ].join(" ")}
               >
@@ -268,13 +263,13 @@ export default function Footer() {
 
           {/* Column 2: Quick Links */}
           <nav aria-labelledby="footer-quick-links">
-            <h3 id="footer-quick-links" className="text-base font-semibold mb-5">
+            <h3 id="footer-quick-links" className="text-[15px] md:text-base font-semibold mb-4 md:mb-5">
               Бързи връзки
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2.5 md:space-y-3">
               {quickLinks.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className={listLinkBase}>
+                  <Link href={item.href} className={[listLinkBase, "inline-flex items-center px-3 py-2 min-h-[44px]"].join(" ")}>
                     {item.label}
                   </Link>
                 </li>
@@ -284,13 +279,13 @@ export default function Footer() {
 
           {/* Column 3: Services */}
           <nav aria-labelledby="footer-services">
-            <h3 id="footer-services" className="text-base font-semibold mb-5">
+            <h3 id="footer-services" className="text-[15px] md:text-base font-semibold mb-4 md:mb-5">
               Услуги
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2.5 md:space-y-3">
               {services.map((svc) => (
                 <li key={svc.label}>
-                  <Link href={svc.href} className={listLinkBase}>
+                  <Link href={svc.href} className={[listLinkBase, "inline-flex items-center px-3 py-2 min-h-[44px]"].join(" ")}>
                     {svc.label}
                   </Link>
                 </li>
@@ -300,14 +295,14 @@ export default function Footer() {
 
           {/* Column 4: Contact */}
           <section aria-labelledby="footer-contact">
-            <h3 id="footer-contact" className="text-base font-semibold mb-5">
+            <h3 id="footer-contact" className="text-[15px] md:text-base font-semibold mb-4 md:mb-5">
               Контакти
             </h3>
             <div className="space-y-4 text-white/80 text-sm">
               {/* Phone */}
               <a
                 href="tel:+359XXXXXXXXX"
-                className={`flex items-start gap-3 hover:text-white transition-colors duration-200 ${focusRing}`}
+                className={`flex items-start gap-3 hover:text-white transition-colors duration-200 active:opacity-80 ${focusRing}`}
                 aria-label="Телефон за контакт"
               >
                 <Phone className="w-[18px] h-[18px] text-[#d4af37] flex-shrink-0" aria-hidden="true" />
@@ -317,7 +312,7 @@ export default function Footer() {
               {/* Email */}
               <a
                 href="mailto:info@novanest.bg"
-                className={`flex items-start gap-3 hover:text-white transition-colors duration-200 ${focusRing}`}
+                className={`flex items-start gap-3 hover:text-white transition-colors duration-200 active:opacity-80 ${focusRing}`}
                 aria-label="Имейл адрес"
               >
                 <Mail className="w-[18px] h-[18px] text-[#d4af37] flex-shrink-0" aria-hidden="true" />
@@ -377,7 +372,8 @@ export default function Footer() {
         aria-label="Върни се в началото"
         className={[
           "fixed z-40",
-          "right-6 bottom-6 lg:right-8 lg:bottom-8",
+          // Mobile-first positioning
+          "right-5 bottom-5 lg:right-8 lg:bottom-8",
           "rounded-full border border-[rgba(26,38,66,0.1)] shadow-lg",
           "bg-[#d4af37] text-[#1a2642]",
           "transition-all duration-300 ease-out",
@@ -387,7 +383,7 @@ export default function Footer() {
           // Visibility animation
           showBackToTop ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none",
           // Hover/active elev
-          "hover:-translate-y-1 hover:shadow-xl active:-translate-y-0.5 active:shadow-md",
+          "hover:-translate-y-1 hover:shadow-xl active:scale-95 active:opacity-80 active:-translate-y-0.5 active:shadow-md",
         ].join(" ")}
       >
         <ChevronUp className="w-6 h-6 mx-auto" aria-hidden="true" />
