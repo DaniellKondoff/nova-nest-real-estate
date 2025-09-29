@@ -11,14 +11,19 @@
 import React from "react";
 import PropertySearchForm from "@/components/forms/PropertySearchForm";
 
+export interface HeroSectionProps {
+  id?: string;
+}
+
 /**
  * Renders the hero section with gradient background and Bulgarian typography.
  */
-export default function HeroSection(): React.ReactElement {
+export default function HeroSection({ id }: HeroSectionProps): React.ReactElement {
   return (
     <section
+      id={id}
       aria-label="Hero section"
-      className="relative w-full bg-gradient-to-br from-[#1a2642] to-[#2c3e50] min-h-[600px] lg:min-h-[700px]"
+      className="relative w-full bg-gradient-to-br from-[#1a2642] to-[#2c3e50] min-h-[600px] lg:min-h-[700px] scroll-mt-[80px]"
     >
       <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-[600px] lg:min-h-[700px] flex-col items-center justify-center py-16 sm:py-20 lg:py-24">

@@ -13,6 +13,8 @@ export interface AboutSectionProps {
   className?: string;
   /** Override default paragraphs; falls back to site content */
   paragraphs?: string[];
+  /** Optional id to enable anchor navigation */
+  id?: string;
 }
 
 /**
@@ -22,7 +24,7 @@ export interface AboutSectionProps {
  * Accessibility: Uses semantic elements with proper heading hierarchy.
  */
 export default function AboutSection(props: AboutSectionProps): React.ReactElement {
-  const { className, paragraphs } = props;
+  const { className, paragraphs, id } = props;
 
   // Default content sourced from existing site copy
   const defaultParagraphs: string[] = [
@@ -57,10 +59,11 @@ export default function AboutSection(props: AboutSectionProps): React.ReactEleme
 
   return (
     <section
+      id={id}
       aria-labelledby="about-heading"
       className={[
         inter.variable,
-        "w-full bg-[#1a2642] py-16 md:py-24",
+        "w-full bg-[#1a2642] py-16 md:py-24 scroll-mt-[80px]",
         className,
       ]
         .filter(Boolean)

@@ -10,6 +10,7 @@ export interface ContactCTASectionProps {
   className?: string;
   showForm?: boolean; // Toggle form visibility
   compactMode?: boolean; // Reduced padding variant
+  id?: string; // Optional id for anchor navigation
 }
 
 /**
@@ -22,17 +23,20 @@ export default function ContactCTASection({
   className,
   showForm = true,
   compactMode = false,
+  id,
 }: ContactCTASectionProps): React.ReactElement {
   const verticalPadding = compactMode ? "py-12 md:py-16" : "py-20 md:py-24";
 
   return (
     <section
+      id={id}
       aria-labelledby="contact-cta-heading"
       className={cn(
         "relative w-full",
         // 135deg gradient approximation using to-br
         "bg-gradient-to-br from-[#1a2642] to-[#2c3e50]",
         verticalPadding,
+        "scroll-mt-[80px]",
         className
       )}
     >

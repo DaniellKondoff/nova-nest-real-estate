@@ -21,10 +21,10 @@ interface HeaderProps {
 
 const DEFAULT_NAV_ITEMS: NavLinkItem[] = [
   { label: "Начало", href: "/" },
-  { label: "За нас", href: "/about" },
-  { label: "Услуги", href: "/services" },
-  { label: "Обяви", href: "/properties" },
-  { label: "Контакти", href: "/contact" },
+  { label: "За нас", href: "/#about" },
+  { label: "Услуги", href: "/#services" },
+  { label: "Обяви", href: "/imoti" },
+  { label: "Контакти", href: "/#contact" },
 ];
 
 /**
@@ -276,7 +276,7 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
 
             {/* CTA Button */}
             <Link
-              href="/contact"
+              href="/#contact"
               className="rounded-lg bg-gradient-to-r from-[#d4af37] to-[#c49b33] px-6 py-2.5 text-[15px] font-semibold text-[#1a2642] shadow-md transition-all duration-200 ease-in-out hover:from-[#e0bd4d] hover:to-[#e0bd4d] hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
               aria-label="Свържете се с нас"
             >

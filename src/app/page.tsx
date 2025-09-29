@@ -32,13 +32,13 @@ export const metadata: Metadata = {
 export default function Home(): React.ReactElement {
   return (
     <main>
-      <HeroSection />
-      <AboutSection />
-      <ServicesSection />
+      <HeroSection id="home" />
+      <AboutSection id="about" />
+      <ServicesSection id="services" />
       <PropertyShowcase />
       <TestimonialsSection variant="navy" />
       {/* 6) WhyChooseUsSection - to be added */}
-      <ContactCTASection />
+      <ContactCTASection id="contact" />
     </main>
   );
 }

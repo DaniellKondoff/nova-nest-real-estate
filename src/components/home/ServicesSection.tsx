@@ -63,7 +63,7 @@ const services: ServiceItem[] = [
   },
 ];
 
-export default function ServicesSection(): React.ReactElement {
+export default function ServicesSection({ id }: { id?: string }): React.ReactElement {
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -87,10 +87,11 @@ export default function ServicesSection(): React.ReactElement {
 
   return (
     <section
+      id={id}
       aria-labelledby="services-heading"
       className={[
         inter.variable,
-        "w-full bg-[#1a2642] py-16 md:py-24",
+        "w-full bg-[#1a2642] py-16 md:py-24 scroll-mt-[80px]",
       ].join(" ")}
     >
       <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
