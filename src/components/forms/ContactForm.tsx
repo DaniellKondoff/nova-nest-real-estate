@@ -1,17 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/design-tokens";
-
-export interface ContactFormData {
-  full_name: string;
-  email: string;
-  phone?: string;
-  message: string;
-}
+import { ContactFormSchema, type ContactFormData } from "@/lib/validations";
 
 export interface ContactFormProps {
   onSubmit: (data: ContactFormData) => Promise<void>;
@@ -19,10 +13,6 @@ export interface ContactFormProps {
   onError?: (error: string) => void;
   className?: string;
 }
-
-// Temporary minimal schema placeholder (Zod to be integrated next)
-// Keep the same API shape as a real resolver to avoid refactors later.
-const fakeResolver: Resolver<ContactFormData> = async (values) => ({ values, errors: {} as any });
 
 export default function ContactForm({
   onSubmit,
@@ -42,10 +32,9 @@ export default function ContactForm({
     setFocus,
     watch,
   } = useForm<ContactFormData>({
-    // Zod schema will be plugged here in the next step
-    resolver: fakeResolver,
+    resolver: zodResolver(ContactFormSchema),
     mode: "onBlur",
-    reValidateMode: "onBlur",
+    reValidateMode: "onChange",
     defaultValues: {
       full_name: "",
       email: "",
@@ -114,10 +103,13 @@ export default function ContactForm({
       }}
       noValidate
     >
+      {/* Note for required fields */}
+      <p className="mb-4 text-[13px] text-[#6b7280]">* Задължителни полета</p>
+
       {/* Name */}
       <div>
         <label htmlFor="full_name" className={labelBase}>
-          Име и фамилия
+          Име и фамилия <span className="text-[#d4af37]" aria-hidden="true">*</span>
         </label>
         <input
           id="full_name"
@@ -127,11 +119,7 @@ export default function ContactForm({
           aria-invalid={!!errors.full_name || undefined}
           aria-describedby={errors.full_name ? "full_name_error" : undefined}
           placeholder="Въведете вашето име"
-          {...register("full_name", {
-            required: "Моля, въведете вашето име",
-            minLength: { value: 2, message: "Името трябва да бъде поне 2 символа" },
-            maxLength: { value: 100, message: "Името е твърде дълго (макс. 100 символа)" },
-          })}
+          {...register("full_name")}
           className={cn(
             baseInput,
             inputPadding,
@@ -152,7 +140,7 @@ export default function ContactForm({
       {/* Email */}
       <div className="mt-5">
         <label htmlFor="email" className={labelBase}>
-          Имейл адрес
+          Имейл адрес <span className="text-[#d4af37]" aria-hidden="true">*</span>
         </label>
         <input
           id="email"
@@ -162,13 +150,7 @@ export default function ContactForm({
           aria-invalid={!!errors.email || undefined}
           aria-describedby={errors.email ? "email_error" : undefined}
           placeholder="email@example.com"
-          {...register("email", {
-            required: "Моля, въведете валиден имейл адрес",
-            pattern: {
-              value: /^(?:[a-zA-Z0-9_'^&\-]+\.)*[a-zA-Z0-9_'^&\-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/,
-              message: "Моля, въведете валиден имейл адрес",
-            },
-          })}
+          {...register("email")}
           className={cn(
             baseInput,
             inputPadding,
@@ -192,7 +174,7 @@ export default function ContactForm({
           <label htmlFor="phone" className={labelBase}>
             Телефон
           </label>
-          <span className={helperText}>(незадължително)</span>
+          <span className={helperText}>(Незадължително. Формат: +359 XXX XXX XXX)</span>
         </div>
         <input
           id="phone"
@@ -202,15 +184,7 @@ export default function ContactForm({
           aria-invalid={!!errors.phone || undefined}
           aria-describedby={errors.phone ? "phone_error" : undefined}
           placeholder="+359 XXX XXX XXX"
-          {...register("phone", {
-            validate: (val: string | undefined) => {
-              if (!val) return true;
-              const trimmed = val.trim();
-              // Accept formats like +359 888 123 456 or 0888 123 456
-              const bg = /^(\+?359|0)\s?\d{2,3}\s?\d{3}\s?\d{3}$/;
-              return bg.test(trimmed) || "Невалиден телефонен номер";
-            },
-          })}
+          {...register("phone")}
           className={cn(
             baseInput,
             inputPadding,
@@ -231,7 +205,7 @@ export default function ContactForm({
       {/* Message */}
       <div className="mt-5">
         <label htmlFor="message" className={labelBase}>
-          Съобщение
+          Съобщение <span className="text-[#d4af37]" aria-hidden="true">*</span>
         </label>
         <textarea
           id="message"
@@ -240,11 +214,7 @@ export default function ContactForm({
           aria-invalid={!!errors.message || undefined}
           aria-describedby={errors.message ? "message_error" : undefined}
           placeholder="Как можем да ви помогнем?"
-          {...register("message", {
-            required: "Съобщението трябва да бъде поне 10 символа",
-            minLength: { value: 10, message: "Съобщението трябва да бъде поне 10 символа" },
-            maxLength: { value: 1000, message: "Съобщението е твърде дълго (максимум 1000 символа)" },
-          })}
+          {...register("message")}
           className={cn(
             baseInput,
             "min-h-[120px] resize-y",

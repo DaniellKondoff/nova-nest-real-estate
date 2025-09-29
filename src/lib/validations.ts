@@ -202,3 +202,47 @@ export const AdminPropertySchema = z.object({
 });
 
 
+// ==========================
+// Contact Form (Public Site)
+// ==========================
+
+// Bulgarian-specific phone pattern per requirements
+export const bulgarianPhoneRegex = /^(\+359|0)\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/;
+
+export const ContactFormSchema = z.object({
+  full_name: z
+    .string()
+    .trim()
+    .min(1, "Моля, въведете вашето име")
+    .min(2, "Името трябва да бъде поне 2 символа")
+    .max(100, "Името е твърде дълго (максимум 100 символа)")
+    .regex(/^[а-яА-Яa-zA-Z\s\-]+$/, "Невалидни символи в името"),
+
+  email: z
+    .string()
+    .trim()
+    .min(1, "Моля, въведете имейл адрес")
+    .email("Моля, въведете валиден имейл адрес")
+    .toLowerCase(),
+
+  phone: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || bulgarianPhoneRegex.test(val.trim()),
+      {
+        message: "Моля, въведете валиден телефонен номер",
+      }
+    ),
+
+  message: z
+    .string()
+    .trim()
+    .min(1, "Моля, въведете съобщение")
+    .min(10, "Съобщението трябва да бъде поне 10 символа")
+    .max(1000, "Съобщението е твърде дълго (максимум 1000 символа)"),
+});
+
+export type ContactFormData = z.infer<typeof ContactFormSchema>;
+
+
