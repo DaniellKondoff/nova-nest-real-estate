@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { Phone } from "lucide-react";
-import Logo from "./Logo";
+import Logo from "@/components/ui/Logo";
 
 interface NavLinkItem {
   label: string;
@@ -192,9 +192,14 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
         <div className="flex h-full items-center justify-between">
           {/* Left: Logo */}
           <div className="flex items-center">
-            <Link href="/" aria-label="Nova Nest Real Estate - home" className="outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]/0 rounded">
-              <Logo />
-            </Link>
+            {/* Mobile & Tablet (< lg): md size */}
+            <div className="lg:hidden">
+              <Logo size="md" priority />
+            </div>
+            {/* Desktop (≥ lg): lg size */}
+            <div className="hidden lg:block">
+              <Logo size="lg" priority />
+            </div>
           </div>
 
           {/* Center: Primary navigation */}

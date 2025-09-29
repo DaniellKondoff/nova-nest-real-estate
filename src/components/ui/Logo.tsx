@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import logoPng from "../../../public/images/logo.png";
 
 type LogoSize = "sm" | "md" | "lg" | "xl";
 
@@ -59,8 +60,8 @@ export default function Logo({
         // Interaction: subtle opacity hover, focus ring in gold with navy offset
         "inline-block no-underline transition-opacity duration-200 ease-in-out",
         "focus:outline-none focus:ring-2",
-        // Using ring-[color] utilities via arbitrary values to match brand colors
-        "focus:ring-[" + GOLD_HEX + "] focus:ring-offset-2 focus:ring-offset-[" + NAVY_HEX + "]",
+        // Use static Tailwind arbitrary colors to ensure safelisting in production
+        "focus:ring-[#d4af37] focus:ring-offset-2 focus:ring-offset-[#1a2642]",
         "hover:opacity-85", // slight dim on hover
         "rounded", // 4px radius
         className
@@ -80,7 +81,7 @@ export default function Logo({
         </span>
       ) : (
         <Image
-          src="/images/logo.png"
+          src={logoPng}
           alt="Nova Nest Real Estate - Недвижими имоти Стара Загора"
           priority={priority}
           quality={95}
