@@ -38,6 +38,10 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
   // Mobile menu open/close state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
+  // Track overlay exit to allow closing animation before unmount
+  const [isAnimatingOut, setIsAnimatingOut] = useState<boolean>(false);
+  // Trigger smooth enter transitions for overlay and links on the next frame after mount
+  const [menuEnter, setMenuEnter] = useState<boolean>(false);
 
   // Track scroll depth to toggle an elevated shadow style
   useEffect(() => {
@@ -68,6 +72,41 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
     };
   }, [isMobileMenuOpen]);
 
+  // Handle Escape key to close the mobile menu when open and coordinate enter/exit animations
+  useEffect(() => {
+    let exitTimer: number | undefined;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      // Prepare enter animation: set to hidden then reveal in next frame to animate
+      setMenuEnter(false);
+      requestAnimationFrame(() => {
+        setMenuEnter(true);
+      });
+      document.addEventListener("keydown", handleKeyDown);
+    } else if (!isMobileMenuOpen) {
+      // Trigger exit animation and delay unmount by 200ms
+      setMenuEnter(false);
+      setIsAnimatingOut(true);
+      exitTimer = window.setTimeout(() => {
+        setIsAnimatingOut(false);
+      }, 200);
+      document.removeEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      if (exitTimer) {
+        window.clearTimeout(exitTimer);
+      }
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
+
   // Header is visible on all screens; desktop-specific elements are handled per-section
   const headerBase = "sticky top-0 z-50 transition-shadow duration-300";
   const backgroundStyling =
@@ -83,11 +122,14 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
     return pathname?.startsWith(href) ?? false;
   };
 
+  const shouldRenderMobileMenu = isMobileMenuOpen || isAnimatingOut;
+
   return (
-    <header
-      className={[headerBase, backgroundStyling, shadowStyling, textColor, className].filter(Boolean).join(" ")}
-      role="banner"
-    >
+    <>
+      <header
+        className={[headerBase, backgroundStyling, shadowStyling, textColor, className].filter(Boolean).join(" ")}
+        role="banner"
+      >
       {/* Container with max width 1280px and horizontal padding 24px */}
       <div className="mx-auto max-w-[1280px] px-6" style={{ height: 80 }}>
         {/* Flex layout with three main sections: logo (left), nav (center), cta (right) */}
@@ -182,7 +224,88 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
           </div>
         </div>
       </div>
-    </header>
+      </header>
+
+      {/* Mobile full-screen overlay menu */}
+      {shouldRenderMobileMenu && (
+        <div
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          className={[
+            // Fixed full-screen container below the header (z-50 header vs z-40 overlay)
+            "fixed inset-0 z-40 lg:hidden overflow-auto",
+            // Navy background with opacity and glass blur
+            "bg-[#1a2642]/[0.98] backdrop-blur-[8px]",
+            // Animate opacity and scale for GPU-accelerated transitions
+            "origin-top will-change-transform will-change-opacity",
+            menuEnter && isMobileMenuOpen
+              ? "opacity-100 scale-100 transition-all duration-300 ease-out"
+              : "opacity-0 scale-95 transition-all duration-200 ease-in",
+          ].join(" ")}
+        >
+          {/* Inner layout container: max width, centered, padded, full-height column */}
+          <div className="mx-auto h-full max-w-[400px] px-6 pt-8 flex flex-col justify-between">
+            {/* Navigation links */}
+            <nav aria-label="Mobile navigation" className="mt-20">
+              <ul className="flex flex-col gap-2">
+                {navItems.map((item, index) => {
+                  const active = isActive(item.href);
+                  const baseLink =
+                    "block w-full text-2xl font-semibold rounded-xl px-5 py-4 text-white border-l-4 border-transparent transition-all duration-300 ease-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]";
+                  const hoverLink = "hover:bg-[#d4af37]/10 hover:translate-x-2"; // 8px to the right
+                  const activeLink = active
+                    ? "bg-[#d4af37]/15 text-[#d4af37] border-[#d4af37]"
+                    : "";
+                  const visibility = menuEnter && isMobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-5";
+                  const delay = (index + 1) * 50; // 50ms stagger between links
+
+                  return (
+                    <li key={item.href} style={{ transitionDelay: `${delay}ms` }}>
+                      <Link
+                        href={item.href}
+                        onClick={toggleMobileMenu}
+                        className={[baseLink, hoverLink, activeLink, visibility].join(" ")}
+                        aria-current={active ? "page" : undefined}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {/* Divider */}
+            <hr className="my-8 w-full border-t border-[#d4af37]/20" />
+
+            {/* Contact info & CTA */}
+            <div className="pb-8">
+              <a
+                href="tel:+359XXXXXXXXX"
+                className="mb-4 inline-flex items-center gap-3 text-white text-lg font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+                aria-label="Позвънете на нашия телефон"
+                onClick={toggleMobileMenu}
+              >
+                <Phone className="w-6 h-6 text-[#d4af37]" aria-hidden="true" />
+                <span>+359 XXX XXX XXX</span>
+              </a>
+
+              <div>
+                <Link
+                  href="/contact"
+                  onClick={toggleMobileMenu}
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#c49b33] py-4 text-lg font-semibold text-[#1a2642] shadow-lg transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+                  aria-label="Свържете се с нас"
+                >
+                  Свържете се
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
