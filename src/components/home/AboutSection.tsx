@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import React from "react";
+import CompanyValues from "@/components/home/CompanyValues";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -105,6 +106,11 @@ export default function AboutSection(props: AboutSectionProps): React.ReactEleme
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Company Values grid */}
+        <div className="mt-16">
+          <CompanyValues />
         </div>
       </div>
     </section>
