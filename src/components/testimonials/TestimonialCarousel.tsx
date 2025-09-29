@@ -1,6 +1,9 @@
 import * as React from "react";
 import { cn } from "@/lib/design-tokens";
 import TestimonialCard from "@/components/testimonials/TestimonialCard";
+import TestimonialSkeleton from "@/components/testimonials/TestimonialSkeleton";
+import { getApprovedTestimonials, type Testimonial as QueryTestimonial, DatabaseError } from "@/lib/queries/testimonials";
+import { AlertCircle, MessageSquare } from "lucide-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
@@ -31,6 +34,9 @@ export function TestimonialCarousel({
   className,
   ...rest
 }: TestimonialCarouselProps) {
+  const [data, setData] = React.useState<Testimonial[]>(testimonials ?? []);
+  const [loading, setLoading] = React.useState<boolean>(!testimonials || testimonials.length === 0);
+  const [error, setError] = React.useState<string | null>(null);
   const [itemsPerView, setItemsPerView] = React.useState(1);
   const [pageIndex, setPageIndex] = React.useState(0);
   const [manualPaused, setManualPaused] = React.useState(false);
@@ -39,7 +45,7 @@ export function TestimonialCarousel({
   const lastNavTimeRef = React.useRef<number>(0);
   const prefersReducedMotion = useReducedMotion();
 
-  const totalPages = Math.max(1, Math.ceil((testimonials?.length || 0) / itemsPerView));
+  const totalPages = Math.max(1, Math.ceil((data?.length || 0) / itemsPerView));
 
   React.useEffect(() => {
     const compute = () => {
@@ -90,13 +96,13 @@ export function TestimonialCarousel({
   };
 
   const pages: Testimonial[][] = React.useMemo(() => {
-    const arr = testimonials || [];
+    const arr = data || [];
     const groups: Testimonial[][] = [];
     for (let i = 0; i < arr.length; i += itemsPerView) {
       groups.push(arr.slice(i, i + itemsPerView));
     }
     return groups.length ? groups : [[]];
-  }, [testimonials, itemsPerView]);
+  }, [data, itemsPerView]);
 
   const isNavy = variant === "navy";
   const btnBase = "inline-flex items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors duration-200 ease-out";
@@ -135,6 +141,61 @@ export function TestimonialCarousel({
     startAutoPlay();
   };
 
+  // Fetch data on mount if not provided
+  React.useEffect(() => {
+    let cancelled = false;
+    async function fetchData() {
+      if (testimonials && testimonials.length > 0) {
+        setLoading(false);
+        setData(testimonials);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const res: QueryTestimonial[] = await getApprovedTestimonials(10);
+        if (!cancelled) {
+          setData(res as unknown as Testimonial[]);
+        }
+      } catch (e: unknown) {
+        if (!cancelled) {
+          if (e instanceof DatabaseError) {
+            setError("Не успяхме да заредим отзивите. Моля, опитайте отново.");
+          } else {
+            setError("Възникна грешка при зареждане на отзивите.");
+          }
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, [testimonials]);
+
+  const retry = () => {
+    setError(null);
+    setLoading(true);
+    setData([]);
+    // Re-run the effect by toggling dependency via a micro-state update
+    void (async () => {
+      try {
+        const res: QueryTestimonial[] = await getApprovedTestimonials(10);
+        setData(res as unknown as Testimonial[]);
+      } catch (e: unknown) {
+        if (e instanceof DatabaseError) {
+          setError("Проблем с връзката. Проверете интернет свързването си");
+        } else {
+          setError("Възникна грешка при зареждане на отзивите.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+  };
+
   return (
     <div
       className={cn("relative mx-auto w-full max-w-7xl py-16", className)}
@@ -151,6 +212,32 @@ export function TestimonialCarousel({
       <span className="sr-only" role="status" aria-live="polite">
         Слайд {pageIndex + 1} от {totalPages}
       </span>
+      {/* Loading State */}
+      {loading ? (
+        <TestimonialSkeleton variant={variant} />
+      ) : error ? (
+        <div className={cn("mt-4 rounded-md border p-6 text-center", isNavy ? "border-white/15 text-white/90" : "border-black/10 text-charcoal/80")}> 
+          <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
+            <AlertCircle className="h-5 w-5 text-accent" />
+          </div>
+          <p>Не успяхме да заредим отзивите. Моля, опитайте отново.</p>
+          <button
+            type="button"
+            onClick={retry}
+            className={cn("mt-4 inline-flex items-center justify-center rounded-full px-4 py-2 text-sm", isNavy ? "bg-white text-primary hover:bg-white/90" : "bg-primary text-white hover:bg-primary/90")}
+          >
+            Опитайте отново
+          </button>
+        </div>
+      ) : data.length === 0 ? (
+        <div className={cn("mt-4 rounded-md border p-6 text-center", isNavy ? "border-white/15 text-white/80" : "border-black/10 text-charcoal/70")}>
+          <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
+            <MessageSquare className="h-5 w-5 text-accent" />
+          </div>
+          <p>Все още няма добавени отзиви.</p>
+        </div>
+      ) : null}
+
       {/* Track viewport */}
       <div className="relative overflow-hidden">
         {/* Slides track with Framer Motion */}
@@ -213,7 +300,7 @@ export function TestimonialCarousel({
         </div>
 
         {/* Navigation Buttons */}
-        {showNavigation && totalPages > 1 && (
+        {showNavigation && totalPages > 1 && !loading && !error && data.length > 0 && (
           <>
             <motion.button
               type="button"
@@ -256,7 +343,7 @@ export function TestimonialCarousel({
       </div>
 
       {/* Indicators */}
-      {showIndicators && totalPages > 1 && (
+      {showIndicators && totalPages > 1 && !loading && !error && data.length > 0 && (
         <div className="mt-8 flex items-center justify-center gap-2" role="tablist" aria-label="Индикатори на слайдове">
           {Array.from({ length: totalPages }).map((_, i) => {
             const active = i === pageIndex;
