@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import HeroSection from "@/components/home/HeroSection";
 import AboutSection from "@/components/home/AboutSection";
+import ServicesSection from "@/components/home/ServicesSection";
 
 export const metadata: Metadata = {
   title: "Nova Nest Real Estate - Имоти в Стара Загора",
@@ -34,6 +35,7 @@ export default function Home(): React.ReactElement {
       {/* 2) About Section */}
       <AboutSection />
       {/* 3) ServicesSection - to be added */}
+      <ServicesSection />
       {/* 4) PropertyShowcase - to be added */}
       {/* 5) TestimonialsSection - to be added */}
       {/* 6) WhyChooseUsSection - to be added */}
