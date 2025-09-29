@@ -46,7 +46,7 @@ export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<VariantProps<typeof cardStyles>, "clickable"> {
   hoverable?: boolean;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -56,7 +56,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       if (!clickable) return;
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        onClick?.();
+        (e.currentTarget as HTMLDivElement).click();
       }
     };
     return (
@@ -83,14 +83,13 @@ const aspectMap: Record<Exclude<AspectRatio, "auto">, string> = {
   "1/1": "aspect-square",
 };
 
-export interface ImageCardProps
-  extends Omit<CardProps, "children">,
-    React.HTMLAttributes<HTMLDivElement> {
+export interface ImageCardProps extends Omit<CardProps, "children" | "onClick"> {
   imageSrc?: string;
   imageAlt: string;
   aspectRatio?: AspectRatio;
   imagePosition?: "top" | "left" | "right";
   children: React.ReactNode;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 /**
