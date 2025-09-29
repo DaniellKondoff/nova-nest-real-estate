@@ -2,9 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import logoPng from "../../../public/images/logo.png";
+import logoLight from "../../../public/images/logo.png";
+// Designer TODO: Replace the alias below when `public/images/logo-dark.png` is provided
+// with the actual dark asset import to ensure better contrast on white backgrounds.
+// import logoDark from "../../../public/images/logo-dark.png";
+import logoDark from "../../../public/images/logo.png";
 
 type LogoSize = "sm" | "md" | "lg" | "xl";
+type LogoVariant = "light" | "dark";
 
 export interface LogoProps {
   /** Size variant; defaults to "lg" for headers */
@@ -13,6 +18,8 @@ export interface LogoProps {
   className?: string;
   /** Image priority; defaults to true for above-the-fold usage */
   priority?: boolean;
+  /** Visual variant for different backgrounds; defaults to "light" */
+  variant?: LogoVariant;
 }
 
 // Tailwind height mapping per variant. Width is auto via intrinsic ratio.
@@ -37,6 +44,7 @@ export default function Logo({
   size = "lg",
   className,
   priority = true,
+  variant = "light",
 }: LogoProps) {
   const [hasError, setHasError] = useState(false);
 
@@ -51,6 +59,10 @@ export default function Logo({
   };
 
   const heightClass = sizeToHeightClass[size] ?? sizeToHeightClass.lg;
+
+  // Select image by variant; temporary alias means both variants use the same asset
+  // until the designer provides `public/images/logo-dark.png`.
+  const imageByVariant = variant === "dark" ? logoDark : logoLight;
 
   return (
     <Link
@@ -81,7 +93,7 @@ export default function Logo({
         </span>
       ) : (
         <Image
-          src={logoPng}
+          src={imageByVariant}
           alt="Nova Nest Real Estate - Недвижими имоти Стара Загора"
           priority={priority}
           quality={95}
