@@ -2,6 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/design-tokens";
 import TestimonialCard from "@/components/testimonials/TestimonialCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 export interface Testimonial {
   id: string;
@@ -23,8 +24,8 @@ export interface TestimonialCarouselProps extends React.HTMLAttributes<HTMLDivEl
 export function TestimonialCarousel({
   testimonials,
   variant = "white",
-  autoPlay = true, // placeholder for future enhancement
-  autoPlayInterval = 5000, // placeholder for future enhancement
+  autoPlay = true,
+  autoPlayInterval = 5000,
   showNavigation = true,
   showIndicators = true,
   className,
@@ -32,7 +33,11 @@ export function TestimonialCarousel({
 }: TestimonialCarouselProps) {
   const [itemsPerView, setItemsPerView] = React.useState(1);
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [isFocused, setIsFocused] = React.useState(false);
+  const [manualPaused, setManualPaused] = React.useState(false);
+  const pauseCounterRef = React.useRef(0);
+  const intervalRef = React.useRef<number | null>(null);
+  const lastNavTimeRef = React.useRef<number>(0);
+  const prefersReducedMotion = useReducedMotion();
 
   const totalPages = Math.max(1, Math.ceil((testimonials?.length || 0) / itemsPerView));
 
@@ -54,12 +59,22 @@ export function TestimonialCarousel({
     setPageIndex((idx) => Math.min(idx, Math.max(0, totalPages - 1)));
   }, [totalPages]);
 
-  const goTo = (idx: number) => {
+  const goTo = React.useCallback((idx: number) => {
     const next = Math.max(0, Math.min(totalPages - 1, idx));
     setPageIndex(next);
-  };
-  const goPrev = () => goTo(pageIndex - 1);
-  const goNext = () => goTo(pageIndex + 1);
+  }, [totalPages]);
+  const goPrev = React.useCallback(() => {
+    const now = Date.now();
+    if (now - lastNavTimeRef.current < 250) return; // debounce rapid clicks
+    lastNavTimeRef.current = now;
+    goTo(pageIndex - 1);
+  }, [goTo, pageIndex]);
+  const goNext = React.useCallback(() => {
+    const now = Date.now();
+    if (now - lastNavTimeRef.current < 250) return; // debounce rapid clicks
+    lastNavTimeRef.current = now;
+    goTo(pageIndex + 1);
+  }, [goTo, pageIndex]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "ArrowLeft") {
@@ -68,6 +83,9 @@ export function TestimonialCarousel({
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
       goNext();
+    } else if (e.key === " ") {
+      e.preventDefault();
+      setManualPaused((p) => !p);
     }
   };
 
@@ -87,6 +105,36 @@ export function TestimonialCarousel({
     ? "bg-white text-accent hover:bg-accent hover:text-white"
     : "bg-primary text-accent hover:bg-accent hover:text-white";
 
+  // Auto-play management
+  const isActuallyPaused = (pauseCounterRef.current > 0) || manualPaused;
+  const stopAutoPlay = React.useCallback(() => {
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+  const startAutoPlay = React.useCallback(() => {
+    stopAutoPlay();
+    if (!autoPlay || isActuallyPaused || totalPages <= 1 || prefersReducedMotion) return;
+    intervalRef.current = window.setInterval(() => {
+      setPageIndex((idx) => Math.min(totalPages - 1, idx + 1));
+    }, Math.max(2000, autoPlayInterval));
+  }, [autoPlay, autoPlayInterval, isActuallyPaused, stopAutoPlay, totalPages, prefersReducedMotion]);
+
+  React.useEffect(() => {
+    startAutoPlay();
+    return () => stopAutoPlay();
+  }, [startAutoPlay, stopAutoPlay, pageIndex, itemsPerView]);
+
+  const incrementPause = () => {
+    pauseCounterRef.current = Math.max(0, pauseCounterRef.current + 1);
+    stopAutoPlay();
+  };
+  const decrementPause = () => {
+    pauseCounterRef.current = Math.max(0, pauseCounterRef.current - 1);
+    startAutoPlay();
+  };
+
   return (
     <div
       className={cn("relative mx-auto w-full max-w-7xl py-16", className)}
@@ -94,25 +142,41 @@ export function TestimonialCarousel({
       aria-roledescription="carousel"
       aria-label="Клиентски отзиви"
       onKeyDown={onKeyDown}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
+      onMouseEnter={incrementPause}
+      onMouseLeave={decrementPause}
+      onFocusCapture={incrementPause}
+      onBlurCapture={decrementPause}
       {...rest}
     >
+      <span className="sr-only" role="status" aria-live="polite">
+        Слайд {pageIndex + 1} от {totalPages}
+      </span>
       {/* Track viewport */}
       <div className="relative overflow-hidden">
-        {/* Slides track */}
-        <div
-          className="flex w-full transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${pageIndex * 100}%)` }}
-          aria-live="polite"
-        >
-          {pages.map((page, idx) => (
-            <div
-              key={idx}
-              className="w-full shrink-0 px-1"
+        {/* Slides track with Framer Motion */}
+        <div className="relative w-full">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={pageIndex}
               role="group"
               aria-roledescription="slide"
-              aria-label={`Слайд ${idx + 1} от ${totalPages}`}
+              aria-label={`Слайд ${pageIndex + 1} от ${totalPages}`}
+              className="w-full px-1"
+              initial={prefersReducedMotion ? false : { opacity: 0, x: 100 }}
+              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+              exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -100 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={(_, info) => {
+                const dx = info.offset.x;
+                const threshold = 50;
+                if (dx < -threshold) {
+                  goNext();
+                } else if (dx > threshold) {
+                  goPrev();
+                }
+              }}
             >
               <div
                 className={cn(
@@ -120,7 +184,7 @@ export function TestimonialCarousel({
                   itemsPerView === 1 ? "" : itemsPerView === 2 ? "sm:grid-cols-2" : "lg:grid-cols-3"
                 )}
               >
-                {page.length === 0 ? (
+                {(pages[pageIndex] || []).length === 0 ? (
                   <div
                     className={cn(
                       "rounded-md border p-6 text-center",
@@ -132,7 +196,7 @@ export function TestimonialCarousel({
                     Няма налични отзиви в момента.
                   </div>
                 ) : (
-                  page.map((t) => (
+                  (pages[pageIndex] || []).map((t) => (
                     <TestimonialCard
                       key={t.id}
                       testimonial={t.testimonial}
@@ -144,14 +208,14 @@ export function TestimonialCarousel({
                   ))
                 )}
               </div>
-            </div>
-          ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Navigation Buttons */}
         {showNavigation && totalPages > 1 && (
           <>
-            <button
+            <motion.button
               type="button"
               className={cn(
                 "absolute left-3 top-1/2 -translate-y-1/2 shadow-soft",
@@ -164,10 +228,12 @@ export function TestimonialCarousel({
               onClick={goPrev}
               aria-label="Предишни отзиви"
               disabled={pageIndex === 0}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
               <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               className={cn(
                 "absolute right-3 top-1/2 -translate-y-1/2 shadow-soft",
@@ -180,9 +246,11 @@ export function TestimonialCarousel({
               onClick={goNext}
               aria-label="Следващи отзиви"
               disabled={pageIndex >= totalPages - 1}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
               <ChevronRight className="h-5 w-5" />
-            </button>
+            </motion.button>
           </>
         )}
       </div>
@@ -193,7 +261,7 @@ export function TestimonialCarousel({
           {Array.from({ length: totalPages }).map((_, i) => {
             const active = i === pageIndex;
             return (
-              <button
+              <motion.button
                 key={i}
                 type="button"
                 role="tab"
@@ -204,6 +272,9 @@ export function TestimonialCarousel({
                   active ? "bg-accent scale-110" : "bg-[#cbd5e1] hover:bg-accent/60"
                 )}
                 onClick={() => goTo(i)}
+                whileHover={{ scale: 1.1 }}
+                animate={active ? { scale: 1.2 } : { scale: 1 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               />
             );
           })}
