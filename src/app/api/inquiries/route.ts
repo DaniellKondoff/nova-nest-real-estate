@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/types/database.generated";
-import { getServerClient } from "@/lib/supabase";
 import { ContactFormSchema } from "@/lib/validations";
+import { env, getServerEnv } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
     const data = await ContactFormSchema.parseAsync(payload);
 
-    const supabase = getServerClient();
+    // Use service role on the server to bypass RLS for safe server-only writes
+    const { SUPABASE_SERVICE_ROLE_KEY } = getServerEnv();
+    const supabase = createClient<Database>(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY
+    );
     const { data: inserted, error } = await supabase
       .from("inquiries")
       .insert({
