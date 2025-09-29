@@ -1,7 +1,6 @@
 import React from "react";
 import { Inter } from "next/font/google";
-import type { LucideIcon as LucideIconType } from "lucide-react";
-import { Banknote, Home, Key, DoorOpen, Scale, Gavel } from "lucide-react";
+import ServiceCard from "@/components/home/ServiceCard";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -17,63 +16,50 @@ export interface ServiceItem {
   link?: string;
 }
 
-const ICONS: Record<string, LucideIconType> = {
-  Banknote,
-  Home,
-  Key,
-  DoorOpen,
-  Scale,
-  Gavel,
-};
-
 const services: ServiceItem[] = [
   {
     id: "sell",
-    icon: "Banknote",
+    icon: "Home",
     title_bg: "Продажба на имоти",
     description_bg:
-      "Пълна маркетингова стратегия, професионални снимки и прецизно договаряне за най-добра цена.",
+      "Професионална оценка, маркетинг стратегия и пълно съпровождане на процеса на продажба. Осигуряваме максимална видимост на вашия имот и привличаме сериозни купувачи.",
   },
   {
     id: "buy",
-    icon: "Home",
+    icon: "Search",
     title_bg: "Покупка на имоти",
     description_bg:
-      "Персонализирано търсене, огледи и експертна оценка, за да изберете правилния дом.",
+      "Помагаме ви да намерите идеалния имот според вашите нужди и бюджет. Предоставяме детайлна информация за всеки имот и организираме огледи.",
   },
   {
     id: "rent_out",
-    icon: "Key",
+    icon: "KeyRound",
     title_bg: "Отдаване под наем",
     description_bg:
-      "Подбор на надеждни наематели, изготвяне на договори и управление на целия процес.",
+      "Намираме надежди наематели за вашия имот. Проверяваме референции, подготвяме договори и осигуряваме спокойствие.",
   },
   {
     id: "rent",
-    icon: "DoorOpen",
+    icon: "Building",
     title_bg: "Наемане на имоти",
     description_bg:
-      "Актуални оферти, бърза комуникация и прозрачни условия за спокойно наемане.",
+      "Богата база данни с имоти под наем в различни квартали на града. Съдействие при преговори и сключване на договор.",
   },
   {
     id: "valuation",
-    icon: "Scale",
+    icon: "ClipboardCheck",
     title_bg: "Оценка на имоти",
     description_bg:
-      "Пазарен анализ и професионална оценка за продажба, наем или финансиране.",
+      "Професионална оценка на пазарната стойност на вашия имот от лицензирани оценители.",
   },
   {
     id: "legal",
-    icon: "Gavel",
+    icon: "Scale",
     title_bg: "Юридическо съдействие",
     description_bg:
-      "Пълна правна проверка, подготовка на документация и подкрепа до финализиране на сделката.",
+      "Пълна правна поддръжка на сделките - проверка на документи, подготовка на договори, съдействие при нотариални процедури.",
   },
 ];
-
-function getIconComponent(name: string): LucideIconType {
-  return ICONS[name] ?? Home;
-}
 
 export default function ServicesSection(): React.ReactElement {
   return (
@@ -98,31 +84,14 @@ export default function ServicesSection(): React.ReactElement {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((item) => {
-            const Icon = getIconComponent(item.icon);
-            const titleId = `service-${item.id}-title`;
-            return (
-              <article
-                key={item.id}
-                aria-labelledby={titleId}
-                className="rounded-lg border border-white/10 bg-white/5 p-6 backdrop-blur-sm hover:bg-white/10 transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white/10 text-white">
-                    <Icon aria-hidden className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 id={titleId} className="text-xl font-semibold text-white mb-2">
-                      {item.title_bg}
-                    </h3>
-                    <p className="text-white/80 leading-relaxed">
-                      {item.description_bg}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+          {services.map((item) => (
+            <ServiceCard
+              key={item.id}
+              icon={item.icon}
+              title_bg={item.title_bg}
+              description_bg={item.description_bg}
+            />
+          ))}
         </div>
       </div>
     </section>
