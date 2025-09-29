@@ -1,83 +1,54 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseClient } from "@/lib/supabase";
-import { formatErrorMessage, ValidationError, DatabaseError } from "@/lib/errors";
-import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import type { Database } from "@/types/database.generated";
-import { ContactInquirySchema } from "@/lib/validations";
-import { ok, fail } from "@/lib/api";
-
-const InquiryCreateSchema = ContactInquirySchema.extend({
-  inquiryType: z.enum(["general", "property_interest", "viewing_request", "valuation", "selling", "renting"]),
-  subject: z.string().min(3).max(200).optional(),
-  utm_source: z.string().max(100).optional(),
-  utm_medium: z.string().max(100).optional(),
-  utm_campaign: z.string().max(100).optional(),
-});
+import { getServerClient } from "@/lib/supabase";
+import { ContactFormSchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
   try {
-    /**
-     * Create a new public inquiry
-     *
-     * Authentication: not required
-     * Rate limiting: TODO - add IP-based throttling to protect against abuse
-     *
-     * Request body example:
-     * {
-     *   "fullName": "Иван Иванов",
-     *   "email": "ivan@example.com",
-     *   "phone": "+359 88 123 4567",
-     *   "message": "Интересувам се от имота.",
-     *   "propertyId": 123,
-     *   "inquiryType": "property_interest",
-     *   "subject": "Запитване за оглед",
-     *   "utm_source": "google",
-     *   "utm_medium": "cpc",
-     *   "utm_campaign": "brand"
-     * }
-     *
-     * Success response example (201):
-     * { "data": { "success": true } }
-     *
-     * Error response example (400):
-     * { "error": "Невалидни данни.", "code": "VALIDATION_ERROR", "details": { "issues": [...] } }
-     */
     const payload = await req.json();
-    const parsed = await InquiryCreateSchema.parseAsync(payload);
+    const data = await ContactFormSchema.parseAsync(payload);
 
-    const supabase = getSupabaseClient();
-    const { error } = await supabase
+    const supabase = getServerClient();
+    const { data: inserted, error } = await supabase
       .from("inquiries")
       .insert({
-        full_name: parsed.fullName,
-        email: parsed.email,
-        phone: parsed.phone,
-        message: parsed.message,
-        property_id: parsed.propertyId ?? null,
-        inquiry_type: parsed.inquiryType as Database["public"]["Enums"]["inquiry_type"],
+        full_name: data.full_name,
+        email: data.email,
+        phone: data.phone && data.phone.length > 0 ? data.phone : null,
+        inquiry_type: "general" as Database["public"]["Enums"]["inquiry_type"],
+        message: data.message,
+        subject: null,
+        property_id: null,
         status: "new" as Database["public"]["Enums"]["inquiry_status"],
-        subject: (payload?.subject as string | undefined) ?? null,
-        utm_source: parsed.utm_source ?? null,
-        utm_medium: parsed.utm_medium ?? null,
-        utm_campaign: parsed.utm_campaign ?? null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      })
+      .select("id")
+      .single();
+
     if (error) {
-      throw new DatabaseError("Неуспешно изпращане на запитване. Опитайте отново.");
+      // Server-side log for debugging, but return friendly message to client
+      console.error("Inquiries insert error:", error);
+      return NextResponse.json(
+        { success: false, error: "Възникна грешка при запазване. Моля, опитайте отново." },
+        { status: 500 }
+      );
     }
 
-    const body: SuccessResponse<{ success: true }> = { data: { success: true } };
-    return ok(body.data, { status: 201 });
-  } catch (err) {
-    // Surface Zod validation issues for AI-friendly debugging
+    return NextResponse.json(
+      { success: true, message: "Вашето запитване беше изпратено успешно!", inquiryId: inserted?.id },
+      { status: 201 }
+    );
+  } catch (err: unknown) {
     if (err instanceof z.ZodError) {
-      return fail("Невалидни данни.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
+      return NextResponse.json({ success: false, error: "Невалидни данни" }, { status: 400 });
     }
-    const status = err instanceof ValidationError ? 400 : 500;
-    const body: ErrorResponse = { error: formatErrorMessage(err) };
-    return fail(body.error, { status, code: status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
+    console.error("Inquiries route unexpected error:", err);
+    return NextResponse.json(
+      { success: false, error: "Възникна неочаквана грешка. Моля, опитайте отново." },
+      { status: 500 }
+    );
   }
 }
 

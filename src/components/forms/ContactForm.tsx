@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Loader2, Send } from "lucide-react";
+import { AlertCircle, Loader2, Send, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/design-tokens";
 import { ContactFormSchema, type ContactFormData } from "@/lib/validations";
 
@@ -22,15 +22,18 @@ export default function ContactForm({
 }: ContactFormProps): React.ReactElement {
   const [serverMessage, setServerMessage] = React.useState<string | null>(null);
   const [serverError, setServerError] = React.useState<string | null>(null);
+  const [submitStatus, setSubmitStatus] = React.useState<{ type: "success" | "error"; message?: string } | null>(null);
+  const successRef = React.useRef<HTMLDivElement | null>(null);
+  const errorRef = React.useRef<HTMLDivElement | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isValid, isSubmitted },
-    setError,
     clearErrors,
     setFocus,
     watch,
+    reset,
   } = useForm<ContactFormData>({
     resolver: zodResolver(ContactFormSchema),
     mode: "onBlur",
@@ -43,6 +46,15 @@ export default function ContactForm({
     },
   });
 
+  // Helper component for success auto-dismiss timer
+  function AutoDismiss({ onDone }: { onDone: () => void }) {
+    React.useEffect(() => {
+      const t = setTimeout(onDone, 8000);
+      return () => clearTimeout(t);
+    }, [onDone]);
+    return null;
+  }
+
   React.useEffect(() => {
     if (isSubmitted && Object.keys(errors).length > 0) {
       const firstKey = Object.keys(errors)[0] as keyof ContactFormData;
@@ -53,21 +65,55 @@ export default function ContactForm({
   const nameValue = watch("full_name");
   const messageValue = watch("message");
 
-  const onLocalSubmit = async (data: ContactFormData) => {
+  const onLocalSubmit = async (formData: ContactFormData) => {
     setServerMessage(null);
     setServerError(null);
+    setSubmitStatus(null);
     try {
-      // Placeholder behavior: simulate processing and log
-      // Will be replaced with Supabase integration in next step
-      // eslint-disable-next-line no-console
-      console.log("ContactForm submit:", data);
-      await onSubmit(data);
-      setServerMessage("Вашето запитване беше изпратено успешно.");
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 15000);
+
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+        signal: controller.signal,
+      });
+      clearTimeout(id);
+
+      if (!res.ok) {
+        let message = "Възникна грешка на сървъра. Моля, опитайте отново по-късно.";
+        if (res.status === 400) message = "Моля, проверете въведените данни";
+        else if (res.status === 429) message = "Твърде много опити. Моля, опитайте отново след няколко минути.";
+        setSubmitStatus({ type: "error", message });
+        onError?.(message);
+        // focus error box
+        setTimeout(() => errorRef.current?.focus(), 0);
+        return;
+      }
+
+      const json = (await res.json()) as { success: boolean; message?: string };
+      const successMsg = json.message ?? "Вашето запитване беше изпратено успешно!";
+      setServerMessage(successMsg);
+      setSubmitStatus({ type: "success", message: successMsg });
       onSuccess?.();
+
+      // Reset form on success
+      reset({ full_name: "", email: "", phone: "", message: "" });
+      clearErrors();
+      // focus success box
+      setTimeout(() => {
+        successRef.current?.focus();
+        successRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Възникна неочаквана грешка.";
+      const msg = (e as any)?.name === "AbortError"
+        ? "Заявката отне твърде дълго. Моля, опитайте отново."
+        : "Проблем с връзката. Проверете интернет свързването си.";
       setServerError(msg);
+      setSubmitStatus({ type: "error", message: msg });
       onError?.(msg);
+      setTimeout(() => errorRef.current?.focus(), 0);
     }
   };
 
@@ -78,7 +124,7 @@ export default function ContactForm({
   const inputFocus =
     "focus:outline-none focus:border-2 focus:border-[#d4af37] focus:ring-0 focus:[box-shadow:0_0_0_3px_rgba(212,175,55,0.1)]";
   const inputError = "border-[#ef4444] bg-[#fef2f2]";
-  const inputDisabled = "disabled:bg-[#f9fafb] disabled:text-[#9ca3af] disabled:cursor-not-allowed";
+  const inputDisabled = "disabled:bg-[#f9fafb] disabled:text-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-60";
 
   const labelBase = "mb-2 block text-sm font-medium text-[#1a2642]";
   const helperText = "mt-1 text-[13px] text-[#6b7280]";
@@ -105,6 +151,48 @@ export default function ContactForm({
     >
       {/* Note for required fields */}
       <p className="mb-4 text-[13px] text-[#6b7280]">* Задължителни полета</p>
+
+      {/* Success / Error banners */}
+      {submitStatus?.type === "success" && (
+        <div
+          ref={successRef}
+          tabIndex={-1}
+          role="alert"
+          aria-live="polite"
+          className="mb-4 flex items-start gap-3 rounded-md border border-[#86efac] bg-[#f0fdf4] p-4 text-[#065f46]"
+        >
+          <CheckCircle className="mt-0.5 h-5 w-5 text-[#10b981]" aria-hidden="true" />
+          <div>
+            <p className="font-semibold">Успешно изпращане!</p>
+            <p>{submitStatus.message}</p>
+            <p className="text-[13px] text-[#065f46]/80">Ще се свържем с вас в рамките на 24 часа.</p>
+          </div>
+        </div>
+      )}
+      {submitStatus?.type === "error" && (
+        <div
+          ref={errorRef}
+          tabIndex={-1}
+          role="alert"
+          aria-live="assertive"
+          className="mb-4 flex items-start justify-between gap-3 rounded-md border border-[#fca5a5] bg-[#fef2f2] p-4 text-[#991b1b]"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 text-[#ef4444]" aria-hidden="true" />
+            <div>
+              <p className="font-semibold">Грешка при изпращане</p>
+              <p>{submitStatus.message}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="text-[13px] underline"
+            onClick={() => setSubmitStatus(null)}
+          >
+            Затвори
+          </button>
+        </div>
+      )}
 
       {/* Name */}
       <div>
@@ -242,7 +330,7 @@ export default function ContactForm({
         <button
           type="submit"
           className={cn(buttonBase, buttonGold, "w-full sm:w-auto")}
-          disabled={!isValid || isSubmitting || !nameValue || !messageValue}
+          disabled={!isValid || isSubmitting}
           aria-disabled={!isValid || isSubmitting}
         >
           {isSubmitting ? (
@@ -260,12 +348,13 @@ export default function ContactForm({
       </div>
 
       {/* Live regions for SR announcements */}
-      <p className="sr-only" aria-live="polite">
-        {serverMessage ?? ""}
-      </p>
-      <p className="sr-only" aria-live="assertive">
-        {serverError ?? ""}
-      </p>
+      <p className="sr-only" aria-live="polite">{serverMessage ?? ""}</p>
+      <p className="sr-only" aria-live="assertive">{serverError ?? ""}</p>
+
+      {/* Auto-dismiss success after 8s */}
+      {submitStatus?.type === "success" && (
+        <AutoDismiss onDone={() => setSubmitStatus(null)} />
+      )}
     </form>
   );
 }
