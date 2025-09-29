@@ -4,6 +4,7 @@ import AboutSection from "@/components/home/AboutSection";
 import ServicesSection from "@/components/home/ServicesSection";
 import PropertyShowcase from "@/components/home/PropertyShowcase";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
+import WhyChooseUsSection from "@/components/home/WhyChooseUsSection";
 import ContactCTASection from "@/components/home/ContactCTASection";
 
 export const metadata: Metadata = {
@@ -36,8 +37,8 @@ export default function Home(): React.ReactElement {
       <AboutSection id="about" />
       <ServicesSection id="services" />
       <PropertyShowcase />
-      <TestimonialsSection variant="navy" />
-      {/* 6) WhyChooseUsSection - to be added */}
+      <TestimonialsSection variant="white" />
+      <WhyChooseUsSection />
       <ContactCTASection id="contact" />
     </main>
   );
