@@ -9,6 +9,7 @@
  */
 
 import React from "react";
+import Link from "next/link";
 import PropertySearchForm from "@/components/forms/PropertySearchForm";
 
 export interface HeroSectionProps {
@@ -39,6 +40,17 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
             >
               Професионални услуги за недвижими имоти с индивидуален подход и експертни съвети
             </p>
+
+            {/* CTA Button: centered below heading/subheading */}
+            <div className="mt-8 flex w-full items-center justify-center">
+              <Link
+                href="/properties"
+                className="rounded-lg bg-[#d4af37] px-8 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-[#c49d2f] hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+                aria-label="Разгледайте имотите"
+              >
+                Разгледайте имотите
+              </Link>
+            </div>
           </div>
 
           <div className="w-full mt-10 lg:mt-12">
