@@ -13,14 +13,14 @@ function normalizeRole(role: string | null | undefined): AdminRole | null {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase.auth.getUser();
   if (error) return null;
   return data.user ?? null;
 }
 
 export async function isAdminUser(): Promise<boolean> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const user = await getCurrentUser();
   if (!user) return false;
 
@@ -35,7 +35,7 @@ export async function isAdminUser(): Promise<boolean> {
 }
 
 export async function getAdminRole(): Promise<AdminRole | null> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const user = await getCurrentUser();
   if (!user) return null;
 

@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Ensure coordinates and amenities present by enriching from DB if needed
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     // Assuming neighborhoods table already includes coordinates and amenities fields
     // If not, join via RPC or views; for now return as-is
 

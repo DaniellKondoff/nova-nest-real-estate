@@ -5,7 +5,7 @@ type CategoryRow = Database["public"]["Tables"]["property_categories"]["Row"];
 type PropertyRow = Database["public"]["Tables"]["properties"]["Row"];
 
 export async function getAllPropertyCategories(): Promise<CategoryRow[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("property_categories")
     .select("*")
@@ -16,7 +16,7 @@ export async function getAllPropertyCategories(): Promise<CategoryRow[]> {
 }
 
 export async function getPropertiesByCategory(categoryId: number): Promise<PropertyRow[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("properties")
     .select("*")

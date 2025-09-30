@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const parsed = await FormSchema.parseAsync({ files, alt_text_bg: altTextBg });
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     // Check if property exists
     const { data: prop, error: propErr } = await supabase

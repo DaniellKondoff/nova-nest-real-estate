@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     const raw = Object.fromEntries(url.searchParams.entries());
     const parsed = await QuerySchema.parseAsync(raw);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     let query = supabase
       .from("testimonials")
       .select("*, property:properties(*)", { count: "exact" });
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     const payload = await req.json();
     const parsed = await CreateSchema.parseAsync(payload);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from("testimonials")
       .insert({
@@ -116,7 +116,8 @@ export async function POST(req: NextRequest) {
 
     // Auto-approve high ratings via RPC if provided
     if ((data as any)?.id && (parsed.rating ?? 0) >= 5) {
-      await getSupabaseClient().rpc("auto_approve_testimonial", { testimonial_id: (data as any).id, min_rating: 5 });
+      const supa = await getSupabaseClient();
+      await supa.rpc("auto_approve_testimonial", { testimonial_id: (data as any).id, min_rating: 5 });
     }
 
     const body: SuccessResponse<any> = { data: data as any };

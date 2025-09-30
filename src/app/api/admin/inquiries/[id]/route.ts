@@ -27,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const id = Number(params.id);
     if (!Number.isFinite(id) || id <= 0) throw new ValidationError("Невалидно ID на запитване.");
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from("inquiries")
       .select("*, property:properties(*), assigned:admin_profiles(*)")
@@ -63,7 +63,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const payload = await req.json();
     const parsed = await UpdateSchema.parseAsync(payload);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     // Assign if requested
     if (parsed.assign_to) {

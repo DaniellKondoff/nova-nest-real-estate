@@ -15,7 +15,7 @@ export async function GET(_req: NextRequest) {
     const isAdmin = await isAdminUser();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     const [propertiesRes, inquiriesRes, testimonialsRes, featuredRes] = await Promise.all([
       supabase.from("properties").select("id", { count: "exact", head: true }),

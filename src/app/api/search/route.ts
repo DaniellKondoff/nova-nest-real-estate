@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
     // If user searched in English and we got no results, try EN fallback directly
     if ((results?.length ?? 0) === 0 && isLikelyEnglish(parsed.q)) {
-      const supabase = getSupabaseClient();
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase.rpc("search_properties_combined", {
         search_term: parsed.q || undefined,
         language_code: "en",

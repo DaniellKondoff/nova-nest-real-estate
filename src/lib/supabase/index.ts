@@ -3,13 +3,13 @@ export { getServerClient } from "./server";
 
 export type { Database } from "@/types/database.generated";
 
-export function getSupabaseClient() {
+export async function getSupabaseClient() {
   if (typeof window !== "undefined") {
     const { getBrowserClient } = require("./client");
     return getBrowserClient();
   }
   const { getServerClient } = require("./server");
-  return getServerClient();
+  return await getServerClient();
 }
 
 

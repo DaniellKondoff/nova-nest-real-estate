@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     const raw = Object.fromEntries(url.searchParams.entries());
     const parsed = await QuerySchema.parseAsync(raw);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase.rpc("get_properties_within_radius", {
       center_lat: parsed.lat,
       center_lng: parsed.lng,

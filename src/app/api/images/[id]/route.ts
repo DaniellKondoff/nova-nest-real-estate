@@ -24,7 +24,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       throw new ValidationError("Невалидно ID на изображение.");
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data: image, error: imgErr } = await supabase
       .from("property_images")
       .select("id, property_id, url, is_primary, sort_order")

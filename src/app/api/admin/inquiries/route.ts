@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     const raw = Object.fromEntries(url.searchParams.entries());
     const parsed = await QuerySchema.parseAsync(raw);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     // Base query
     let query = supabase

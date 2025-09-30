@@ -5,7 +5,7 @@ type NeighborhoodRow = Database["public"]["Tables"]["neighborhoods"]["Row"];
 type PropertyRow = Database["public"]["Tables"]["properties"]["Row"];
 
 export async function getAllNeighborhoods(): Promise<NeighborhoodRow[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("neighborhoods")
     .select("*")
@@ -15,7 +15,7 @@ export async function getAllNeighborhoods(): Promise<NeighborhoodRow[]> {
 }
 
 export async function getNeighborhoodBySlug(slug: string): Promise<NeighborhoodRow | null> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("neighborhoods")
     .select("*")
@@ -26,7 +26,7 @@ export async function getNeighborhoodBySlug(slug: string): Promise<NeighborhoodR
 }
 
 export async function getPropertiesInNeighborhood(neighborhoodId: number): Promise<PropertyRow[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("properties")
     .select("*")

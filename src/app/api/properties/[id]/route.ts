@@ -31,7 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     }
 
     // Fetch category
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const categoryId = (property as any)?.category_id as number | undefined;
     let category: Pick<CategoryRow, "id" | "name_bg" | "slug"> | null = null;
     if (typeof categoryId === "number") {
@@ -84,7 +84,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const payload = await req.json();
     const parsed = await AdminPropertySchema.partial().parseAsync(payload);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from("properties")
       .update({ ...parsed, updated_at: new Date().toISOString() })
@@ -127,7 +127,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
       throw new ValidationError("Невалидно ID.");
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { error, count } = await supabase
       .from("properties")
       .delete({ count: "exact" })

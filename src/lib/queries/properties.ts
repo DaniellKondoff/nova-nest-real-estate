@@ -13,7 +13,7 @@ export type PropertyWithRelations = PropertyRow & {
 };
 
 export async function getPublishedProperties(): Promise<PropertyRow[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("properties")
     .select("*")
@@ -23,7 +23,7 @@ export async function getPublishedProperties(): Promise<PropertyRow[]> {
 }
 
 export async function getPropertyById(id: number): Promise<PropertyWithRelations | null> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("properties")
     .select(
@@ -49,7 +49,7 @@ export async function searchProperties(
   searchTerm: string | undefined,
   filters: SearchFilters = {}
 ): Promise<{ id: number; title_bg: string; price_eur: number; rank: number }[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase.rpc("search_properties_combined", {
     search_term: searchTerm || undefined,
@@ -69,7 +69,7 @@ export async function searchProperties(
 export async function getFeaturedProperties(limit = 6, operationType?: OperationType): Promise<
   { id: number; title_bg: string; price_eur: number; neighborhood_name: string; primary_image_url: string }[]
 > {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase.rpc("get_featured_properties", {
     limit_count: limit,
     operation_type_filter: operationType,

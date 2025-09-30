@@ -80,7 +80,7 @@ function buildItemListStructuredData(items: { id: string | number; name: string;
 }
 
 async function fetchInitialData(page: number) {
-  const supabase = getServerClient();
+  const supabase = await getServerClient();
   void supabase; // ensure server client is initialized for SSR cookies
 
   // Note: existing getPublishedProperties does not paginate; we fetch all then slice.

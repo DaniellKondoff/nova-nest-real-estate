@@ -33,7 +33,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const id = Number(params.id);
     if (!Number.isFinite(id) || id <= 0) throw new ValidationError("Невалидно ID на отзив.");
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from("testimonials")
       .select("*, property:properties(*)")
@@ -69,7 +69,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const payload = await req.json();
     const parsed = await UpdateSchema.parseAsync(payload);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     const updateFields: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -88,7 +88,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     // Optionally auto-approve high ratings when updated
     if ((parsed.rating ?? null) !== null && (parsed.rating as number) >= 5) {
-      await getSupabaseClient().rpc("auto_approve_testimonial", { testimonial_id: id, min_rating: 5 });
+      const supa = await getSupabaseClient();
+      await supa.rpc("auto_approve_testimonial", { testimonial_id: id, min_rating: 5 });
     }
 
     const body: SuccessResponse<any> = { data };

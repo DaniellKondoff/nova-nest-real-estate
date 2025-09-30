@@ -43,3 +43,6 @@ export interface GeographicSearchParams {
 }
 
 
+// Re-export app-wide search filters used by UI and APIs for consistency
+export type { PropertySearchFilters } from "@/types/property";
+

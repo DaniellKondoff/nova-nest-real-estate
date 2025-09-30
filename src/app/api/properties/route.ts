@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       throw new AuthError("Неуспешно удостоверяване на потребителя.");
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const insertPayload = {
       ...parsed,
       created_by: user.id,
