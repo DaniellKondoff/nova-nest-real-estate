@@ -12,7 +12,7 @@ import type { PropertyWithRelations } from "@/lib/queries/properties";
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
 
-type PageParams = { params: { id: string } };
+type PageParams = { params: Promise<{ id: string }> };
 
 type PropertyRow = Database["public"]["Tables"]["properties"]["Row"];
 type NeighborhoodRow = Database["public"]["Tables"]["neighborhoods"]["Row"];
@@ -91,7 +91,8 @@ async function fetchPropertyDetails(idNum: number): Promise<PropertyWithDetails 
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
   try {
-    const idNum = validateIdOrNotFound(params.id);
+    const { id } = await params;
+    const idNum = validateIdOrNotFound(id);
     const details = await fetchPropertyDetails(idNum);
     if (!details) notFound();
 
@@ -108,7 +109,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
       "имоти",
     ].filter(Boolean) as string[];
 
-    const canonical = `https://novanest.bg/properties/${params.id}`;
+    const canonical = `https://novanest.bg/properties/${id}`;
 
     return {
       title,
@@ -130,7 +131,8 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 }
 
 export default async function PropertyDetailPage({ params }: PageParams) {
-  const idNum = validateIdOrNotFound(params.id);
+  const { id } = await params;
+  const idNum = validateIdOrNotFound(id);
 
   let details: PropertyWithDetails | null = null;
   try {
@@ -159,7 +161,7 @@ export default async function PropertyDetailPage({ params }: PageParams) {
       price: property.price_eur ?? undefined,
       priceCurrency: "EUR",
       availability: "https://schema.org/InStock",
-      url: `https://novanest.bg/properties/${params.id}`,
+      url: `https://novanest.bg/properties/${id}`,
     },
     brand: {
       "@type": "Organization",
