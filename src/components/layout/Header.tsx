@@ -21,9 +21,9 @@ interface HeaderProps {
 
 const DEFAULT_NAV_ITEMS: NavLinkItem[] = [
   { label: "Начало", href: "/" },
+  { label: "Имоти", href: "/properties" },
   { label: "За нас", href: "/#about" },
   { label: "Услуги", href: "/#services" },
-  { label: "Обяви", href: "/imoti" },
   { label: "Контакти", href: "/#contact" },
 ];
 
@@ -209,7 +209,7 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
                 const active = isActive(item.href);
                 const baseClasses =
                   "text-white text-base font-medium px-3 py-2 rounded-md transition-all duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]";
-                const hoverClasses = "hover:bg-[#d4af37]/10 hover:scale-105";
+                const hoverClasses = "hover:bg-[#d4af37]/10 hover:text-[#d4af37] hover:scale-105";
                 const activeClasses =
                   "bg-[#d4af37]/15 text-[#d4af37] font-semibold underline decoration-2 decoration-[#d4af37] underline-offset-4";
 
