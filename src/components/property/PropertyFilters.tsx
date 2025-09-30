@@ -59,6 +59,22 @@ export default function PropertyFilters({ initialFilters, onFilterChange, catego
     },
   });
 
+  // Keep local draft in sync when initialFilters change externally (e.g., via URL back/forward)
+  React.useEffect(() => {
+    form.reset({
+      searchTerm: initialFilters?.searchTerm ?? "",
+      operationType: initialFilters?.operationType ?? undefined,
+      categoryId: initialFilters?.categoryId,
+      neighborhoodId: initialFilters?.neighborhoodId,
+      minPrice: initialFilters?.minPriceEur,
+      maxPrice: initialFilters?.maxPriceEur,
+      minArea: initialFilters?.minArea,
+      maxArea: initialFilters?.maxArea,
+    });
+    setSelectedCategories(initialFilters?.categoryId ? [initialFilters.categoryId] : []);
+    setSelectedNeighborhoods(initialFilters?.neighborhoodId ? [initialFilters.neighborhoodId] : []);
+  }, [initialFilters?.searchTerm, initialFilters?.operationType, initialFilters?.categoryId, initialFilters?.neighborhoodId, initialFilters?.minPriceEur, initialFilters?.maxPriceEur, initialFilters?.minArea, initialFilters?.maxArea]);
+
   // Sync multi-selects from initialFilters (if provided as single ids)
   React.useEffect(() => {
     if (initialFilters?.categoryId) setSelectedCategories([initialFilters.categoryId]);
@@ -255,6 +271,7 @@ export default function PropertyFilters({ initialFilters, onFilterChange, catego
           className="w-full"
           onClick={() => setIsOpen(true)}
           leftIcon={<Filter className="h-4 w-4" />}
+          id="filters-toggle"
         >
           Филтри
         </Button>

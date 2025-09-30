@@ -57,29 +57,41 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const limit = Math.max(1, Math.min(100, parsed.limit));
     const { searchTerm, ...restFilters } = toQueryFilters(parsed.filters);
 
-    // First stage: get matching IDs via RPC search (fast, indexed)
+    // First stage: get matching IDs via RPC search (fast, indexed) when filters provided; otherwise, use fallback list
     let ids: number[] = [];
-    try {
-      const searchList = await searchProperties(searchTerm, restFilters);
-      ids = searchList.map((r) => r.id);
-    } catch (e) {
-      // Fall back to published properties list if RPC unavailable
-      // eslint-disable-next-line no-console
-      console.error("[properties/search] RPC fallback due to error:", e);
+    const hasAnyFilter = Boolean(
+      searchTerm ||
+      typeof restFilters.categoryId === "number" ||
+      typeof restFilters.neighborhoodId === "number" ||
+      typeof restFilters.minPrice === "number" ||
+      typeof restFilters.maxPrice === "number" ||
+      typeof restFilters.minArea === "number" ||
+      typeof restFilters.maxArea === "number" ||
+      restFilters.operationType
+    );
+
+    if (hasAnyFilter) {
+      try {
+        const searchList = await searchProperties(searchTerm, restFilters);
+        ids = searchList.map((r) => r.id);
+      } catch (_e) {
+        const all = await getPublishedProperties();
+        const filtered = all.filter((p) => {
+          const byCategory = typeof restFilters.categoryId === "number" ? p.category_id === restFilters.categoryId : true;
+          const byNeighborhood = typeof restFilters.neighborhoodId === "number" ? p.neighborhood_id === restFilters.neighborhoodId : true;
+          const price = (p.price_eur ?? undefined) ?? (p.price_bgn ?? undefined);
+          const byMinPrice = typeof restFilters.minPrice === "number" ? (price ?? 0) >= restFilters.minPrice : true;
+          const byMaxPrice = typeof restFilters.maxPrice === "number" ? (price ?? 0) <= restFilters.maxPrice : true;
+          const byAreaMin = typeof restFilters.minArea === "number" ? (p.area_sqm ?? 0) >= restFilters.minArea : true;
+          const byAreaMax = typeof restFilters.maxArea === "number" ? (p.area_sqm ?? 0) <= restFilters.maxArea : true;
+          const bySearch = searchTerm && p.title_bg ? p.title_bg.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+          return byCategory && byNeighborhood && byMinPrice && byMaxPrice && byAreaMin && byAreaMax && bySearch;
+        });
+        ids = filtered.map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
+      }
+    } else {
       const all = await getPublishedProperties();
-      // Minimal filtering fallback
-      const filtered = all.filter((p) => {
-        const byCategory = typeof restFilters.categoryId === "number" ? p.category_id === restFilters.categoryId : true;
-        const byNeighborhood = typeof restFilters.neighborhoodId === "number" ? p.neighborhood_id === restFilters.neighborhoodId : true;
-        const price = (p.price_eur ?? undefined) ?? (p.price_bgn ?? undefined);
-        const byMinPrice = typeof restFilters.minPrice === "number" ? (price ?? 0) >= restFilters.minPrice : true;
-        const byMaxPrice = typeof restFilters.maxPrice === "number" ? (price ?? 0) <= restFilters.maxPrice : true;
-        const byAreaMin = typeof restFilters.minArea === "number" ? (p.area_sqm ?? 0) >= restFilters.minArea : true;
-        const byAreaMax = typeof restFilters.maxArea === "number" ? (p.area_sqm ?? 0) <= restFilters.maxArea : true;
-        const bySearch = searchTerm && p.title_bg ? p.title_bg.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-        return byCategory && byNeighborhood && byMinPrice && byMaxPrice && byAreaMin && byAreaMax && bySearch;
-      });
-      ids = filtered.map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
+      ids = all.map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
     }
 
     const total = ids.length;
