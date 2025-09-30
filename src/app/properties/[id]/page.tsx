@@ -8,6 +8,13 @@ import { getPropertyById } from "@/lib/queries/properties";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Database } from "@/types/database.generated";
 import type { PropertyWithRelations } from "@/lib/queries/properties";
+import PropertyGallery from "@/components/property/PropertyGallery";
+import PropertyHeader from "@/components/property/PropertyHeader";
+import PropertyDescription from "@/components/property/PropertyDescription";
+import PropertyDetails from "@/components/property/PropertyDetails";
+import PropertyFeatures from "@/components/property/PropertyFeatures";
+import NeighborhoodInfo from "@/components/property/NeighborhoodInfo";
+import PropertyContact from "@/components/property/PropertyContact";
 
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
@@ -204,16 +211,31 @@ export default async function PropertyDetailPage({ params }: PageParams) {
         </div>
       </section>
 
+      {/* Header (full width) */}
+      <section className="px-4">
+        <div className="max-w-7xl mx-auto">
+          <PropertyHeader property={details as PropertyWithDetails} />
+        </div>
+      </section>
+
       {/* Main layout */}
       <section className="py-6 px-4">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3">
             {/* Image gallery */}
-            <PropertyGallery images={images} />
+            {(() => {
+              const galleryImages = (images ?? []).map((img) => ({
+                id: String(img.id),
+                url: img.url,
+                alt_text: img.alt_text_bg ?? property.title_bg,
+                order: img.sort_order,
+                is_primary: img.is_primary,
+              }));
+              return <PropertyGallery images={galleryImages} propertyTitle={property.title_bg} priority />;
+            })()}
           </div>
           <div className="lg:col-span-2 space-y-6">
-            <PropertyHeader property={property} neighborhood={neighborhood} />
-            <PropertyContact propertyId={property.id} />
+            <PropertyContact propertyId={String(property.id)} propertyTitle={property.title_bg} propertyPrice={property.price_eur ?? 0} />
           </div>
         </div>
       </section>
@@ -222,6 +244,13 @@ export default async function PropertyDetailPage({ params }: PageParams) {
       <section className="py-12 px-4 border-t border-gray-200">
         <div className="max-w-7xl mx-auto">
           <PropertyDescription description={property.description_bg ?? ""} />
+        </div>
+      </section>
+
+      {/* Details grid */}
+      <section className="py-12 px-4 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto">
+          <PropertyDetails property={details as PropertyWithDetails} />
         </div>
       </section>
 
@@ -245,78 +274,6 @@ export default async function PropertyDetailPage({ params }: PageParams) {
   );
 }
 
-// Minimal component shells (to be replaced with full implementations)
-function PropertyGallery({ images }: { images: ImageRow[] }) {
-  return (
-    <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">
-      {images && images.length > 0 ? (
-        <img src={images[0].url} alt={images[0].alt_text_bg ?? "Снимка на имот"} className="h-full w-full object-cover" />
-      ) : (
-        <div className="h-full w-full flex items-center justify-center text-gray-400">Няма изображения</div>
-      )}
-    </div>
-  );
-}
-
-function PropertyHeader({ property, neighborhood }: { property: PropertyRow; neighborhood: NeighborhoodRow | null }) {
-  return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-semibold text-[#1a2642]">{property.title_bg}</h1>
-      <div className="text-[#2d3748]">
-        {neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}
-      </div>
-      {typeof property.price_eur === "number" && (
-        <div className="text-xl font-medium text-[#1a2642]"><span className="text-[#d4af37]">€</span> {property.price_eur.toLocaleString("bg-BG")}</div>
-      )}
-    </div>
-  );
-}
-
-function PropertyDescription({ description }: { description: string }) {
-  return (
-    <div className="prose max-w-none">
-      <h2 className="text-xl font-semibold text-[#1a2642] mb-4">Описание</h2>
-      <p className="text-[#2d3748] whitespace-pre-line">{description || "Няма налично описание."}</p>
-    </div>
-  );
-}
-
-function PropertyFeatures({ features }: { features: FeatureRow[] }) {
-  if (!features || features.length === 0) return null;
-  return (
-    <div>
-      <h2 className="text-xl font-semibold text-[#1a2642] mb-4">Характеристики</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {features.map((f) => (
-          <div key={f.id} className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-[#2d3748] bg-white">
-            {f.name_bg}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PropertyContact({ propertyId }: { propertyId: number }) {
-  return (
-    <div className="rounded-lg border border-gray-200 p-4 bg-white">
-      <h2 className="text-lg font-semibold text-[#1a2642] mb-3">Запитване за имота</h2>
-      <p className="text-sm text-[#2d3748] mb-4">Свържете се с нас за повече информация.</p>
-      <a href={`/kontakt?propertyId=${propertyId}`} className="inline-flex items-center justify-center rounded-md bg-[#d4af37] px-4 py-2 text-white hover:bg-[#c09d2f]">
-        Изпрати запитване
-      </a>
-    </div>
-  );
-}
-
-function NeighborhoodInfo({ neighborhood }: { neighborhood: NeighborhoodRow | null }) {
-  if (!neighborhood) return null;
-  return (
-    <div>
-      <h2 className="text-xl font-semibold text-[#1a2642] mb-4">Квартал</h2>
-      <div className="text-[#2d3748]">{neighborhood.name_bg}</div>
-    </div>
-  );
-}
+// Inline component shells removed; using shared components
 
 
