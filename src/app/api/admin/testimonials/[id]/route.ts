@@ -25,12 +25,13 @@ const UpdateSchema = z.object({
  *
  * Authentication: admin required
  */
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
-    const id = Number(params.id);
+    const { id: idParam } = await params;
+    const id = Number(idParam);
     if (!Number.isFinite(id) || id <= 0) throw new ValidationError("Невалидно ID на отзив.");
 
     const supabase = await getSupabaseClient();
@@ -58,12 +59,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
  *
  * Authentication: admin required
  */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
-    const id = Number(params.id);
+    const { id: idParam } = await params;
+    const id = Number(idParam);
     if (!Number.isFinite(id) || id <= 0) throw new ValidationError("Невалидно ID на отзив.");
 
     const payload = await req.json();

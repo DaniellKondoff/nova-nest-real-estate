@@ -53,7 +53,7 @@ export type SignInResult = { success: true; user: User } | { success: false; err
 
 export async function signInWithEmail(email: string, password: string): Promise<SignInResult> {
   // Sign-in should run in the browser for proper cookie handling
-  const supabase = typeof window !== "undefined" ? getBrowserClient() : getSupabaseClient();
+  const supabase = typeof window !== "undefined" ? getBrowserClient() : await getSupabaseClient();
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
@@ -74,7 +74,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
 }
 
 export async function signOut(): Promise<{ success: boolean; error?: string }> {
-  const supabase = typeof window !== "undefined" ? getBrowserClient() : getSupabaseClient();
+  const supabase = typeof window !== "undefined" ? getBrowserClient() : await getSupabaseClient();
   try {
     const { error } = await supabase.auth.signOut();
     if (error) {

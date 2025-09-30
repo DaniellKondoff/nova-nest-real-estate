@@ -260,7 +260,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     scheduleUrlUpdate(mergedNext, 1, sortBy);
 
     // Debounced fetch via effect below
-  }, [scheduleUrlUpdate]);
+  }, [scheduleUrlUpdate, sortBy]);
 
   /** Update a single filter key; resets page to 1 and triggers search */
   const updateFilter = useCallback(<K extends keyof PropertySearchFilters>(key: K, value: PropertySearchFilters[K]) => {
@@ -273,7 +273,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     setLoading(true);
     scheduleUrlUpdate(mergedNext, 1, sortBy);
     // Debounced fetch via effect below
-  }, [scheduleUrlUpdate]);
+  }, [scheduleUrlUpdate, sortBy]);
 
   /** Clear all filters to initial empty state */
   const clearFilters = useCallback(() => {
@@ -282,7 +282,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     setLoading(true);
     scheduleUrlUpdate({}, 1, sortBy);
     // Debounced fetch via effect below
-  }, [scheduleUrlUpdate]);
+  }, [scheduleUrlUpdate, sortBy]);
 
   /** Change page immediately and fetch */
   const setPage = useCallback((page: number) => {
@@ -292,7 +292,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     scheduleUrlUpdate(filters, next, sortBy);
     // Immediate fetch via dedicated effect
     scrollToTop();
-  }, [filters, scheduleUrlUpdate]);
+  }, [filters, scheduleUrlUpdate, sortBy]);
 
   /** Abort any pending request */
   const abortInFlight = useCallback(() => {
@@ -334,7 +334,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
       if (seq !== fetchSeqRef.current || controller.signal.aborted) return;
 
       if (!res.ok) {
-        const apiError = (json && typeof json === "object" && (json as any).error) ? String((json as any).error) : undefined;
+        const apiError = (json && typeof json === "object" && "error" in json) ? String(json.error) : undefined;
         throw new Error(apiError || DEFAULT_ERROR_BG);
       }
 
@@ -342,20 +342,22 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
       // 1) { success: true, data: { properties, total, page, totalPages, hasMore } }
       // 2) { data: { properties|items, total|meta.total, page|meta.page, totalPages|computed, hasMore? } }
       const payload: unknown = json;
-      let data: any = payload;
+      let data: unknown = payload;
 
       if (data && typeof data === "object" && ("success" in data || "data" in data)) {
-        data = (data as any).data ?? data;
+        data = (data as Record<string, unknown>).data ?? data;
       }
 
-      const items: PropertyWithDetails[] = (data?.properties ?? data?.items) ?? [];
-      const total: number = (typeof data?.total === "number" ? data.total : (typeof data?.count === "number" ? data.count : (data?.meta?.total ?? 0))) as number;
-      const pageFromApi: number = (typeof data?.page === "number" ? data.page : (typeof data?.meta?.page === "number" ? data.meta.page : page)) as number;
-      const totalPagesFromApi: number | undefined = typeof data?.totalPages === "number" ? data.totalPages : undefined;
-      const hasMoreFromApi: boolean | undefined = typeof data?.hasMore === "boolean" ? data.hasMore : undefined;
+      // Type guard for the response data shape
+      const dataObj = data as Record<string, unknown> | null;
+      const items: PropertyWithDetails[] = (dataObj?.properties ?? dataObj?.items) as PropertyWithDetails[] ?? [];
+      const metaObj = (dataObj?.meta as Record<string, unknown> | null) ?? null;
+      const total: number = (typeof dataObj?.total === "number" ? dataObj.total : (typeof dataObj?.count === "number" ? dataObj.count : (typeof metaObj?.total === "number" ? metaObj.total : 0)));
+      const pageFromApi: number = (typeof dataObj?.page === "number" ? dataObj.page : (typeof metaObj?.page === "number" ? metaObj.page : page));
+      const totalPagesFromApi: number | undefined = typeof dataObj?.totalPages === "number" ? dataObj.totalPages : undefined;
+      const hasMoreFromApi: boolean | undefined = typeof dataObj?.hasMore === "boolean" ? dataObj.hasMore : undefined;
 
       const computedTotalPages = totalPagesFromApi ?? Math.max(1, Math.ceil(total / limit));
-      const computedHasMore = typeof hasMoreFromApi === "boolean" ? hasMoreFromApi : pageFromApi < computedTotalPages;
 
       setProperties(Array.isArray(items) ? items : []);
       setTotalResults(Number.isFinite(total) ? total : 0);
@@ -365,7 +367,6 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     } catch (err) {
       // Ignore if aborted/stale
       if (controller.signal.aborted || seq !== fetchSeqRef.current) return;
-      // eslint-disable-next-line no-console
       console.error("[usePropertySearch] fetch error:", err);
       setError(formatSearchError(err));
     } finally {

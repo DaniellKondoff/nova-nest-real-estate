@@ -81,7 +81,7 @@ export default function PropertiesPage(): React.ReactElement {
                     type="button"
                     aria-label="Премахни филтър"
                     className="ml-1 rounded-full p-1 hover:bg-gray-200"
-                    onClick={() => updateFilter(chip.key as any, undefined as any)}
+                    onClick={() => updateFilter(chip.key, undefined)}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>

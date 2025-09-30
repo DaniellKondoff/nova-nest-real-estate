@@ -137,10 +137,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-export type SearchInputProps = Omit<FormFieldProps, "type">;
+export type SearchInputProps = Omit<InputProps, "type" | "size"> & {
+  size?: "sm" | "md" | "lg";
+  hint?: string;
+};
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ className, label, error, hint, id, ...props }, ref) => {
+  ({ className, label, error, hint, id, size = "md", ...props }, ref) => {
     const autoId = React.useId();
     const inputId = id ?? autoId;
     return (
@@ -156,7 +159,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
             id={inputId}
             ref={ref}
             type="search"
-            className={cn(inputStyles({ size: "md", variant: "default", hasLeftIcon: true }), error && "border-red-500 focus-visible:ring-red-500", className)}
+            className={cn(inputStyles({ size, variant: "default", hasLeftIcon: true }), error && "border-red-500 focus-visible:ring-red-500", className)}
             aria-invalid={!!error}
             aria-describedby={hint ? `${inputId}-hint` : undefined}
             {...props}

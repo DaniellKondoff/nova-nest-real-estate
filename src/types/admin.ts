@@ -10,7 +10,7 @@ export enum AdminRole {
 export type InquiryStatus = Enums<"inquiry_status">;
 export type InquiryType = Enums<"inquiry_type">;
 
-export interface AdminProfile extends AppUser {
+export interface AdminProfile extends Omit<AppUser, "role"> {
   profile: Tables<"admin_profiles"> | null;
   role: AdminRole | "viewer";
 }

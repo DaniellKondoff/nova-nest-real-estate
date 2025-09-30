@@ -58,8 +58,8 @@ export function formatPropertyDetails(property: PropertyWithDetails): string[] {
   const p = property.property as Tables<"properties">;
   const details: string[] = [];
   if (typeof p.area_sqm === "number" && p.area_sqm > 0) details.push(`${p.area_sqm} m²`);
-  if (typeof (p as any).rooms === "number" && (p as any).rooms > 0) details.push(`${(p as any).rooms} стаи`);
-  if (typeof (p as any).floor === "number" && (p as any).floor > 0) details.push(`Етаж ${(p as any).floor}`);
+  if (typeof p.rooms === "number" && p.rooms > 0) details.push(`${p.rooms} стаи`);
+  if (typeof p.floor === "number" && p.floor > 0) details.push(`Етаж ${p.floor}`);
   return details;
 }
 
@@ -124,8 +124,8 @@ export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCa
   const showNew = isNewProperty(createdAt);
   const neighborhoodName = (property.neighborhood as Tables<"neighborhoods"> | null)?.name_bg || "";
   const hasArea = typeof p.area_sqm === "number" && p.area_sqm > 0;
-  const rooms = (p as unknown as { rooms?: number | null }).rooms ?? null;
-  const floor = (p as unknown as { floor?: number | null }).floor ?? null;
+  const rooms = p.rooms;
+  const floor = p.floor;
 
   const href = `/properties/${String(p.id)}`;
 

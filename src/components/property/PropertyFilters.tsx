@@ -73,7 +73,7 @@ export default function PropertyFilters({ initialFilters, onFilterChange, catego
     });
     setSelectedCategories(initialFilters?.categoryId ? [initialFilters.categoryId] : []);
     setSelectedNeighborhoods(initialFilters?.neighborhoodId ? [initialFilters.neighborhoodId] : []);
-  }, [initialFilters?.searchTerm, initialFilters?.operationType, initialFilters?.categoryId, initialFilters?.neighborhoodId, initialFilters?.minPriceEur, initialFilters?.maxPriceEur, initialFilters?.minArea, initialFilters?.maxArea]);
+  }, [form, initialFilters?.searchTerm, initialFilters?.operationType, initialFilters?.categoryId, initialFilters?.neighborhoodId, initialFilters?.minPriceEur, initialFilters?.maxPriceEur, initialFilters?.minArea, initialFilters?.maxArea]);
 
   // Sync multi-selects from initialFilters (if provided as single ids)
   React.useEffect(() => {

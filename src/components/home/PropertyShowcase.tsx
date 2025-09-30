@@ -67,19 +67,37 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
       const mapped: PropertyCardProps[] = (detailed as any[]).map((p) => {
         const primaryImage = (p.images || []).find((img: any) => img.is_primary) || (p.images || [])[0];
         return {
-          id: String(p.id),
-          title_bg: p.title_bg,
-          price_eur: p.price_eur ?? 0,
-          operation_type: p.operation_type === "rent" ? "rent" : "sale",
-          address_bg: p.address_bg ?? "",
-          neighborhood: { name_bg: p.neighborhood?.name_bg ?? "" },
-          area_sqm: p.area_sqm ?? undefined,
-          rooms: p.rooms ?? undefined,
-          bedrooms: p.bedrooms ?? undefined,
-          primary_image: { image_url: primaryImage?.url ?? "/images/window.svg", alt_text_bg: primaryImage?.alt_text_bg ?? p.title_bg },
-          is_new: p.is_new ?? false,
-          created_at: p.created_at ?? new Date().toISOString(),
-          href: `/imoti/${p.id}`,
+          property: {
+            property: {
+              id: p.id,
+              title_bg: p.title_bg,
+              price_eur: p.price_eur ?? 0,
+              operation_type: p.operation_type === "rent" ? "rent" : "sale",
+              address_bg: p.address_bg ?? "",
+              area_sqm: p.area_sqm ?? null,
+              rooms: p.rooms ?? null,
+              bedrooms: p.bedrooms ?? null,
+              is_new: p.is_new ?? false,
+              created_at: p.created_at ?? new Date().toISOString(),
+            },
+            neighborhood: { name_bg: p.neighborhood?.name_bg ?? "" },
+            category: null,
+            images: (p.images || []).map((img: any) => ({
+              id: 0,
+              url: img.url ?? "/images/window.svg",
+              alt_text_bg: img.alt_text_bg ?? p.title_bg,
+              alt_text_en: null,
+              is_primary: img.is_primary ?? false,
+              property_id: p.id,
+              sort_order: 0,
+              file_size: null,
+              filename: null,
+              height: null,
+              width: null,
+              created_at: new Date().toISOString(),
+            })),
+          },
+          priority: false,
         } as PropertyCardProps;
       });
       setProperties(mapped);
@@ -216,7 +234,7 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
             >
               <AnimatePresence>
                 {properties.map((p) => (
-                  <motion.div key={p.id} variants={cardVariants} layout exit="exit">
+                  <motion.div key={p.property.property.id} variants={cardVariants} layout exit="exit">
                     <PropertyCard {...p} />
                   </motion.div>
                 ))}

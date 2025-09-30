@@ -12,14 +12,15 @@ import { ok, fail, notFound, unauthorized } from "@/lib/api";
  * Authentication: admin required
  * Side-effects: attempts to remove the physical file; DB row is always removed if possible
  */
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да изтриват снимки.");
     }
 
-    const imageId = Number(params.id);
+    const { id: idParam } = await params;
+    const imageId = Number(idParam);
     if (!Number.isFinite(imageId) || imageId <= 0) {
       throw new ValidationError("Невалидно ID на изображение.");
     }

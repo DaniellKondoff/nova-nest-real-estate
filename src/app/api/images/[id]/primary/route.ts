@@ -11,14 +11,15 @@ import { ok, fail, notFound, unauthorized } from "@/lib/api";
  * Authentication: admin required
  * Consistency: relies on DB constraint/trigger to keep a single primary
  */
-export async function PUT(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да задават основно изображение.");
     }
 
-    const imageId = Number(params.id);
+    const { id: idParam } = await params;
+    const imageId = Number(idParam);
     if (!Number.isFinite(imageId) || imageId <= 0) {
       throw new ValidationError("Невалидно ID на изображение.");
     }

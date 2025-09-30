@@ -53,7 +53,34 @@ function toQueryFilters(filters: PropertySearchFilters): {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const json = (await req.json()) as unknown;
+    // Check if request has body
+    const contentLength = req.headers.get('content-length');
+    if (!contentLength || contentLength === '0') {
+      return NextResponse.json(
+        { success: false, error: "Празна заявка" },
+        { status: 400 }
+      );
+    }
+
+    let json: unknown;
+    try {
+      json = await req.json();
+    } catch (parseError) {
+      console.error('[properties/search] JSON parse error:', parseError);
+      return NextResponse.json(
+        { success: false, error: "Невалиден JSON в заявката" },
+        { status: 400 }
+      );
+    }
+    
+    // Validate that we have a valid object
+    if (!json || typeof json !== 'object') {
+      return NextResponse.json(
+        { success: false, error: "Невалидна структура на данните" },
+        { status: 400 }
+      );
+    }
+    
     const parsed = (await BodySchema.parseAsync(json)) as ParsedBody;
 
     const page = Math.max(1, parsed.page);

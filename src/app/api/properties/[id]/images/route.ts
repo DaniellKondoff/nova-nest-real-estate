@@ -26,14 +26,15 @@ const FormSchema = z.object({
  * Authentication: admin required
  * Upload constraints: max 12 files. TODO: enforce content-type and max size on edge.
  */
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да качват снимки.");
     }
 
-    const propertyId = Number(params.id);
+    const { id: idParam } = await params;
+    const propertyId = Number(idParam);
     if (!Number.isFinite(propertyId) || propertyId <= 0) {
       throw new ValidationError("Невалидно ID на имот.");
     }

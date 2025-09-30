@@ -123,13 +123,13 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
       description,
       keywords,
       alternates: { canonical },
-      openGraph: {
-        title,
-        description,
-        url: canonical,
-        locale: "bg_BG",
-        images: ogImages as any,
-      },
+        openGraph: {
+          title,
+          description,
+          url: canonical,
+          locale: "bg_BG",
+          images: ogImages,
+        },
     } satisfies Metadata;
   } catch {
     // If anything goes wrong during metadata generation, surface 404 to avoid leaking errors

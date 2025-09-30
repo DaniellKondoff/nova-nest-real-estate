@@ -18,9 +18,10 @@ type ImageRow = Tables<"property_images">;
  *
  * Authentication: not required
  */
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const idNum = Number(params.id);
+    const { id: idParam } = await params;
+    const idNum = Number(idParam);
     if (!Number.isFinite(idNum)) {
       throw new ValidationError("Невалидно ID.");
     }
@@ -69,14 +70,15 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
  *
  * Authentication: admin required
  */
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да редактират имоти.");
     }
 
-    const idNum = Number(params.id);
+    const { id: idParam } = await params;
+    const idNum = Number(idParam);
     if (!Number.isFinite(idNum)) {
       throw new ValidationError("Невалидно ID.");
     }
@@ -115,14 +117,15 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
  *
  * Authentication: admin required
  */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const isAdmin = await isAdminUser();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да изтриват имоти.");
     }
 
-    const idNum = Number(params.id);
+    const { id: idParam } = await params;
+    const idNum = Number(idParam);
     if (!Number.isFinite(idNum)) {
       throw new ValidationError("Невалидно ID.");
     }
