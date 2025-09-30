@@ -2,7 +2,7 @@ import React from "react";
 import type { Tables } from "@/types/database.generated";
 import { Check } from "lucide-react";
 
-export type PropertyFeature = Tables["public"]["Tables"]["property_features"]["Row"];
+export type PropertyFeature = Tables<"property_features">;
 
 export interface PropertyFeaturesProps {
   features?: PropertyFeature[];
