@@ -195,6 +195,9 @@ export interface PropertyWithDetails {
   features?: Tables<"property_features">[];
 }
 
+// Category entity aligned with DB table for use in filters/SEO
+export type PropertyCategory = Tables<"property_categories">;
+
 // Search filters used across UI and API
 export interface PropertySearchFilters {
   operationType?: OperationType;

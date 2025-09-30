@@ -31,6 +31,9 @@ export interface LocalSearchParams {
   operationType?: OperationType;
 }
 
+// Alias for UI use across BG neighborhood selections
+export type StaraZagoraNeighborhood = Tables<"neighborhoods">;
+
 export interface GeographicSearchParams {
   center_lat: number;
   center_lng: number;
