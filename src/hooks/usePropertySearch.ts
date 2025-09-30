@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { PropertyWithDetails } from "@/types/property";
-import type { PropertySearchFilters } from "@/types/search";
+import type { PropertySearchFilters, SortOption } from "@/types/search";
 
 /**
  * Return type for the usePropertySearch hook
@@ -27,6 +27,9 @@ export interface UsePropertySearchReturn {
   clearFilters: () => void;
   setPage: (page: number) => void;
   refetch: () => void;
+  // Sorting
+  sortBy: SortOption;
+  setSortBy: (sort: SortOption) => void;
 }
 
 /** Default pagination size */
@@ -211,6 +214,11 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
   });
   const [totalResults, setTotalResults] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [sortBy, setSortByState] = useState<SortOption>(() => {
+    const s = searchParams?.get("sort");
+    const allowed: SortOption[] = ["newest", "oldest", "price_asc", "price_desc", "area_asc", "area_desc"];
+    return (allowed.includes(s as SortOption) ? (s as SortOption) : "newest");
+  });
 
   // Refs for lifecycle and concurrency control
   const mountedRef = useRef<boolean>(false);
@@ -226,18 +234,18 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
 
   /** Update URL when filters/page change (debounced) */
   const scheduleUrlUpdate = useCallback(
-    (nextFilters: PropertySearchFilters, nextPage: number) => {
+    (nextFilters: PropertySearchFilters, nextPage: number, s: SortOption = sortBy) => {
       if (!pathname) return;
       if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current);
 
       urlDebounceRef.current = setTimeout(() => {
-        const params = filtersToURLParams(nextFilters, nextPage, limit);
+        const params = filtersToURLParams({ ...nextFilters, sort: s }, nextPage, limit);
         const url = `${pathname}?${params.toString()}`;
         // App Router performs client-side transitions; shallow reload is default for client components
         router.push(url, { scroll: false });
       }, URL_DEBOUNCE_MS);
     },
-    [limit, pathname, router]
+    [limit, pathname, router, sortBy]
   );
 
   /** Replace all filters; resets page to 1 and triggers search */
@@ -249,7 +257,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     });
     setCurrentPage(1);
     setLoading(true);
-    scheduleUrlUpdate(mergedNext, 1);
+    scheduleUrlUpdate(mergedNext, 1, sortBy);
 
     // Debounced fetch via effect below
   }, [scheduleUrlUpdate]);
@@ -263,7 +271,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     });
     setCurrentPage(1);
     setLoading(true);
-    scheduleUrlUpdate(mergedNext, 1);
+    scheduleUrlUpdate(mergedNext, 1, sortBy);
     // Debounced fetch via effect below
   }, [scheduleUrlUpdate]);
 
@@ -272,7 +280,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     setFiltersState({});
     setCurrentPage(1);
     setLoading(true);
-    scheduleUrlUpdate({}, 1);
+    scheduleUrlUpdate({}, 1, sortBy);
     // Debounced fetch via effect below
   }, [scheduleUrlUpdate]);
 
@@ -281,7 +289,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     const next = Math.max(1, Math.floor(page));
     setCurrentPage(next);
     setLoading(true);
-    scheduleUrlUpdate(filters, next);
+    scheduleUrlUpdate(filters, next, sortBy);
     // Immediate fetch via dedicated effect
     scrollToTop();
   }, [filters, scheduleUrlUpdate]);
@@ -307,7 +315,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
 
     try {
       const body = {
-        filters: activeFilters,
+        filters: { ...activeFilters, sort: sortBy },
         page: Math.max(1, Math.floor(page)),
         limit,
       } as const;
@@ -365,7 +373,7 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
         setLoading(false);
       }
     }
-  }, [abortInFlight, limit]);
+  }, [abortInFlight, limit, sortBy]);
 
   /** Force refetch with current state */
   const refetch = useCallback(() => {
@@ -374,6 +382,13 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
       // errors handled inside fetchProperties
     });
   }, [currentPage, fetchProperties, filters]);
+
+  // Sorting updater
+  const setSortBy = useCallback((next: SortOption) => {
+    setSortByState(next);
+    setLoading(true);
+    scheduleUrlUpdate(filters, currentPage, next);
+  }, [currentPage, filters, scheduleUrlUpdate]);
 
   // On mount: mark mounted, initialize from URL (already done in state initializers)
   useEffect(() => {
@@ -431,6 +446,8 @@ export function usePropertySearch(initialLimit: number = DEFAULT_LIMIT): UseProp
     clearFilters,
     setPage,
     refetch,
+    sortBy,
+    setSortBy,
   };
 }
 

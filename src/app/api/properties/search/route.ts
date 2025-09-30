@@ -14,6 +14,9 @@ const BodySchema = z.object({
       // Accept EUR-specific aliases coming from the UI hook
       minPriceEur: z.number().int().min(0).optional(),
       maxPriceEur: z.number().int().min(0).optional(),
+      sort: z
+        .enum(["newest", "oldest", "price_asc", "price_desc", "area_asc", "area_desc"]) 
+        .optional(),
       // Allow additional optional filters without failing validation
     })
     .passthrough()
@@ -111,7 +114,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         )
         .in("id", pageIds)
         .eq("status", "available")
-        .order("created_at", { ascending: false });
+        .order(
+          parsed.filters.sort === "oldest" ? "created_at" :
+          parsed.filters.sort === "price_asc" || parsed.filters.sort === "price_desc" ? "price_eur" :
+          parsed.filters.sort === "area_asc" || parsed.filters.sort === "area_desc" ? "area_sqm" : "created_at",
+          { ascending: parsed.filters.sort === "oldest" || parsed.filters.sort === "price_asc" || parsed.filters.sort === "area_asc" }
+        );
 
       if (error) {
         throw new DatabaseError("Грешка при извличане на данни");

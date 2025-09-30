@@ -5,6 +5,10 @@ import { Filter, TriangleAlert, X } from "lucide-react";
 import { usePropertySearch } from "@/hooks/usePropertySearch";
 import PropertyFilters from "@/components/property/PropertyFilters";
 import PropertyGrid from "@/components/property/PropertyGrid";
+import PropertySort from "@/components/property/PropertySort";
+import ViewToggle from "@/components/property/ViewToggle";
+import Pagination from "@/components/property/Pagination";
+import type { ViewMode } from "@/types/search";
 
 export default function PropertiesPage(): React.ReactElement {
   const {
@@ -20,7 +24,11 @@ export default function PropertiesPage(): React.ReactElement {
     setPage,
     updateFilter,
     refetch,
+    sortBy,
+    setSortBy,
   } = usePropertySearch();
+
+  const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
 
   // Active filter chips (show only non-empty)
   const activeChips = React.useMemo(() => {
@@ -127,42 +135,27 @@ export default function PropertiesPage(): React.ReactElement {
               />
             </div>
             <div className="lg:col-span-3">
-              {/* Results metadata */}
-              <div className="mb-4 flex items-center justify-between">
+              {/* Control bar: results + sort + view */}
+              <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="text-gray-600 text-sm">
                   {totalResults > 0 ? `Намерени ${totalResults} имота` : "Няма намерени имоти"}
                 </div>
-                {/* Sort dropdown placeholder (future) */}
-              </div>
-              <PropertyGrid properties={properties} loading={loading} />
-
-              {/* Pagination */}
-              <div className="mt-10 flex items-center justify-between">
-                <div className="text-sm text-gray-600">Страница {currentPage} от {Math.max(1, totalPages)}</div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => currentPage > 1 && setPage(currentPage - 1)}
-                    disabled={currentPage <= 1 || loading}
-                    className={[
-                      "rounded-lg border px-4 py-2 text-sm",
-                      currentPage <= 1 ? "pointer-events-none opacity-50" : "hover:bg-gray-100",
-                    ].join(" ")}
-                  >
-                    Назад
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => currentPage < totalPages && setPage(currentPage + 1)}
-                    disabled={currentPage >= totalPages || loading}
-                    className={[
-                      "rounded-lg border px-4 py-2 text-sm",
-                      currentPage >= totalPages ? "pointer-events-none opacity-50" : "hover:bg-gray-100",
-                    ].join(" ")}
-                  >
-                    Напред
-                  </button>
+                <div className="flex items-center gap-3">
+                  <PropertySort currentSort={sortBy} onSortChange={setSortBy} />
+                  <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
                 </div>
+              </div>
+
+              <PropertyGrid properties={properties} loading={loading} viewMode={viewMode} />
+
+              <div className="mt-10">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalResults={totalResults}
+                  loading={loading}
+                  onPageChange={setPage}
+                />
               </div>
             </div>
           </div>

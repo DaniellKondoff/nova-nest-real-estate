@@ -4,10 +4,12 @@ import React from "react";
 import { Home as HomeIcon } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
 import type { PropertyWithDetails } from "@/types/property";
+import type { ViewMode } from "@/types/search";
 
 export interface PropertyGridProps {
   properties: PropertyWithDetails[];
   loading?: boolean;
+  viewMode?: ViewMode; // 'grid' | 'list'
 }
 
 /**
@@ -17,9 +19,11 @@ export interface PropertyGridProps {
  * - Skeletons shown during loading to avoid CLS
  */
 export default function PropertyGrid(props: PropertyGridProps): React.ReactElement {
-  const { properties, loading = false } = props;
+  const { properties, loading = false, viewMode = "grid" } = props;
 
-  const gridClasses = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
+  const gridClasses = viewMode === "grid"
+    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+    : "flex flex-col divide-y divide-gray-200";
 
   // No mapping needed – PropertyCard consumes PropertyWithDetails directly
 
@@ -29,10 +33,10 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
         key={key}
         role="status"
         aria-label="Зареждане на имот"
-        className="h-96 w-full overflow-hidden rounded-lg border border-gray-200 bg-white"
+        className={viewMode === "grid" ? "h-96 w-full overflow-hidden rounded-lg border border-gray-200 bg-white" : "w-full overflow-hidden bg-white"}
       >
         <div className="animate-pulse h-full">
-          <div className="w-full aspect-[4/3] bg-gray-200" />
+          <div className={viewMode === "grid" ? "w-full aspect-[4/3] bg-gray-200" : "w-[200px] aspect-[4/3] bg-gray-200"} />
           <div className="p-6 space-y-3">
             <div className="h-6 w-1/3 rounded bg-gray-200" />
             <div className="h-4 w-2/3 rounded bg-gray-200" />
@@ -67,7 +71,7 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
               properties.map((item, idx) => {
                 const listItemProps = idx < 3 ? { "data-priority": "true" } : {};
                 return (
-                  <div key={String(item.property.id)} role="listitem" {...listItemProps}>
+                  <div key={String(item.property.id)} role="listitem" {...listItemProps} className={viewMode === "list" ? "py-4" : undefined}>
                     <PropertyCard property={item} priority={idx < 3} />
                   </div>
                 );

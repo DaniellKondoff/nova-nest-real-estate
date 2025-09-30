@@ -219,6 +219,7 @@ export interface PropertySearchFilters {
   searchTerm?: string;
   sort?:
     | "newest"
+    | "oldest"
     | "price_asc"
     | "price_desc"
     | "area_desc"

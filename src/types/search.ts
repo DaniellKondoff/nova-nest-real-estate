@@ -46,3 +46,16 @@ export interface GeographicSearchParams {
 // Re-export app-wide search filters used by UI and APIs for consistency
 export type { PropertySearchFilters } from "@/types/property";
 
+// Sort option used by UI and APIs
+export type SortOption =
+  | "newest"
+  | "oldest"
+  | "price_asc"
+  | "price_desc"
+  | "area_asc"
+  | "area_desc";
+
+// View mode for property grid
+export type ViewMode = "grid" | "list";
+
+
