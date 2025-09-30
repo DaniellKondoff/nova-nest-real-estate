@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Admin route protection
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login" && pathname !== "/admin/login/") {
     try {
       // Create Supabase client for middleware
       const supabase = createServerClient(
@@ -39,7 +39,7 @@ export async function middleware(request: NextRequest) {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
-        return NextResponse.redirect(new URL("/admin/login", request.url));
+        return NextResponse.redirect(new URL("/admin/login/", request.url));
       }
 
       // Check if user is admin
@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
         .maybeSingle();
 
       if (adminError || !adminProfile) {
-        return NextResponse.redirect(new URL("/admin/login", request.url));
+        return NextResponse.redirect(new URL("/admin/login/", request.url));
       }
 
       // User is authenticated and is admin, allow access
@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
     } catch (error) {
       // If there's any error, redirect to login
       console.error("Admin middleware error:", error);
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL("/admin/login/", request.url));
     }
   }
 

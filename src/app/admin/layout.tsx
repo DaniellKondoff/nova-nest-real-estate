@@ -21,20 +21,28 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Skip auth check for login page (handle both with and without trailing slash)
+  const isLoginPage = pathname === "/admin/login" || pathname === "/admin/login/";
+
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !isLoginPage) {
       if (!user || !isAdmin) {
-        router.push("/admin/login");
+        router.push("/admin/login/");
       }
     }
-  }, [user, isAdmin, loading, router]);
+  }, [user, isAdmin, loading, router, isLoginPage]);
 
   const handleLogout = async () => {
     const success = await signOut();
     if (success) {
-      router.push("/admin/login");
+      router.push("/admin/login/");
     }
   };
+
+  // For login page, just render children without layout
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   // Show loading during auth check
   if (loading) {
@@ -56,17 +64,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigationItems = [
     {
       name: "Dashboard",
-      href: "/admin/dashboard",
+      href: "/admin/dashboard/",
       icon: LayoutDashboard,
     },
     {
       name: "Імоти",
-      href: "/admin/properties",
+      href: "/admin/properties/",
       icon: Home,
     },
     {
       name: "Запитвания",
-      href: "/admin/inquiries",
+      href: "/admin/inquiries/",
       icon: MessageSquare,
     },
   ];
@@ -78,7 +86,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-6">
           {/* Logo */}
           <div className="mb-8">
-            <Link href="/admin/dashboard" className="text-white text-xl font-bold">
+            <Link href="/admin/dashboard/" className="text-white text-xl font-bold">
               Nova Nest Admin
             </Link>
           </div>

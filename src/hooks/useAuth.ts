@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { getBrowserClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase/client";
 import { getAdminRole, isAdminUser, signInWithEmail, signOut } from "@/lib/auth";
 
 export type UseAuthState = {
@@ -41,6 +41,8 @@ export function useAuth(): UseAuthState {
           setIsAdmin(false);
           setAdminRole(null);
         }
+      } catch (error) {
+        console.error("useAuth: Bootstrap error:", error);
       } finally {
         if (isMounted) setLoading(false);
       }

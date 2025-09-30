@@ -1,7 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.generated";
-import { getSupabaseClient } from "@/lib/supabase";
-import { getBrowserClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase/client";
 
 export type AdminRole = "admin" | "agent" | "manager";
 
@@ -13,14 +12,14 @@ function normalizeRole(role: string | null | undefined): AdminRole | null {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   const { data, error } = await supabase.auth.getUser();
   if (error) return null;
   return data.user ?? null;
 }
 
 export async function isAdminUser(): Promise<boolean> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   const user = await getCurrentUser();
   if (!user) return false;
 
@@ -35,7 +34,7 @@ export async function isAdminUser(): Promise<boolean> {
 }
 
 export async function getAdminRole(): Promise<AdminRole | null> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   const user = await getCurrentUser();
   if (!user) return null;
 
@@ -53,7 +52,7 @@ export type SignInResult = { success: true; user: User } | { success: false; err
 
 export async function signInWithEmail(email: string, password: string): Promise<SignInResult> {
   // Sign-in should run in the browser for proper cookie handling
-  const supabase = typeof window !== "undefined" ? getBrowserClient() : await getSupabaseClient();
+  const supabase = getBrowserClient();
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
@@ -74,7 +73,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
 }
 
 export async function signOut(): Promise<{ success: boolean; error?: string }> {
-  const supabase = typeof window !== "undefined" ? getBrowserClient() : await getSupabaseClient();
+  const supabase = getBrowserClient();
   try {
     const { error } = await supabase.auth.signOut();
     if (error) {
