@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Home as HomeIcon } from "lucide-react";
-import PropertyCard, { type PropertyCardProps } from "@/components/property/PropertyCard";
+import PropertyCard from "@/components/property/PropertyCard";
 import type { PropertyWithDetails } from "@/types/property";
 
 export interface PropertyGridProps {
@@ -21,40 +21,7 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
 
   const gridClasses = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
 
-  function mapToCardProps(item: PropertyWithDetails): PropertyCardProps {
-    const p = item.property as unknown as {
-      id: string | number;
-      title_bg: string;
-      price_eur: number | null;
-      operation_type: "sale" | "rent";
-      address_bg?: string | null;
-      area_sqm?: number | null;
-      rooms?: number | null;
-      bedrooms?: number | null;
-      is_new?: boolean | null;
-      created_at: string;
-    };
-    const neighborhoodName = item.neighborhood?.name_bg ?? "";
-    const primaryImage = (item.images || []).find((img) => (img as any).is_primary) || item.images?.[0];
-    const imageUrl = (primaryImage as any)?.url ?? "/images/window.svg";
-    const imageAlt = (primaryImage as any)?.alt_text_bg ?? p.title_bg;
-
-    return {
-      id: String(p.id),
-      title_bg: p.title_bg,
-      price_eur: p.price_eur ?? 0,
-      operation_type: p.operation_type === "rent" ? "rent" : "sale",
-      address_bg: p.address_bg ?? "",
-      neighborhood: { name_bg: neighborhoodName },
-      area_sqm: p.area_sqm ?? undefined,
-      rooms: p.rooms ?? undefined,
-      bedrooms: p.bedrooms ?? undefined,
-      primary_image: { image_url: imageUrl, alt_text_bg: imageAlt },
-      is_new: Boolean(p.is_new ?? false),
-      created_at: p.created_at,
-      href: `/imoti/${p.id}`,
-    };
-  }
+  // No mapping needed – PropertyCard consumes PropertyWithDetails directly
 
   function renderSkeletonCard(key: React.Key): React.ReactElement {
     return (
@@ -98,11 +65,10 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
             )
             : (
               properties.map((item, idx) => {
-                const cardProps = mapToCardProps(item);
                 const listItemProps = idx < 3 ? { "data-priority": "true" } : {};
                 return (
-                  <div key={cardProps.id} role="listitem" {...listItemProps}>
-                    <PropertyCard {...cardProps} />
+                  <div key={String(item.property.id)} role="listitem" {...listItemProps}>
+                    <PropertyCard property={item} priority={idx < 3} />
                   </div>
                 );
               })

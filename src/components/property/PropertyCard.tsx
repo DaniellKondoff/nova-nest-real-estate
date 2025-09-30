@@ -1,15 +1,24 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Square, Home as HomeIcon, Bed } from "lucide-react";
+import { MapPin, Square, BedDouble, Building2 } from "lucide-react";
+import type { PropertyWithDetails } from "@/types/property";
+import type { Tables } from "@/types/database.generated";
 
-export type OperationType = "sale" | "rent";
-
+// New API props
 export interface PropertyCardProps {
+  property: PropertyWithDetails;
+  priority?: boolean; // For Next/Image LCP optimization
+}
+
+// Legacy props for backward compatibility (used by older components)
+interface LegacyPropertyCardProps {
   id: string;
   title_bg: string;
   price_eur: number;
-  operation_type: OperationType;
+  operation_type: "sale" | "rent";
   address_bg: string;
   neighborhood: { name_bg: string };
   area_sqm?: number;
@@ -17,129 +26,173 @@ export interface PropertyCardProps {
   bedrooms?: number;
   primary_image: { image_url: string; alt_text_bg?: string };
   is_new?: boolean;
-  created_at: string; // ISO string
-  href?: string; // optional for future routing
+  created_at: string;
+  href?: string;
   className?: string;
 }
 
-function formatPriceEUR(value: number): string {
-  try {
-    return new Intl.NumberFormat("bg-BG", {
-      style: "decimal",
-      maximumFractionDigits: 0,
-    }).format(value);
-  } catch {
-    // Fallback without Intl in unlikely environments
-    return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  }
+function isLegacyProps(p: PropertyCardProps | LegacyPropertyCardProps): p is LegacyPropertyCardProps {
+  return (p as PropertyCardProps).property === undefined;
 }
 
-function isPropertyNew(isNewFlag: boolean | undefined, createdAtISO: string): boolean {
-  if (isNewFlag) return true;
-  const created = new Date(createdAtISO).getTime();
-  if (Number.isNaN(created)) return false;
+// Helpers
+export function isNewProperty(createdAt: string): boolean {
+  const created = new Date(createdAt).getTime();
+  if (!Number.isFinite(created)) return false;
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
   return Date.now() - created <= sevenDaysMs;
 }
 
-function getOperationLabel(type: OperationType): string {
+export function getOperationTypeLabel(type: "sale" | "rent"): string {
   return type === "sale" ? "Продажба" : "Наем";
 }
 
-function getPriceSuffix(type: OperationType): string {
-  return type === "rent" ? "/мес" : "";
+export function getPrimaryImage(property: PropertyWithDetails): { url: string; alt: string } {
+  const primary = property.images.find((img) => (img as Tables<"property_images">).is_primary) || property.images[0];
+  const imageUrl = (primary as Tables<"property_images"> | undefined)?.url || "/images/window.svg";
+  const imageAlt = (primary as Tables<"property_images"> | undefined)?.alt_text_bg || property.property.title_bg || "Имот";
+  return { url: imageUrl, alt: imageAlt };
 }
 
-export default function PropertyCard(props: PropertyCardProps): React.ReactElement {
-  const {
-    id,
-    title_bg,
-    price_eur,
-    operation_type,
-    address_bg,
-    neighborhood,
-    area_sqm,
-    rooms,
-    bedrooms,
-    primary_image,
-    is_new,
-    created_at,
-    href,
-    className,
-  } = props;
+export function formatPropertyDetails(property: PropertyWithDetails): string[] {
+  const p = property.property as Tables<"properties">;
+  const details: string[] = [];
+  if (typeof p.area_sqm === "number" && p.area_sqm > 0) details.push(`${p.area_sqm} m²`);
+  if (typeof (p as any).rooms === "number" && (p as any).rooms > 0) details.push(`${(p as any).rooms} стаи`);
+  if (typeof (p as any).floor === "number" && (p as any).floor > 0) details.push(`Етаж ${(p as any).floor}`);
+  return details;
+}
 
-  const newBadge = isPropertyNew(is_new, created_at);
-  const priceText = `€ ${formatPriceEUR(price_eur)}${getPriceSuffix(operation_type)}`;
-  const operationLabel = getOperationLabel(operation_type);
-  const locationText = `Квартал ${neighborhood?.name_bg}, Стара Загора`;
-  const imageAlt = primary_image?.alt_text_bg || title_bg;
+function formatPriceEUR(value: number): string {
+  return new Intl.NumberFormat("bg-BG", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value);
+}
 
-  const CardWrapper: React.ElementType = href ? Link : "div";
-  const wrapperProps = href ? { href, "aria-label": `${title_bg} – ${operationLabel}` } : { "aria-label": `${title_bg} – ${operationLabel}` };
+export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCardProps): React.ReactElement {
+  // Normalize props to PropertyWithDetails
+  let property: PropertyWithDetails;
+  let priority = false;
+
+  if (isLegacyProps(props)) {
+    const p = props;
+    const propRow = {
+      id: p.id as unknown as Tables<"properties">["id"],
+      title_bg: p.title_bg as Tables<"properties">["title_bg"],
+      price_eur: p.price_eur as Tables<"properties">["price_eur"],
+      operation_type: p.operation_type as unknown as Tables<"properties">["operation_type"],
+      address_bg: p.address_bg as Tables<"properties">["address_bg"],
+      area_sqm: (p.area_sqm ?? null) as Tables<"properties">["area_sqm"],
+      rooms: (p.rooms ?? null) as Tables<"properties">["rooms"],
+      bedrooms: (p.bedrooms ?? null) as Tables<"properties">["bedrooms"],
+      is_new: (p.is_new ?? null) as Tables<"properties">["is_new"],
+      created_at: p.created_at as Tables<"properties">["created_at"],
+    } as unknown as Tables<"properties">;
+
+    const images: Tables<"property_images">[] = [
+      {
+        id: 0 as unknown as Tables<"property_images">["id"],
+        url: p.primary_image?.image_url,
+        alt_text_bg: (p.primary_image?.alt_text_bg ?? null) as Tables<"property_images">["alt_text_bg"],
+        alt_text_en: null as Tables<"property_images">["alt_text_en"],
+        is_primary: true as Tables<"property_images">["is_primary"],
+        property_id: 0 as unknown as Tables<"property_images">["property_id"],
+        sort_order: 0 as unknown as Tables<"property_images">["sort_order"],
+        file_size: null as Tables<"property_images">["file_size"],
+        filename: null as Tables<"property_images">["filename"],
+        height: null as Tables<"property_images">["height"],
+        width: null as Tables<"property_images">["width"],
+        created_at: new Date().toISOString() as Tables<"property_images">["created_at"],
+      },
+    ];
+
+    property = {
+      property: propRow,
+      neighborhood: { name_bg: p.neighborhood?.name_bg } as unknown as Tables<"neighborhoods">,
+      category: null as unknown as Tables<"property_categories">,
+      images,
+    };
+    // Optional href/className are ignored in new API
+  } else {
+    property = props.property;
+    priority = Boolean(props.priority);
+  }
+
+  const p = property.property as Tables<"properties">;
+  const op: "sale" | "rent" = (p.operation_type as unknown as string) === "rent" ? "rent" : "sale";
+  const price = typeof p.price_eur === "number" ? p.price_eur : 0;
+  const { url, alt } = getPrimaryImage(property);
+  const createdAt = String(p.created_at || "");
+  const showNew = isNewProperty(createdAt);
+  const neighborhoodName = (property.neighborhood as Tables<"neighborhoods"> | null)?.name_bg || "";
+  const hasArea = typeof p.area_sqm === "number" && p.area_sqm > 0;
+  const rooms = (p as unknown as { rooms?: number | null }).rooms ?? null;
+  const floor = (p as unknown as { floor?: number | null }).floor ?? null;
+
+  const href = `/properties/${String(p.id)}`;
 
   return (
-    <CardWrapper
-      {...(wrapperProps as any)}
-      className={[
-        "block h-full overflow-hidden rounded-lg border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+    <Link
+      href={href}
+      prefetch
+      aria-label={`${p.title_bg} – ${getOperationTypeLabel(op)}`}
+      className="block h-full overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow duration-300 hover:shadow-md cursor-pointer"
     >
-      {/* Image Section */}
+      {/* Image section */}
       <div className="relative w-full aspect-[4/3]">
         <Image
-          src={primary_image?.image_url || "/images/window.svg"}
-          alt={imageAlt}
+          src={url}
+          alt={alt}
           fill
-          priority={false}
+          priority={priority}
           className="object-cover"
-          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-        {newBadge ? (
-          <span className="absolute right-0 top-0 rounded-bl-lg bg-[#d4af37] px-3 py-1 text-sm font-semibold text-white">
-            НОВО
-          </span>
+        {/* Operation type badge */}
+        <span className="absolute top-4 right-4 rounded bg-white/90 px-2 py-1 text-xs font-medium text-[#1a2642] backdrop-blur-sm">
+          {getOperationTypeLabel(op)}
+        </span>
+        {/* New badge */}
+        {showNew ? (
+          <span className="absolute top-4 left-4 rounded-md bg-[#d4af37] px-3 py-1 text-xs font-semibold uppercase text-white">НОВО</span>
         ) : null}
       </div>
 
       {/* Content */}
       <div className="p-6">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="text-2xl font-bold text-[#1a2642]">{priceText}</div>
-          <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">{operationLabel}</span>
-        </div>
+        {/* Price */}
+        <div className="mt-4 mb-2 text-2xl font-semibold text-[#1a2642]">{formatPriceEUR(price)}</div>
 
-        <h3 className="mb-2 line-clamp-2 text-xl font-semibold text-gray-900">{title_bg}</h3>
+        {/* Title */}
+        <h3 className="mb-3 line-clamp-2 text-lg font-medium text-[#2d3748]">{p.title_bg}</h3>
 
-        <div className="mb-3 flex items-center gap-2 text-sm text-gray-600">
-          <MapPin className="h-4 w-4" aria-hidden />
-          <span>{locationText}</span>
-        </div>
-
+        {/* Details row */}
         <div className="flex items-center gap-4 text-sm text-gray-600">
-          {typeof area_sqm === "number" && area_sqm > 0 ? (
+          {hasArea ? (
             <div className="flex items-center gap-1">
-              <Square className="h-4 w-4" aria-hidden />
-              <span>{area_sqm} m²</span>
+              <Square className="w-4 h-4" aria-hidden />
+              <span>{p.area_sqm} m²</span>
             </div>
           ) : null}
           {typeof rooms === "number" && rooms > 0 ? (
             <div className="flex items-center gap-1">
-              <HomeIcon className="h-4 w-4" aria-hidden />
+              <BedDouble className="w-4 h-4" aria-hidden />
               <span>{rooms} стаи</span>
             </div>
           ) : null}
-          {typeof bedrooms === "number" && bedrooms > 0 ? (
+          {typeof floor === "number" && floor > 0 ? (
             <div className="flex items-center gap-1">
-              <Bed className="h-4 w-4" aria-hidden />
-              <span>{bedrooms} спални</span>
+              <Building2 className="w-4 h-4" aria-hidden />
+              <span>Етаж {floor}</span>
             </div>
           ) : null}
         </div>
+
+        {/* Neighborhood */}
+        <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
+          <MapPin className="w-4 h-4" aria-hidden />
+          <span>{neighborhoodName ? `Квартал ${neighborhoodName}` : "Стара Загора"}</span>
+        </div>
       </div>
-    </CardWrapper>
+    </Link>
   );
 }
 
