@@ -20,6 +20,7 @@ export default function AdminTestimonialsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [processingId, setProcessingId] = useState<number | null>(null);
 
   // Fetch testimonials
   const fetchTestimonials = async () => {
@@ -86,6 +87,7 @@ export default function AdminTestimonialsPage() {
 
   // Handle approve
   const handleApprove = async (id: number) => {
+    setProcessingId(id);
     try {
       const response = await fetch(`/api/admin/testimonials/${id}`, {
         method: "PUT",
@@ -116,11 +118,14 @@ export default function AdminTestimonialsPage() {
     } catch (err) {
       console.error("Error approving testimonial:", err);
       alert("Грешка при одобряване на отзива");
+    } finally {
+      setProcessingId(null);
     }
   };
 
   // Handle reject
   const handleReject = async (id: number) => {
+    setProcessingId(id);
     try {
       const response = await fetch(`/api/admin/testimonials/${id}`, {
         method: "PUT",
@@ -151,6 +156,8 @@ export default function AdminTestimonialsPage() {
     } catch (err) {
       console.error("Error rejecting testimonial:", err);
       alert("Грешка при отхвърляне на отзива");
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -160,6 +167,7 @@ export default function AdminTestimonialsPage() {
       return;
     }
 
+    setProcessingId(id);
     try {
       const response = await fetch(`/api/admin/testimonials/${id}`, {
         method: "DELETE",
@@ -180,6 +188,8 @@ export default function AdminTestimonialsPage() {
     } catch (err) {
       console.error("Error deleting testimonial:", err);
       alert("Грешка при изтриване на отзива");
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -230,6 +240,7 @@ export default function AdminTestimonialsPage() {
         onApprove={isAuthenticated ? handleApprove : undefined}
         onReject={isAuthenticated ? handleReject : undefined}
         onDelete={isAuthenticated ? handleDelete : undefined}
+        processingId={processingId}
       />
     </div>
   );

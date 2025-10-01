@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Pencil, Trash2, Check, X } from "lucide-react";
+import { Star, Pencil, Trash2, Check, X, Loader2 } from "lucide-react";
 
 interface Testimonial {
   id: number;
@@ -16,13 +16,15 @@ interface TestimonialsTableProps {
   onApprove?: (id: number) => void;
   onReject?: (id: number) => void;
   onDelete?: (id: number) => void;
+  processingId?: number | null;
 }
 
 export default function TestimonialsTable({ 
   testimonials, 
   onApprove,
   onReject,
-  onDelete 
+  onDelete,
+  processingId
 }: TestimonialsTableProps) {
   // Format date to DD.MM.YYYY
   const formatDate = (dateString: string) => {
@@ -145,7 +147,8 @@ export default function TestimonialsTable({
                     {/* Edit button */}
                     <button
                       onClick={() => window.location.href = `/admin/testimonials/${testimonial.id}/edit`}
-                      className="p-1.5 text-[#D4AF37] hover:bg-[#D4AF37] hover:bg-opacity-10 rounded transition-colors"
+                      disabled={processingId === testimonial.id}
+                      className="p-1.5 text-[#D4AF37] hover:bg-[#D4AF37] hover:bg-opacity-10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Редактирай"
                     >
                       <Pencil className="w-4 h-4" />
@@ -155,10 +158,15 @@ export default function TestimonialsTable({
                     {!testimonial.is_published && onApprove && (
                       <button
                         onClick={() => onApprove(testimonial.id)}
-                        className="p-1.5 text-green-600 hover:bg-green-100 rounded transition-colors"
+                        disabled={processingId === testimonial.id}
+                        className="p-1.5 text-green-600 hover:bg-green-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Одобри"
                       >
-                        <Check className="w-4 h-4" />
+                        {processingId === testimonial.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Check className="w-4 h-4" />
+                        )}
                       </button>
                     )}
 
@@ -166,10 +174,15 @@ export default function TestimonialsTable({
                     {testimonial.is_published && onReject && (
                       <button
                         onClick={() => onReject(testimonial.id)}
-                        className="p-1.5 text-orange-600 hover:bg-orange-100 rounded transition-colors"
+                        disabled={processingId === testimonial.id}
+                        className="p-1.5 text-orange-600 hover:bg-orange-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Отхвърли"
                       >
-                        <X className="w-4 h-4" />
+                        {processingId === testimonial.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <X className="w-4 h-4" />
+                        )}
                       </button>
                     )}
 
@@ -177,10 +190,15 @@ export default function TestimonialsTable({
                     {onDelete && (
                       <button
                         onClick={() => onDelete(testimonial.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                        disabled={processingId === testimonial.id}
+                        className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Изтрий"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {processingId === testimonial.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     )}
                   </div>
