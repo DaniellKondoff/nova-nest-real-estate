@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { StatsCard } from "@/components/admin/StatsCard";
+import { RecentInquiries } from "@/components/admin/RecentInquiries";
 import { Home, MessageSquare, Star, TrendingUp } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
@@ -166,6 +167,11 @@ export default function AdminDashboard() {
             color="purple"
             trend="Новодобавени"
           />
+        </div>
+
+        {/* Recent Inquiries Widget */}
+        <div className="mb-8">
+          <RecentInquiries limit={8} />
         </div>
 
         {/* Quick Actions Section */}
