@@ -88,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
   }, [isMobileMenuOpen]);
 
   // Header is visible on all screens; desktop-specific elements are handled per-section
-  const headerBase = "sticky top-0 z-50 transition-shadow duration-300";
+  const headerBase = "sticky top-0 left-0 right-0 z-50 transition-shadow duration-300 w-full";
   const backgroundStyling =
     // Navy background with 95% opacity + subtle bottom border + glass blur at 8px
     "bg-[#1a2642]/95 backdrop-blur-[8px] border-b border-white/10";

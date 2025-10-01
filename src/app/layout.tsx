@@ -50,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bg">
-      <body className={`${inter.variable} antialiased flex min-h-screen flex-col`}>
+      <body className={`${inter.variable} antialiased`}>
         <ConditionalWrapper>
           {children}
         </ConditionalWrapper>
