@@ -3,7 +3,7 @@ import type { Tables } from "@/types/database.generated";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import { getSupabaseClient } from "@/lib/supabase";
 import { getPropertyById } from "@/lib/queries/properties";
-import { isAdminUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
 import { AdminPropertySchema } from "@/lib/validations";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import { ok, fail, notFound, unauthorized } from "@/lib/api";
@@ -72,7 +72,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
  */
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да редактират имоти.");
     }
@@ -119,7 +119,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
  */
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да изтриват имоти.");
     }

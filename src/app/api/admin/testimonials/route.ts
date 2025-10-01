@@ -125,8 +125,7 @@ export async function POST(req: NextRequest) {
       await supa.rpc("auto_approve_testimonial", { testimonial_id: (data as any).id, min_rating: 5 });
     }
 
-    const body: SuccessResponse<any> = { data: data as any };
-    return ok(body.data, { status: 201 });
+    return ok(data as any, { status: 201 });
   } catch (err) {
     console.error("Testimonial creation error:", err);
     if (err instanceof z.ZodError) {

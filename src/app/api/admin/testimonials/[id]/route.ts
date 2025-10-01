@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { isAdminUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
@@ -27,7 +27,7 @@ const UpdateSchema = z.object({
  */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const { id: idParam } = await params;
@@ -43,8 +43,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     if (error) throw new DatabaseError("Неуспешно зареждане на отзив.");
     if (!data) return notFound("Отзивът не е намерен.");
 
-    const body: SuccessResponse<any> = { data };
-    return ok(body.data);
+    return ok(data);
   } catch (err) {
     if (err instanceof z.ZodError) {
       return fail("Невалидни параметри.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
@@ -62,7 +61,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
  */
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const { id: idParam } = await params;
@@ -95,8 +94,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       await supa.rpc("auto_approve_testimonial", { testimonial_id: id, min_rating: 5 });
     }
 
-    const body: SuccessResponse<any> = { data };
-    return ok(body.data);
+    return ok(data);
   } catch (err) {
     if (err instanceof z.ZodError) {
       return fail("Невалидни данни.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
@@ -113,7 +111,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
  */
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const { id: idParam } = await params;

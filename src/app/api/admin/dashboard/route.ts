@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { isAdminUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
@@ -12,7 +12,7 @@ import { ok, fail, unauthorized } from "@/lib/api";
  */
 export async function GET(_req: NextRequest) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const supabase = await getSupabaseClient();

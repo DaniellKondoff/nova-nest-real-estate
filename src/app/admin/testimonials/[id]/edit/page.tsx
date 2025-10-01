@@ -41,6 +41,7 @@ export default function EditTestimonialPage() {
         }
 
         const data = await response.json();
+        console.log("Fetched testimonial data:", data);
         setTestimonial(data);
       } catch (err) {
         console.error("Error fetching testimonial:", err);

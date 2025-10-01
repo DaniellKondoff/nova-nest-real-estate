@@ -3,7 +3,8 @@ import type { Tables } from "@/types/database.generated";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import { getSupabaseClient } from "@/lib/supabase";
 import { getPublishedProperties } from "@/lib/queries/properties";
-import { isAdminUser, getCurrentUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
+import { getCurrentUser } from "@/lib/auth";
 import { AdminPropertySchema } from "@/lib/validations";
 import { formatErrorMessage, ValidationError, AuthError, DatabaseError } from "@/lib/errors";
 import { ok, fail, unauthorized } from "@/lib/api";
@@ -80,7 +81,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: Request) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да създават имоти.");
     }

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { isAdminUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
@@ -36,7 +36,7 @@ const QuerySchema = z.object({
  */
 export async function GET(req: NextRequest) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп.");
     }

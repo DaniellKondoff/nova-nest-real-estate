@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { Star } from "lucide-react";
 import Link from "next/link";
 
@@ -42,6 +42,20 @@ export default function TestimonialForm({
 
   const [hoveredStar, setHoveredStar] = useState<number>(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Update form data when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      console.log("Updating form with initial data:", initialData);
+      setFormData({
+        client_name: initialData.client_name || "",
+        rating: initialData.rating || 1,
+        content_bg: initialData.content_bg || "",
+        content_en: initialData.content_en || "",
+        is_published: initialData.is_published || false,
+      });
+    }
+  }, [initialData]);
 
   const handleStarClick = (rating: number) => {
     setFormData({ ...formData, rating });

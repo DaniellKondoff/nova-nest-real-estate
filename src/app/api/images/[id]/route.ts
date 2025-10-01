@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { isAdminUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
 import { deletePropertyImage } from "@/lib/storage";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
@@ -14,7 +14,7 @@ import { ok, fail, notFound, unauthorized } from "@/lib/api";
  */
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да изтриват снимки.");
     }

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { isAdminUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
@@ -13,7 +13,7 @@ import { ok, fail, notFound, unauthorized } from "@/lib/api";
  */
 export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) {
       return unauthorized("Неоторизиран достъп. Само администратори могат да задават основно изображение.");
     }
