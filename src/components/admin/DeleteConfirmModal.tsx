@@ -9,6 +9,7 @@ interface DeleteConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
+  isBulk?: boolean;
 }
 
 export default function DeleteConfirmModal({
@@ -17,6 +18,7 @@ export default function DeleteConfirmModal({
   onConfirm,
   onCancel,
   loading = false,
+  isBulk = false,
 }: DeleteConfirmModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -78,9 +80,19 @@ export default function DeleteConfirmModal({
 
         {/* Message */}
         <p className="text-sm text-gray-600 text-center mb-6">
-          Сигурни ли сте, че искате да изтриете{" "}
-          <span className="font-semibold text-gray-900">&quot;{propertyTitle}&quot;</span>?
-          Това действие не може да бъде отменено.
+          {isBulk ? (
+            <>
+              Сигурни ли сте, че искате да изтриете{" "}
+              <span className="font-semibold text-gray-900">{propertyTitle}</span>?
+              Всички избрани имоти ще бъдат архивирани.
+            </>
+          ) : (
+            <>
+              Сигурни ли сте, че искате да изтриете{" "}
+              <span className="font-semibold text-gray-900">&quot;{propertyTitle}&quot;</span>?
+              Това действие не може да бъде отменено.
+            </>
+          )}
         </p>
 
         {/* Buttons */}
@@ -98,7 +110,7 @@ export default function DeleteConfirmModal({
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>Изтрий</span>
+            <span>{isBulk ? "Изтрий всички" : "Изтрий"}</span>
           </button>
         </div>
       </div>

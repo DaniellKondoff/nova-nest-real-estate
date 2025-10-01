@@ -35,8 +35,15 @@ export default function PropertiesListPage() {
   const [propertyToDelete, setPropertyToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
+  // Bulk delete modal state
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  
   // Selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  // Success/error messages
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Fetch categories
   useEffect(() => {
@@ -173,10 +180,92 @@ export default function PropertiesListPage() {
 
   const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
-    
-    // TODO: Implement bulk delete
-    // For now, just show alert
-    alert(`Bulk delete ${selectedIds.length} properties - To be implemented`);
+    setBulkDeleteModalOpen(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+
+    setIsBulkDeleting(true);
+    try {
+      const response = await fetch("/api/admin/properties/bulk-delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ propertyIds: selectedIds }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Грешка при изтриване на имотите");
+      }
+
+      // Show success message
+      setSuccessMessage(data.message || `Успешно изтрити ${data.deleted} имота`);
+
+      // Refresh properties list
+      const supabase = getBrowserClient();
+      let query = supabase
+        .from("properties")
+        .select(
+          `
+          *,
+          category:property_categories(*),
+          neighborhood:neighborhoods(*),
+          images:property_images(*)
+        `,
+          { count: "exact" }
+        )
+        .order("created_at", { ascending: false });
+
+      // Reapply filters
+      if (searchTerm) {
+        query = query.or(
+          `title_bg.ilike.%${searchTerm}%,address_bg.ilike.%${searchTerm}%`
+        );
+      }
+      if (categoryFilter) {
+        query = query.eq("category_id", parseInt(categoryFilter));
+      }
+      if (statusFilter) {
+        query = query.eq("status", statusFilter as any);
+      }
+
+      const from = (currentPage - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
+
+      const { data: refreshedData, count } = await query;
+
+      if (refreshedData) {
+        const transformedData: PropertyWithDetails[] = refreshedData.map(
+          (item: any) => ({
+            property: item,
+            category: item.category,
+            neighborhood: item.neighborhood,
+            images: item.images || [],
+          })
+        );
+        setProperties(transformedData);
+        setTotalResults(count || 0);
+      }
+
+      // Clear selection
+      setSelectedIds([]);
+      setBulkDeleteModalOpen(false);
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err) {
+      console.error("Error bulk deleting properties:", err);
+      alert(
+        err instanceof Error ? err.message : "Грешка при изтриване на имотите"
+      );
+    } finally {
+      setIsBulkDeleting(false);
+    }
   };
 
   if (error) {
@@ -202,6 +291,13 @@ export default function PropertiesListPage() {
         onStatusFilter={setStatusFilter}
         categories={categories}
       />
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-green-800">{successMessage}</p>
+        </div>
+      )}
 
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && (
@@ -266,6 +362,16 @@ export default function PropertiesListPage() {
           setPropertyToDelete(null);
         }}
         loading={isDeleting}
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={bulkDeleteModalOpen}
+        propertyTitle={`${selectedIds.length} имота`}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteModalOpen(false)}
+        loading={isBulkDeleting}
+        isBulk={true}
       />
     </div>
   );
