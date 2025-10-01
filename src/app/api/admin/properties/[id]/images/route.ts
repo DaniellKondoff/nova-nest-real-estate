@@ -11,7 +11,7 @@ interface ImageRecord {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await getServerClient();
@@ -43,7 +43,8 @@ export async function POST(
       );
     }
 
-    const propertyId = parseInt(params.id);
+    const { id } = await params;
+    const propertyId = parseInt(id);
 
     if (isNaN(propertyId)) {
       return NextResponse.json(
@@ -111,7 +112,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await getServerClient();
@@ -143,6 +144,7 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { imageIds } = body;
 

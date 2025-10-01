@@ -4,7 +4,7 @@ import { AdminPropertySchema } from "@/lib/validations";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await getServerClient();
@@ -36,7 +36,8 @@ export async function PUT(
       );
     }
 
-    const propertyId = parseInt(params.id);
+    const { id } = await params;
+    const propertyId = parseInt(id);
 
     if (isNaN(propertyId)) {
       return NextResponse.json(
@@ -126,7 +127,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await getServerClient();
@@ -158,7 +159,8 @@ export async function DELETE(
       );
     }
 
-    const propertyId = parseInt(params.id);
+    const { id } = await params;
+    const propertyId = parseInt(id);
 
     if (isNaN(propertyId)) {
       return NextResponse.json(
