@@ -7,6 +7,7 @@ import {
   LayoutDashboard, 
   Home, 
   MessageSquare, 
+  Star,
   LogOut,
   Loader2 
 } from "lucide-react";
@@ -76,6 +77,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: "Запитвания",
       href: "/admin/inquiries/",
       icon: MessageSquare,
+    },
+    {
+      name: "Отзиви",
+      href: "/admin/testimonials/",
+      icon: Star,
     },
   ];
 

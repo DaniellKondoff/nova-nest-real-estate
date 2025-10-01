@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { isAdminUser } from "@/lib/auth";
+import { isAdminUserServer } from "@/lib/auth-server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
@@ -24,7 +24,9 @@ const CreateSchema = z.object({
   client_initial: z.string().max(5).optional(),
   client_role: z.string().max(120).optional(),
   content_bg: z.string().min(10),
-  content_en: z.string().min(10).optional(),
+  content_en: z.string().optional().refine((val) => !val || val.length >= 10, {
+    message: "English content must be at least 10 characters if provided"
+  }),
   rating: z.coerce.number().int().min(1).max(5).optional(),
   property_id: z.coerce.number().int().positive().optional(),
   service_type: z.string().max(120).optional(),
@@ -40,7 +42,7 @@ const CreateSchema = z.object({
  */
 export async function GET(req: NextRequest) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const url = new URL(req.url);
@@ -86,11 +88,14 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const isAdmin = await isAdminUser();
+    const isAdmin = await isAdminUserServer();
     if (!isAdmin) return unauthorized("Неоторизиран достъп.");
 
     const payload = await req.json();
+    console.log("Received payload:", payload);
+    
     const parsed = await CreateSchema.parseAsync(payload);
+    console.log("Parsed data:", parsed);
 
     const supabase = await getSupabaseClient();
     const { data, error } = await supabase
@@ -123,7 +128,9 @@ export async function POST(req: NextRequest) {
     const body: SuccessResponse<any> = { data: data as any };
     return ok(body.data, { status: 201 });
   } catch (err) {
+    console.error("Testimonial creation error:", err);
     if (err instanceof z.ZodError) {
+      console.error("Validation errors:", err.issues);
       return fail("Невалидни данни.", { status: 400, code: "VALIDATION_ERROR", details: { issues: err.issues } });
     }
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;

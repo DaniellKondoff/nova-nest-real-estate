@@ -22,6 +22,8 @@ export default function CreateTestimonialPage() {
     setError(null);
 
     try {
+      console.log("Submitting testimonial data:", data);
+      
       const response = await fetch("/api/admin/testimonials", {
         method: "POST",
         headers: {
@@ -30,9 +32,31 @@ export default function CreateTestimonialPage() {
         body: JSON.stringify(data),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Неуспешно създаване на отзив");
+        let errorMessage = "Неуспешно създаване на отзив";
+        try {
+          const errorData = await response.json();
+          console.error("API Error:", errorData);
+          console.error("Error data keys:", Object.keys(errorData));
+          
+          // Handle different error response formats
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.details) {
+            errorMessage = `Validation error: ${JSON.stringify(errorData.details)}`;
+          } else {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+        } catch (parseError) {
+          console.error("Failed to parse error response:", parseError);
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       // Redirect to testimonials list on success

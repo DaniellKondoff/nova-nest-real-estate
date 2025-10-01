@@ -33,6 +33,7 @@ export async function isAdminUser(): Promise<boolean> {
   return !!data;
 }
 
+
 export async function getAdminRole(): Promise<AdminRole | null> {
   const supabase = getBrowserClient();
   const user = await getCurrentUser();

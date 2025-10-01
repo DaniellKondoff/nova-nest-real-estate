@@ -34,7 +34,7 @@ export default function TestimonialForm({
 }: TestimonialFormProps) {
   const [formData, setFormData] = useState<TestimonialData>({
     client_name: initialData?.client_name || "",
-    rating: initialData?.rating || 0,
+    rating: initialData?.rating || 1,
     content_bg: initialData?.content_bg || "",
     content_en: initialData?.content_en || "",
     is_published: initialData?.is_published || false,
