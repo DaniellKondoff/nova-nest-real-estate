@@ -14,6 +14,9 @@ import { uploadPropertyImage } from "@/lib/storage";
 
 type PropertyFeature = Tables<"property_features">;
 
+// Use a constant for current year to avoid hydration issues
+const CURRENT_YEAR = 2025;
+
 // Extended schema for form with additional fields
 const PropertyFormSchema = z.object({
   title_bg: z.string().min(3, "Въведете заглавие.").max(200, "Максимум 200 символа"),
@@ -33,7 +36,7 @@ const PropertyFormSchema = z.object({
   bathrooms: z.number().int().min(0).max(10).optional().nullable(),
   floor: z.number().int().min(-5).max(100).optional().nullable(),
   total_floors: z.number().int().min(1).max(100).optional().nullable(),
-  year_built: z.number().int().min(1800).max(new Date().getFullYear()).optional().nullable(),
+  year_built: z.number().int().min(1800).max(CURRENT_YEAR).optional().nullable(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   features: z.array(z.number()).optional(),
@@ -571,7 +574,7 @@ export default function PropertyForm({
               id="year_built"
               type="number"
               min="1800"
-              max={new Date().getFullYear()}
+              max={CURRENT_YEAR}
               {...register("year_built", { valueAsNumber: true })}
               className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
               placeholder="2010"
