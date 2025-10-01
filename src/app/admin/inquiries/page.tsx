@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { getCurrentUser } from "@/lib/auth";
 import InquiriesTable from "@/components/admin/InquiriesTable";
 import InquiryDetailsModal from "@/components/admin/InquiryDetailsModal";
 import InquiriesFilter from "@/components/admin/InquiriesFilter";
@@ -32,6 +33,7 @@ export default function AdminInquiriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Fetch inquiries
   const fetchInquiries = async () => {
@@ -70,33 +72,81 @@ export default function AdminInquiriesPage() {
   // Load inquiries on component mount
   useEffect(() => {
     fetchInquiries();
+    
+    // Check authentication state
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+          console.log("User not logged in - redirecting to login");
+          alert("Моля, влезте в системата за да можете да управлявате запитванията.");
+          window.location.href = '/admin/login';
+          return;
+        }
+        
+        // Check if user is admin
+        const supabase = getBrowserClient();
+        const { data: adminProfile, error } = await supabase
+          .from("admin_profiles")
+          .select("role")
+          .eq("user_id", user.id)
+          .single();
+          
+        if (error || !adminProfile) {
+          alert("Нямате администраторски права.");
+          window.location.href = '/admin/login';
+          return;
+        }
+        
+        setIsAuthenticated(true);
+      } catch (err) {
+        alert("Грешка при проверка на автентичността.");
+        window.location.href = '/admin/login';
+      }
+    };
+    checkAuth();
   }, []);
 
   // Handle view details
-  const handleViewDetails = async (inquiry: Inquiry) => {
+  const handleViewDetails = (inquiry: Inquiry) => {
     setSelectedInquiry(inquiry);
     setIsModalOpen(true);
     
-    // Auto-mark as read if status is 'new'
-    if (inquiry.status === "new") {
-      await updateStatus(inquiry.id.toString(), "in_progress");
-    }
+    // Note: Auto-mark as read functionality removed to prevent authentication errors
+    // Users can manually mark as read using the button in the modal
   };
 
   // Update inquiry status
   const updateStatus = async (id: string, status: string) => {
     try {
+      
       const response = await fetch(`/api/admin/inquiries/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Include cookies for authentication
         body: JSON.stringify({ status }),
       });
 
       if (!response.ok) {
-        throw new Error("Неуспешно обновяване на статуса.");
+        const errorText = await response.text();
+        
+        // If it's an authentication error, show a specific message
+        if (response.status === 401) {
+          const errorMsg = "Неоторизиран достъп. Моля, влезте отново в системата.";
+          console.error(errorMsg);
+          alert(errorMsg);
+          // Redirect to login
+          window.location.href = '/admin/login';
+          return;
+        }
+        
+        throw new Error(`Неуспешно обновяване на статуса: ${response.status}`);
       }
+
+      const result = await response.json();
 
       // Update local state
       setInquiries(prev => 
@@ -113,9 +163,15 @@ export default function AdminInquiriesPage() {
           prev ? { ...prev, status: status as Inquiry["status"] } : null
         );
       }
+
+      // Auto-close modal after successful status update
+      setTimeout(() => {
+        handleCloseModal();
+      }, 1000); // Close after 1 second to show the success
     } catch (err) {
       console.error("Error updating status:", err);
-      // You could show a toast notification here
+      alert(`Грешка при обновяване на статуса: ${err instanceof Error ? err.message : 'Неизвестна грешка'}`);
+      // Don't re-throw to prevent unhandled promise rejections
     }
   };
 
@@ -133,6 +189,9 @@ export default function AdminInquiriesPage() {
       return statusMatch && typeMatch;
     });
   }, [inquiries, statusFilter, typeFilter]);
+
+  // Check if user is authenticated before showing status update buttons
+  const canUpdateStatus = isAuthenticated;
 
   // Handle filter changes
   const handleStatusFilter = (status: string | null) => {
@@ -201,7 +260,8 @@ export default function AdminInquiriesPage() {
         inquiry={selectedInquiry}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onStatusUpdate={updateStatus}
+        onStatusUpdate={canUpdateStatus ? updateStatus : async () => {}}
+        isAuthenticated={isAuthenticated}
       />
     </div>
   );

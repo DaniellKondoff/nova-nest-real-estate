@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Mail, Phone, Calendar, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -27,6 +27,7 @@ interface InquiryDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusUpdate: (id: string, status: string) => void;
+  isAuthenticated?: boolean;
 }
 
 export default function InquiryDetailsModal({
@@ -34,8 +35,10 @@ export default function InquiryDetailsModal({
   isOpen,
   onClose,
   onStatusUpdate,
+  isAuthenticated = true,
 }: InquiryDetailsModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Handle ESC key
   useEffect(() => {
@@ -131,15 +134,25 @@ export default function InquiryDetailsModal({
   };
 
   // Handle status updates
-  const handleMarkAsRead = () => {
-    if (inquiry) {
-      onStatusUpdate(inquiry.id.toString(), "in_progress");
+  const handleMarkAsRead = async () => {
+    if (inquiry && !isUpdating) {
+      setIsUpdating(true);
+      try {
+        await onStatusUpdate(inquiry.id.toString(), "in_progress");
+      } finally {
+        setIsUpdating(false);
+      }
     }
   };
 
-  const handleMarkAsResponded = () => {
-    if (inquiry) {
-      onStatusUpdate(inquiry.id.toString(), "responded");
+  const handleMarkAsResponded = async () => {
+    if (inquiry && !isUpdating) {
+      setIsUpdating(true);
+      try {
+        await onStatusUpdate(inquiry.id.toString(), "responded");
+      } finally {
+        setIsUpdating(false);
+      }
     }
   };
 
@@ -290,21 +303,33 @@ export default function InquiryDetailsModal({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-            {inquiry.status === "new" && (
-              <Button
-                onClick={handleMarkAsRead}
-                className="bg-[#D4AF37] hover:bg-[#B8941F] text-white"
-              >
-                Маркирай като прочетено
-              </Button>
-            )}
-            {inquiry.status === "in_progress" && (
-              <Button
-                onClick={handleMarkAsResponded}
-                className="bg-[#D4AF37] hover:bg-[#B8941F] text-white"
-              >
-                Маркирай като отговорено
-              </Button>
+            {!isAuthenticated ? (
+              <div className="w-full p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 text-sm">
+                  Моля, влезте в системата за да можете да променяте статуса на запитванията.
+                </p>
+              </div>
+            ) : (
+              <>
+                {inquiry.status === "new" && (
+                  <Button
+                    onClick={handleMarkAsRead}
+                    disabled={isUpdating}
+                    className="bg-[#D4AF37] hover:bg-[#B8941F] text-white disabled:opacity-50"
+                  >
+                    {isUpdating ? "Обновяване..." : "Маркирай като прочетено"}
+                  </Button>
+                )}
+                {inquiry.status === "in_progress" && (
+                  <Button
+                    onClick={handleMarkAsResponded}
+                    disabled={isUpdating}
+                    className="bg-[#D4AF37] hover:bg-[#B8941F] text-white disabled:opacity-50"
+                  >
+                    {isUpdating ? "Обновяване..." : "Маркирай като отговорено"}
+                  </Button>
+                )}
+              </>
             )}
             <Button
               onClick={onClose}

@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { isAdminUser } from "@/lib/auth";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getServerClient } from "@/lib/supabase/server";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import { ok, fail, unauthorized } from "@/lib/api";
@@ -23,16 +22,37 @@ const UpdateStatusSchema = z.object({
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const isAdmin = await isAdminUser();
-    if (!isAdmin) {
+    // Await params before accessing its properties
+    const resolvedParams = await params;
+
+    const supabase = await getServerClient();
+
+    // Check authentication using server client
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return unauthorized("Неоторизиран достъп.");
     }
 
+    // Check if user is admin
+    const { data: adminProfile, error: adminError } = await supabase
+      .from("admin_profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (adminError || !adminProfile) {
+      return unauthorized("Нямате администраторски права.");
+    }
+
     // Validate inquiry ID
-    const inquiryId = parseInt(params.id);
+    const inquiryId = parseInt(resolvedParams.id);
     if (isNaN(inquiryId)) {
       return fail("Невалидно ID на запитване.", { status: 400, code: "VALIDATION_ERROR" });
     }
@@ -41,9 +61,21 @@ export async function PATCH(
     const body = await req.json();
     const parsed = await UpdateStatusSchema.parseAsync(body);
 
-    const supabase = await getSupabaseClient();
+    // Check if inquiry exists before updating
+    const { data: existingInquiry, error: fetchError } = await supabase
+      .from("inquiries")
+      .select("id, status")
+      .eq("id", inquiryId)
+      .single();
 
-    // Update inquiry status and updated_at timestamp
+    if (fetchError) {
+      if (fetchError.code === "PGRST116") {
+        return fail("Запитването не е намерено.", { status: 404, code: "NOT_FOUND" });
+      }
+      return fail("Грешка при зареждане на запитването.", { status: 500, code: "SERVER_ERROR" });
+    }
+
+    // First try a simple update without joins to see if that works
     const { data: updatedInquiry, error } = await supabase
       .from("inquiries")
       .update({
@@ -51,7 +83,7 @@ export async function PATCH(
         updated_at: new Date().toISOString(),
       })
       .eq("id", inquiryId)
-      .select("*, property:properties(*), assigned:admin_profiles(*)")
+      .select("*")
       .single();
 
     if (error) {
