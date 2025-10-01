@@ -14,8 +14,8 @@ interface Inquiry {
   property: {
     id: number;
     title_bg: string;
-    price: number;
-    price_currency: string;
+    price_bgn: number | null;
+    price_eur: number | null;
   } | null;
 }
 

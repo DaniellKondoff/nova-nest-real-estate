@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase/client";
 import InquiriesTable from "@/components/admin/InquiriesTable";
 import InquiryDetailsModal from "@/components/admin/InquiryDetailsModal";
 import InquiriesFilter from "@/components/admin/InquiriesFilter";
@@ -19,8 +19,8 @@ interface Inquiry {
   property: {
     id: number;
     title_bg: string;
-    price: number;
-    price_currency: string;
+    price_bgn: number | null;
+    price_eur: number | null;
   } | null;
 }
 
@@ -37,7 +37,7 @@ export default function AdminInquiriesPage() {
   const fetchInquiries = async () => {
     try {
       setLoading(true);
-      const supabase = await getSupabaseClient();
+      const supabase = getBrowserClient();
       
       const { data, error } = await supabase
         .from("inquiries")
@@ -50,7 +50,7 @@ export default function AdminInquiriesPage() {
           message,
           status,
           created_at,
-          property:properties(id, title_bg, price, price_currency)
+          property:properties(id, title_bg, price_bgn, price_eur)
         `)
         .order("created_at", { ascending: false });
 

@@ -17,8 +17,8 @@ interface Inquiry {
   property: {
     id: number;
     title_bg: string;
-    price: number;
-    price_currency: string;
+    price_bgn: number | null;
+    price_eur: number | null;
   } | null;
 }
 
@@ -121,8 +121,13 @@ export default function InquiryDetailsModal({
   };
 
   // Format property price
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat("bg-BG").format(price) + " " + currency;
+  const formatPrice = (priceBgn: number | null, priceEur: number | null) => {
+    if (priceEur !== null) {
+      return new Intl.NumberFormat("bg-BG").format(priceEur) + " €";
+    } else if (priceBgn !== null) {
+      return new Intl.NumberFormat("bg-BG").format(priceBgn) + " лв";
+    }
+    return "Цена по договаряне";
   };
 
   // Handle status updates
@@ -251,7 +256,7 @@ export default function InquiryDetailsModal({
                       {inquiry.property.title_bg}
                     </h4>
                     <p className="text-lg font-semibold text-[#D4AF37] mb-3">
-                      {formatPrice(inquiry.property.price, inquiry.property.price_currency)}
+                      {formatPrice(inquiry.property.price_bgn, inquiry.property.price_eur)}
                     </p>
                   </div>
                 </div>
