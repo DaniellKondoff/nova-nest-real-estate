@@ -8,6 +8,7 @@ import {
   Home, 
   MessageSquare, 
   Star,
+  Settings,
   LogOut,
   Loader2 
 } from "lucide-react";
@@ -83,6 +84,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: "/admin/testimonials/",
       icon: Star,
     },
+    {
+      name: "Настройки",
+      href: "/admin/settings/",
+      icon: Settings,
+    },
   ];
 
   return (
@@ -101,7 +107,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <nav className="space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href.replace(/\/$/, ''));
               
               return (
                 <Link

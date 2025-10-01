@@ -156,6 +156,56 @@ export const Text = React.forwardRef(
 // Set displayName after the cast
 (Text as any).displayName = "Text";
 
+/**
+ * Typography – Unified typography component that can render as headings or text.
+ * 
+ * Example:
+ * <Typography variant="h1">Heading</Typography>
+ * <Typography variant="p">Paragraph text</Typography>
+ */
+export type TypographyVariant = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p';
+
+export type TypographyOwnProps = {
+  variant: TypographyVariant;
+  className?: string;
+  children?: React.ReactNode;
+} & (
+  | ({ variant: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' } & HeadingOwnProps)
+  | ({ variant: 'p' } & TextOwnProps)
+);
+
+export const Typography = React.forwardRef<HTMLElement, TypographyOwnProps>(
+  ({ variant, className, children, ...props }, ref) => {
+    if (variant === 'p') {
+      return (
+        <Text 
+          ref={ref as React.Ref<HTMLParagraphElement>}
+          className={className}
+          {...(props as TextOwnProps)}
+        >
+          {children}
+        </Text>
+      );
+    }
+    
+    // For heading variants
+    const headingSize = variant as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+    return (
+      <Heading 
+        ref={ref as React.Ref<HTMLElement>}
+        as={variant}
+        size={headingSize}
+        className={className}
+        {...(props as HeadingOwnProps)}
+      >
+        {children}
+      </Heading>
+    );
+  }
+);
+
+Typography.displayName = 'Typography';
+
 export { typeTokens };
 
  
