@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
-import type { PropertyCategory } from "@/types/property";
+import { Loader2, X } from "lucide-react";
+import type { PropertyCategory, PropertyWithDetails } from "@/types/property";
 import type { StaraZagoraNeighborhood } from "@/types/search";
 import type { Tables } from "@/types/database.generated";
 import ImageUpload from "./ImageUpload";
@@ -42,23 +42,32 @@ const PropertyFormSchema = z.object({
 type PropertyFormData = z.infer<typeof PropertyFormSchema>;
 
 interface PropertyFormProps {
+  initialData?: PropertyWithDetails;
   categories: PropertyCategory[];
   neighborhoods: StaraZagoraNeighborhood[];
   features: PropertyFeature[];
-  defaultValues?: Partial<PropertyFormData>;
+  submitLabel?: string;
 }
 
 export default function PropertyForm({
+  initialData,
   categories,
   neighborhoods,
   features,
-  defaultValues,
+  submitLabel = "Добави имот",
 }: PropertyFormProps) {
   const router = useRouter();
   const [images, setImages] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState(initialData?.images || []);
+  const [imagesToDelete, setImagesToDelete] = useState<number[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const isEditMode = !!initialData;
+
+  // Get feature IDs from initialData
+  const initialFeatureIds = initialData?.features?.map((f: any) => f.id) || [];
 
   const {
     register,
@@ -67,17 +76,38 @@ export default function PropertyForm({
     formState: { errors },
   } = useForm<PropertyFormData>({
     resolver: zodResolver(PropertyFormSchema),
-    defaultValues: {
+    defaultValues: initialData ? {
+      title_bg: initialData.property.title_bg,
+      title_en: (initialData.property as any).title_en || "",
+      description_bg: initialData.property.description_bg || "",
+      description_en: (initialData.property as any).description_en || "",
+      address_bg: initialData.property.address_bg || "",
+      price_eur: initialData.property.price_eur || undefined,
+      price_bgn: initialData.property.price_bgn || undefined,
+      operation_type: initialData.property.operation_type,
+      status: initialData.property.status,
+      category_id: initialData.property.category_id,
+      neighborhood_id: initialData.property.neighborhood_id,
+      area_sqm: initialData.property.area_sqm || undefined,
+      rooms: initialData.property.rooms || undefined,
+      bedrooms: initialData.property.bedrooms || undefined,
+      bathrooms: initialData.property.bathrooms || undefined,
+      floor: initialData.property.floor || undefined,
+      total_floors: (initialData.property as any).total_floors || undefined,
+      year_built: initialData.property.year_built || undefined,
+      latitude: initialData.property.latitude || undefined,
+      longitude: initialData.property.longitude || undefined,
+      features: initialFeatureIds,
+    } : {
       operation_type: "sale",
       status: "available",
       features: [],
-      ...defaultValues,
     },
   });
 
   const handleFormSubmit = async (data: PropertyFormData) => {
-    // Validate images
-    if (images.length === 0) {
+    // Validate images (need at least one - existing or new)
+    if (images.length === 0 && existingImages.length === 0) {
       setImageError("Моля, добавете поне една снимка");
       return;
     }
@@ -87,54 +117,111 @@ export default function PropertyForm({
     setIsSubmitting(true);
 
     try {
-      // Step 1: Create the property first
-      const response = await fetch("/api/admin/properties", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      if (isEditMode) {
+        // UPDATE MODE
+        const propertyId = initialData.property.id;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Грешка при запазване на имота");
-      }
+        // Step 1: Update property
+        const response = await fetch(`/api/admin/properties/${propertyId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
 
-      const { property } = await response.json();
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Грешка при обновяване на имота");
+        }
 
-      // Step 2: Upload images
-      const uploadPromises = images.map((file) =>
-        uploadPropertyImage(property.id, file)
-      );
-      const uploadedImages = await Promise.all(uploadPromises);
+        // Step 2: Delete removed images
+        if (imagesToDelete.length > 0) {
+          await fetch(`/api/admin/properties/${propertyId}/images`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ imageIds: imagesToDelete }),
+          });
+        }
 
-      // Step 3: Save image records to database
-      const imageRecords = uploadedImages.map((img, index) => ({
-        property_id: property.id,
-        url: img.url,
-        alt_text_bg: data.title_bg,
-        is_primary: index === 0,
-        sort_order: index,
-      }));
+        // Step 3: Upload new images if any
+        if (images.length > 0) {
+          const uploadPromises = images.map((file) =>
+            uploadPropertyImage(propertyId, file)
+          );
+          const uploadedImages = await Promise.all(uploadPromises);
 
-      const imagesResponse = await fetch(
-        `/api/admin/properties/${property.id}/images`,
-        {
+          const imageRecords = uploadedImages.map((img, index) => ({
+            property_id: propertyId,
+            url: img.url,
+            alt_text_bg: data.title_bg,
+            is_primary: existingImages.length === 0 && index === 0,
+            sort_order: existingImages.length + index,
+          }));
+
+          await fetch(`/api/admin/properties/${propertyId}/images`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ images: imageRecords }),
+          });
+        }
+
+        // Success - redirect to properties list
+        router.push("/admin/properties/");
+      } else {
+        // CREATE MODE
+        const response = await fetch("/api/admin/properties", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ images: imageRecords }),
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Грешка при запазване на имота");
         }
-      );
 
-      if (!imagesResponse.ok) {
-        throw new Error("Грешка при запазване на снимките");
+        const { property } = await response.json();
+
+        // Upload images
+        const uploadPromises = images.map((file) =>
+          uploadPropertyImage(property.id, file)
+        );
+        const uploadedImages = await Promise.all(uploadPromises);
+
+        // Save image records to database
+        const imageRecords = uploadedImages.map((img, index) => ({
+          property_id: property.id,
+          url: img.url,
+          alt_text_bg: data.title_bg,
+          is_primary: index === 0,
+          sort_order: index,
+        }));
+
+        const imagesResponse = await fetch(
+          `/api/admin/properties/${property.id}/images`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ images: imageRecords }),
+          }
+        );
+
+        if (!imagesResponse.ok) {
+          throw new Error("Грешка при запазване на снимките");
+        }
+
+        // Success - redirect to properties list
+        router.push("/admin/properties/");
       }
-
-      // Success - redirect to properties list
-      router.push("/admin/properties/");
     } catch (error) {
       console.error("Error submitting form:", error);
       setSubmitError(
@@ -142,6 +229,11 @@ export default function PropertyForm({
       );
       setIsSubmitting(false);
     }
+  };
+
+  const handleDeleteExistingImage = (imageId: number) => {
+    setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+    setImagesToDelete((prev) => [...prev, imageId]);
   };
 
   return (
@@ -646,7 +738,55 @@ export default function PropertyForm({
           Снимки <span className="text-red-500">*</span>
         </h2>
 
-        <ImageUpload images={images} onImagesChange={setImages} maxImages={10} />
+        {/* Existing Images */}
+        {existingImages.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              Текущи снимки
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {existingImages.map((image, index) => (
+                <div
+                  key={image.id}
+                  className="relative group rounded-lg overflow-hidden border-2 border-gray-200"
+                >
+                  <div className="relative w-full h-[120px] bg-gray-100">
+                    <img
+                      src={image.url}
+                      alt={image.alt_text_bg || `Image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {image.is_primary && (
+                    <div className="absolute top-2 left-2 bg-[#D4AF37] text-white text-xs font-medium px-2 py-1 rounded">
+                      Главна
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteExistingImage(image.id)}
+                    className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                    title="Изтрий"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* New Images Upload */}
+        <div>
+          {existingImages.length > 0 && (
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              Добави нови снимки
+            </h3>
+          )}
+          <ImageUpload images={images} onImagesChange={setImages} maxImages={10} />
+        </div>
 
         {imageError && (
           <p className="mt-4 text-sm text-red-600">{imageError}</p>
@@ -673,7 +813,7 @@ export default function PropertyForm({
               <span>Запазване...</span>
             </>
           ) : (
-            <span>Добави имот</span>
+            <span>{submitLabel}</span>
           )}
         </button>
       </div>
