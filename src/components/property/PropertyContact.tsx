@@ -22,6 +22,7 @@ function formatPriceEUR(value?: number | null): string {
 
 export default function PropertyContact({ propertyId, propertyTitle, propertyPrice }: PropertyContactProps): React.ReactElement {
   const numericPropertyId = Number(propertyId);
+  const validPropertyId = Number.isFinite(numericPropertyId) ? numericPropertyId : undefined;
 
   const {
     register,
@@ -35,7 +36,7 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
       email: "",
       phone: "",
       message: `Здравейте, интересувам се от имот '${propertyTitle}'. Моля, свържете се с мен за повече информация.`,
-      propertyId: Number.isFinite(numericPropertyId) ? numericPropertyId : undefined,
+      propertyId: validPropertyId,
     },
     mode: "onSubmit",
   });
@@ -170,7 +171,9 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
             </div>
 
             {/* Hidden property id */}
-            <input type="hidden" value={numericPropertyId} {...register("propertyId", { valueAsNumber: true })} />
+            {validPropertyId !== undefined && (
+              <input type="hidden" value={validPropertyId} {...register("propertyId", { valueAsNumber: true })} />
+            )}
 
             {/* Submit */}
             <button

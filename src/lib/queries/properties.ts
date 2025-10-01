@@ -13,20 +13,21 @@ export type SearchFilters = {
   maxArea?: number;
 };
 
-export async function getPropertyById(id: number): Promise<PropertyWithDetails | null> {
+// Type for property row with basic relations (used in detail page fetching)
+export type PropertyWithRelations = Tables<"properties"> & {
+  images?: Tables<"property_images">[];
+  neighborhood_id: number;
+  category_id: number;
+};
+
+export async function getPropertyById(id: number): Promise<PropertyWithRelations | null> {
   const supabase = getBrowserClient();
   
   const { data, error } = await supabase
     .from("properties")
     .select(`
       *,
-      category:property_categories(*),
-      neighborhood:neighborhoods(*),
-      images:property_images(*),
-      features:property_property_features(
-        feature_id,
-        feature:property_features(*)
-      )
+      images:property_images(*)
     `)
     .eq("id", id)
     .single();
@@ -38,13 +39,11 @@ export async function getPropertyById(id: number): Promise<PropertyWithDetails |
 
   if (!data) return null;
 
+  // Return flat property with images attached
   return {
-    property: data,
-    category: data.category,
-    neighborhood: data.neighborhood,
+    ...data,
     images: data.images || [],
-    features: data.features?.map((f: any) => f.feature).filter(Boolean) || [],
-  };
+  } as PropertyWithRelations;
 }
 
 export async function getPublishedProperties(): Promise<Tables<"properties">[]> {
