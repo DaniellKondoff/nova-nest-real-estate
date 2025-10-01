@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/Typography";
 import { Container } from "@/components/ui/Container";
 import CategoriesManager from "@/components/admin/CategoriesManager";
+import NeighborhoodsManager from "@/components/admin/NeighborhoodsManager";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"categories" | "neighborhoods">("categories");
@@ -58,14 +59,7 @@ export default function SettingsPage() {
         
         {activeTab === "neighborhoods" && (
           <Card className="p-6">
-            <div className="text-center py-12">
-              <Typography variant="h3" className="text-lg font-medium text-gray-900 mb-2">
-                Управление на квартали
-              </Typography>
-              <Typography variant="p" className="text-gray-500">
-                Функционалът за управление на квартали ще бъде добавен скоро.
-              </Typography>
-            </div>
+            <NeighborhoodsManager />
           </Card>
         )}
       </div>

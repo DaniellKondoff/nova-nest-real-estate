@@ -220,42 +220,48 @@ export interface UpdateUser {
  * NEIGHBORHOODS
  */
 export interface NeighborhoodsRow {
-  id: string;
-  name: string;
+  id: number;
   name_bg: string;
+  name_en?: string;
   slug: string;
-  description: string;
-  description_bg: string;
-  city: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  } | null;
-  created_at: string;
+  description?: string;
+  center_lat?: number;
+  center_lng?: number;
+  amenities?: any; // JSONB
+  transport_info?: any; // JSONB
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
 }
 
 export interface InsertNeighborhood {
-  id?: string;
-  name: string;
+  id?: number;
   name_bg: string;
+  name_en?: string;
   slug: string;
-  description: string;
-  description_bg: string;
-  city: string;
-  coordinates?: NeighborhoodsRow["coordinates"];
-  created_at?: string;
+  description?: string;
+  center_lat?: number;
+  center_lng?: number;
+  amenities?: any;
+  transport_info?: any;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
 }
 
 export interface UpdateNeighborhood {
-  id?: string;
-  name?: string;
+  id?: number;
   name_bg?: string;
+  name_en?: string;
   slug?: string;
   description?: string;
-  description_bg?: string;
-  city?: string;
-  coordinates?: NeighborhoodsRow["coordinates"];
-  created_at?: string;
+  center_lat?: number;
+  center_lng?: number;
+  amenities?: any;
+  transport_info?: any;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
 }
 
 /**
