@@ -133,14 +133,14 @@ export default function PropertiesListPage() {
 
     setIsDeleting(true);
     try {
-      const supabase = getBrowserClient();
-      
-      const { error } = await supabase
-        .from("properties")
-        .delete()
-        .eq("id", parseInt(propertyToDelete.id));
+      const response = await fetch(`/api/admin/properties/${propertyToDelete.id}`, {
+        method: "DELETE",
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Грешка при изтриване на имота");
+      }
 
       // Refresh properties list
       setProperties((prev) =>
@@ -151,7 +151,7 @@ export default function PropertiesListPage() {
       setPropertyToDelete(null);
     } catch (err) {
       console.error("Error deleting property:", err);
-      alert("Грешка при изтриване на имота");
+      alert(err instanceof Error ? err.message : "Грешка при изтриване на имота");
     } finally {
       setIsDeleting(false);
     }

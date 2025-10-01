@@ -121,3 +121,96 @@ export async function PUT(
   }
 }
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await getServerClient();
+
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Неоторизиран достъп" },
+        { status: 401 }
+      );
+    }
+
+    // Check if user is admin
+    const { data: adminProfile, error: adminError } = await supabase
+      .from("admin_profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (adminError || !adminProfile) {
+      return NextResponse.json(
+        { error: "Нямате администраторски права" },
+        { status: 403 }
+      );
+    }
+
+    const propertyId = parseInt(params.id);
+
+    if (isNaN(propertyId)) {
+      return NextResponse.json(
+        { error: "Невалиден ID на имот" },
+        { status: 400 }
+      );
+    }
+
+    // Check if property exists
+    const { data: property, error: fetchError } = await supabase
+      .from("properties")
+      .select("id")
+      .eq("id", propertyId)
+      .single();
+
+    if (fetchError || !property) {
+      return NextResponse.json(
+        { error: "Имотът не е намерен" },
+        { status: 404 }
+      );
+    }
+
+    // Soft delete: update status to archived
+    // This preserves data and allows for potential recovery
+    const { error: updateError } = await supabase
+      .from("properties")
+      .update({ status: "archived" })
+      .eq("id", propertyId);
+
+    if (updateError) {
+      console.error("Property delete error:", updateError);
+      return NextResponse.json(
+        { error: "Грешка при изтриване на имот" },
+        { status: 500 }
+      );
+    }
+
+    // Note: Images are not deleted from storage in soft delete
+    // They remain accessible in case of recovery
+    // For hard delete, you would need to:
+    // 1. Fetch all property images
+    // 2. Delete from storage bucket
+    // 3. Delete from property_images table
+    // 4. Delete from properties table
+
+    return NextResponse.json(
+      { message: "Имотът е архивиран успешно" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    return NextResponse.json(
+      { error: "Вътрешна грешка на сървъра" },
+      { status: 500 }
+    );
+  }
+}
+
