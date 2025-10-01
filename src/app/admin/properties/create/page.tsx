@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Loader2 } from "lucide-react";
 import PropertyForm from "@/components/admin/PropertyForm";
@@ -15,8 +14,6 @@ import type { Tables } from "@/types/database.generated";
 type PropertyFeature = Tables<"property_features">;
 
 export default function CreatePropertyPage() {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<PropertyCategory[]>([]);
   const [neighborhoods, setNeighborhoods] = useState<StaraZagoraNeighborhood[]>([]);
@@ -45,26 +42,6 @@ export default function CreatePropertyPage() {
 
     fetchData();
   }, []);
-
-  const handleSubmit = async (data: any) => {
-    setIsSubmitting(true);
-    
-    try {
-      // TODO: Implement API call to create property
-      console.log("Form data:", data);
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Redirect to properties list on success
-      router.push("/admin/properties/");
-    } catch (error) {
-      console.error("Error creating property:", error);
-      // TODO: Show error message to user
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Show loading state
   if (isLoading) {
@@ -129,8 +106,6 @@ export default function CreatePropertyPage() {
         categories={categories}
         neighborhoods={neighborhoods}
         features={features}
-        onSubmit={handleSubmit}
-        isLoading={isSubmitting}
       />
     </div>
   );

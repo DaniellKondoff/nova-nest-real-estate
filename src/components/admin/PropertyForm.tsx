@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Loader2 } from "lucide-react";
 import type { PropertyCategory } from "@/types/property";
 import type { StaraZagoraNeighborhood } from "@/types/search";
 import type { Tables } from "@/types/database.generated";
 import ImageUpload from "./ImageUpload";
+import { uploadPropertyImage } from "@/lib/storage";
 
 type PropertyFeature = Tables<"property_features">;
 
@@ -42,21 +45,20 @@ interface PropertyFormProps {
   categories: PropertyCategory[];
   neighborhoods: StaraZagoraNeighborhood[];
   features: PropertyFeature[];
-  onSubmit: (data: PropertyFormData) => Promise<void>;
   defaultValues?: Partial<PropertyFormData>;
-  isLoading?: boolean;
 }
 
 export default function PropertyForm({
   categories,
   neighborhoods,
   features,
-  onSubmit,
   defaultValues,
-  isLoading = false,
 }: PropertyFormProps) {
+  const router = useRouter();
   const [images, setImages] = useState<File[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
@@ -81,8 +83,65 @@ export default function PropertyForm({
     }
 
     setImageError(null);
-    // TODO: Handle image upload - pass images along with form data
-    await onSubmit(data);
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      // Step 1: Create the property first
+      const response = await fetch("/api/admin/properties", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Грешка при запазване на имота");
+      }
+
+      const { property } = await response.json();
+
+      // Step 2: Upload images
+      const uploadPromises = images.map((file) =>
+        uploadPropertyImage(property.id, file)
+      );
+      const uploadedImages = await Promise.all(uploadPromises);
+
+      // Step 3: Save image records to database
+      const imageRecords = uploadedImages.map((img, index) => ({
+        property_id: property.id,
+        url: img.url,
+        alt_text_bg: data.title_bg,
+        is_primary: index === 0,
+        sort_order: index,
+      }));
+
+      const imagesResponse = await fetch(
+        `/api/admin/properties/${property.id}/images`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ images: imageRecords }),
+        }
+      );
+
+      if (!imagesResponse.ok) {
+        throw new Error("Грешка при запазване на снимките");
+      }
+
+      // Success - redirect to properties list
+      router.push("/admin/properties/");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmitError(
+        error instanceof Error ? error.message : "Грешка при запазване на имота"
+      );
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -594,7 +653,30 @@ export default function PropertyForm({
         )}
       </div>
 
-      {/* Submit button will be added later */}
+      {/* Error Display */}
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-800">{submitError}</p>
+        </div>
+      )}
+
+      {/* Submit Button */}
+      <div className="bg-white p-8 rounded-lg border border-gray-200">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-[#D4AF37] text-white font-medium rounded-md hover:bg-[#B8941F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Запазване...</span>
+            </>
+          ) : (
+            <span>Добави имот</span>
+          )}
+        </button>
+      </div>
     </form>
   );
 }
