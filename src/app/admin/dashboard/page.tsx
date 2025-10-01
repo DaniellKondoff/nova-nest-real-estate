@@ -5,6 +5,7 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { RecentInquiries } from "@/components/admin/RecentInquiries";
 import { RecentProperties } from "@/components/admin/RecentProperties";
+import { QuickActions } from "@/components/admin/QuickActions";
 import { Home, MessageSquare, Star, TrendingUp } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
@@ -177,51 +178,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Бързи действия
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a
-              href="/admin/properties/create"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                <Home className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <div className="font-medium text-gray-900">Добави имот</div>
-                <div className="text-sm text-gray-500">Създай нов запис</div>
-              </div>
-            </a>
-            
-            <a
-              href="/admin/inquiries"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                <MessageSquare className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <div className="font-medium text-gray-900">Запитвания</div>
-                <div className="text-sm text-gray-500">Преглед на съобщения</div>
-              </div>
-            </a>
-            
-            <a
-              href="/admin/testimonials"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
-                <Star className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <div className="font-medium text-gray-900">Отзиви</div>
-                <div className="text-sm text-gray-500">Управление на отзиви</div>
-              </div>
-            </a>
-          </div>
-        </div>
+        <QuickActions />
       </div>
     </div>
   );
