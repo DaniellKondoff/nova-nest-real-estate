@@ -1,14 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import PropertyForm from "@/components/admin/PropertyForm";
+import { getAllPropertyCategories } from "@/lib/queries/categories";
+import { getAllNeighborhoods } from "@/lib/queries/neighborhoods";
+import type { PropertyCategory } from "@/types/property";
+import type { StaraZagoraNeighborhood } from "@/types/search";
 
 export default function CreatePropertyPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<PropertyCategory[]>([]);
+  const [neighborhoods, setNeighborhoods] = useState<StaraZagoraNeighborhood[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch categories and neighborhoods on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [categoriesData, neighborhoodsData] = await Promise.all([
+          getAllPropertyCategories(),
+          getAllNeighborhoods(),
+        ]);
+        setCategories(categoriesData);
+        setNeighborhoods(neighborhoodsData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Грешка при зареждането на данните");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -29,6 +58,35 @@ export default function CreatePropertyPage() {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
+          <span className="ml-3 text-gray-600">Зареждане...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="max-w-4xl">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-800">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Опитайте отново
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl">
@@ -60,7 +118,12 @@ export default function CreatePropertyPage() {
       </div>
 
       {/* Property Form */}
-      <PropertyForm onSubmit={handleSubmit} isLoading={isSubmitting} />
+      <PropertyForm
+        categories={categories}
+        neighborhoods={neighborhoods}
+        onSubmit={handleSubmit}
+        isLoading={isSubmitting}
+      />
     </div>
   );
 }

@@ -3,6 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import type { PropertyCategory } from "@/types/property";
+import type { StaraZagoraNeighborhood } from "@/types/search";
 
 // Extended schema for form with additional fields
 const PropertyFormSchema = z.object({
@@ -15,8 +17,8 @@ const PropertyFormSchema = z.object({
   price_bgn: z.number().min(0).optional().nullable(),
   operation_type: z.enum(["sale", "rent"]),
   status: z.enum(["available", "under_offer", "sold", "rented", "archived"]),
-  category_id: z.number().int().positive(),
-  neighborhood_id: z.number().int().positive(),
+  category_id: z.number().int().positive({ message: "Изберете тип имот" }),
+  neighborhood_id: z.number().int().positive({ message: "Изберете квартал" }),
   area_sqm: z.number().min(0).optional().nullable(),
   rooms: z.number().int().min(1).max(20).optional().nullable(),
   bedrooms: z.number().int().min(0).max(10).optional().nullable(),
@@ -31,12 +33,16 @@ const PropertyFormSchema = z.object({
 type PropertyFormData = z.infer<typeof PropertyFormSchema>;
 
 interface PropertyFormProps {
+  categories: PropertyCategory[];
+  neighborhoods: StaraZagoraNeighborhood[];
   onSubmit: (data: PropertyFormData) => Promise<void>;
   defaultValues?: Partial<PropertyFormData>;
   isLoading?: boolean;
 }
 
 export default function PropertyForm({
+  categories,
+  neighborhoods,
   onSubmit,
   defaultValues,
   isLoading = false,
@@ -397,6 +403,75 @@ export default function PropertyForm({
             {errors.year_built && (
               <p className="mt-1 text-sm text-red-600">
                 {errors.year_built.message}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Location and Category Section */}
+      <div className="bg-white p-8 rounded-lg border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+          Местоположение и категория
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Category */}
+          <div>
+            <label
+              htmlFor="category_id"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Тип имот <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="category_id"
+              {...register("category_id", { valueAsNumber: true })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Изберете тип имот
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name_bg}
+                </option>
+              ))}
+            </select>
+            {errors.category_id && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.category_id.message}
+              </p>
+            )}
+          </div>
+
+          {/* Neighborhood */}
+          <div>
+            <label
+              htmlFor="neighborhood_id"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Квартал <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="neighborhood_id"
+              {...register("neighborhood_id", { valueAsNumber: true })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Изберете квартал
+              </option>
+              {neighborhoods.map((neighborhood) => (
+                <option key={neighborhood.id} value={neighborhood.id}>
+                  {neighborhood.name_bg}
+                </option>
+              ))}
+            </select>
+            {errors.neighborhood_id && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.neighborhood_id.message}
               </p>
             )}
           </div>
