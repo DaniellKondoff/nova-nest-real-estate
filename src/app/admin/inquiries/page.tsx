@@ -1,34 +1,151 @@
-import { Suspense } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 import InquiriesTable from "@/components/admin/InquiriesTable";
+import InquiryDetailsModal from "@/components/admin/InquiryDetailsModal";
 import { Eye } from "lucide-react";
 
-export default async function AdminInquiriesPage() {
-  const supabase = await getSupabaseClient();
+interface Inquiry {
+  id: number;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  inquiry_type: "general" | "property_interest" | "viewing_request" | "valuation" | "selling" | "renting";
+  message: string;
+  status: "new" | "in_progress" | "responded" | "closed";
+  created_at: string;
+  property: {
+    id: number;
+    title_bg: string;
+    price: number;
+    price_currency: string;
+  } | null;
+}
 
-  // Fetch inquiries with property data
-  const { data: inquiries, error } = await supabase
-    .from("inquiries")
-    .select(`
-      id,
-      full_name,
-      email,
-      phone,
-      inquiry_type,
-      message,
-      status,
-      created_at,
-      property:properties(id, title_bg)
-    `)
-    .order("created_at", { ascending: false });
+export default function AdminInquiriesPage() {
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch inquiries
+  const fetchInquiries = async () => {
+    try {
+      setLoading(true);
+      const supabase = await getSupabaseClient();
+      
+      const { data, error } = await supabase
+        .from("inquiries")
+        .select(`
+          id,
+          full_name,
+          email,
+          phone,
+          inquiry_type,
+          message,
+          status,
+          created_at,
+          property:properties(id, title_bg, price, price_currency)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setInquiries(data || []);
+    } catch (err) {
+      console.error("Error fetching inquiries:", err);
+      setError("Грешка при зареждане на запитванията.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load inquiries on component mount
+  useEffect(() => {
+    fetchInquiries();
+  }, []);
+
+  // Handle view details
+  const handleViewDetails = async (inquiry: Inquiry) => {
+    setSelectedInquiry(inquiry);
+    setIsModalOpen(true);
+    
+    // Auto-mark as read if status is 'new'
+    if (inquiry.status === "new") {
+      await updateStatus(inquiry.id.toString(), "in_progress");
+    }
+  };
+
+  // Update inquiry status
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      const response = await fetch(`/api/admin/inquiries/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Неуспешно обновяване на статуса.");
+      }
+
+      // Update local state
+      setInquiries(prev => 
+        prev.map(inquiry => 
+          inquiry.id === parseInt(id) 
+            ? { ...inquiry, status: status as Inquiry["status"] }
+            : inquiry
+        )
+      );
+
+      // Update selected inquiry if it's the same one
+      if (selectedInquiry?.id === parseInt(id)) {
+        setSelectedInquiry(prev => 
+          prev ? { ...prev, status: status as Inquiry["status"] } : null
+        );
+      }
+    } catch (err) {
+      console.error("Error updating status:", err);
+      // You could show a toast notification here
+    }
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedInquiry(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Запитвания</h1>
+        <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37] mx-auto mb-4"></div>
+          <p className="text-gray-500">Зареждане на запитвания...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
-    console.error("Error fetching inquiries:", error);
     return (
       <div className="p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Запитвания</h1>
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">Грешка при зареждане на запитванията.</p>
+          <p className="text-red-800">{error}</p>
+          <button
+            onClick={fetchInquiries}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Опитай отново
+          </button>
         </div>
       </div>
     );
@@ -38,14 +155,17 @@ export default async function AdminInquiriesPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Запитвания</h1>
       
-      <Suspense fallback={
-        <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37] mx-auto mb-4"></div>
-          <p className="text-gray-500">Зареждане на запитвания...</p>
-        </div>
-      }>
-        <InquiriesTable inquiries={inquiries || []} />
-      </Suspense>
+      <InquiriesTable 
+        inquiries={inquiries} 
+        onViewDetails={handleViewDetails}
+      />
+      
+      <InquiryDetailsModal
+        inquiry={selectedInquiry}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onStatusUpdate={updateStatus}
+      />
     </div>
   );
 }

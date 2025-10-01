@@ -14,14 +14,17 @@ interface Inquiry {
   property: {
     id: number;
     title_bg: string;
+    price: number;
+    price_currency: string;
   } | null;
 }
 
 interface InquiriesTableProps {
   inquiries: Inquiry[];
+  onViewDetails?: (inquiry: Inquiry) => void;
 }
 
-export default function InquiriesTable({ inquiries }: InquiriesTableProps) {
+export default function InquiriesTable({ inquiries, onViewDetails }: InquiriesTableProps) {
   // Format date to DD.MM.YYYY HH:mm
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -80,8 +83,9 @@ export default function InquiriesTable({ inquiries }: InquiriesTableProps) {
 
   // Handle view details
   const handleViewDetails = (inquiry: Inquiry) => {
-    // TODO: Implement view details modal or navigation
-    console.log("View details for inquiry:", inquiry.id);
+    if (onViewDetails) {
+      onViewDetails(inquiry);
+    }
   };
 
   // Empty state
