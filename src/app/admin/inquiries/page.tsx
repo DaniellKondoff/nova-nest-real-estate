@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 import InquiriesTable from "@/components/admin/InquiriesTable";
 import InquiryDetailsModal from "@/components/admin/InquiryDetailsModal";
+import InquiriesFilter from "@/components/admin/InquiriesFilter";
 import { Eye } from "lucide-react";
 
 interface Inquiry {
@@ -29,6 +30,8 @@ export default function AdminInquiriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
   // Fetch inquiries
   const fetchInquiries = async () => {
@@ -122,6 +125,24 @@ export default function AdminInquiriesPage() {
     setSelectedInquiry(null);
   };
 
+  // Filter inquiries based on selected filters
+  const filteredInquiries = useMemo(() => {
+    return inquiries.filter(inquiry => {
+      const statusMatch = !statusFilter || inquiry.status === statusFilter;
+      const typeMatch = !typeFilter || inquiry.inquiry_type === typeFilter;
+      return statusMatch && typeMatch;
+    });
+  }, [inquiries, statusFilter, typeFilter]);
+
+  // Handle filter changes
+  const handleStatusFilter = (status: string | null) => {
+    setStatusFilter(status);
+  };
+
+  const handleTypeFilter = (type: string | null) => {
+    setTypeFilter(type);
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -155,8 +176,24 @@ export default function AdminInquiriesPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Запитвания</h1>
       
+      <InquiriesFilter
+        onStatusFilter={handleStatusFilter}
+        onTypeFilter={handleTypeFilter}
+      />
+      
+      {/* Results summary */}
+      <div className="mb-4 text-sm text-gray-600">
+        {filteredInquiries.length === inquiries.length ? (
+          <span>Показват се всички {inquiries.length} запитвания</span>
+        ) : (
+          <span>
+            Показват се {filteredInquiries.length} от {inquiries.length} запитвания
+          </span>
+        )}
+      </div>
+      
       <InquiriesTable 
-        inquiries={inquiries} 
+        inquiries={filteredInquiries} 
         onViewDetails={handleViewDetails}
       />
       
