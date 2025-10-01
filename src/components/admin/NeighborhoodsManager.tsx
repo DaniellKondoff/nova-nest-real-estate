@@ -264,6 +264,11 @@ export default function NeighborhoodsManager() {
 
   return (
     <div className="space-y-6">
+      {/* Debug info */}
+      <div className="bg-yellow-100 p-2 text-sm">
+        Debug: NeighborhoodsManager loaded. Neighborhoods count: {neighborhoods.length}
+      </div>
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -275,8 +280,11 @@ export default function NeighborhoodsManager() {
           </Typography>
         </div>
         <Button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2"
+          onClick={() => {
+            console.log("Add neighborhood button clicked!");
+            setShowForm(true);
+          }}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
         >
           <Plus className="h-4 w-4" />
           Добави квартал
