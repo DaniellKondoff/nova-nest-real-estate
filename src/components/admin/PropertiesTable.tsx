@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { Pencil, Trash2 } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 
 interface PropertiesTableProps {
   properties: PropertyWithDetails[];
+  selectedIds?: string[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onSelect?: (ids: string[]) => void;
@@ -14,18 +14,17 @@ interface PropertiesTableProps {
 
 export default function PropertiesTable({
   properties,
+  selectedIds = [],
   onEdit,
   onDelete,
   onSelect,
 }: PropertiesTableProps) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Handle select all checkbox
   const handleSelectAll = (checked: boolean) => {
     const newSelectedIds = checked
       ? properties.map((p) => p.property.id.toString())
       : [];
-    setSelectedIds(newSelectedIds);
     onSelect?.(newSelectedIds);
   };
 
@@ -34,7 +33,6 @@ export default function PropertiesTable({
     const newSelectedIds = checked
       ? [...selectedIds, id]
       : selectedIds.filter((selectedId) => selectedId !== id);
-    setSelectedIds(newSelectedIds);
     onSelect?.(newSelectedIds);
   };
 

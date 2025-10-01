@@ -34,6 +34,9 @@ export default function PropertiesListPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Fetch categories
   useEffect(() => {
@@ -113,6 +116,11 @@ export default function PropertiesListPage() {
     fetchProperties();
   }, [searchTerm, categoryFilter, statusFilter, currentPage]);
 
+  // Clear selection when filters/page change
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [searchTerm, categoryFilter, statusFilter, currentPage]);
+
   const handleEdit = (id: string) => {
     router.push(`/admin/properties/${id}/edit`);
   };
@@ -159,6 +167,18 @@ export default function PropertiesListPage() {
 
   const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE);
 
+  const handleClearSelection = () => {
+    setSelectedIds([]);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    
+    // TODO: Implement bulk delete
+    // For now, just show alert
+    alert(`Bulk delete ${selectedIds.length} properties - To be implemented`);
+  };
+
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -183,6 +203,29 @@ export default function PropertiesListPage() {
         categories={categories}
       />
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <div className="bg-blue-100 border border-blue-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-blue-900">
+              Избрани {selectedIds.length} имота
+            </span>
+            <button
+              onClick={handleBulkDelete}
+              className="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
+            >
+              Изтрий избраните
+            </button>
+          </div>
+          <button
+            onClick={handleClearSelection}
+            className="inline-flex items-center px-3 py-1.5 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 transition-colors"
+          >
+            Отмени избора
+          </button>
+        </div>
+      )}
+
       {/* Loading State */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -194,8 +237,10 @@ export default function PropertiesListPage() {
           {/* Properties Table */}
           <PropertiesTable
             properties={properties}
+            selectedIds={selectedIds}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onSelect={setSelectedIds}
           />
 
           {/* Pagination */}
