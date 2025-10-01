@@ -161,16 +161,24 @@ export function ActivityLog({ limit = 10, className = "" }: ActivityLogProps) {
           Последна активност
         </h3>
         
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="animate-pulse flex items-start">
-              <div className="w-8 h-8 bg-gray-200 rounded-full mr-3"></div>
-              <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        <div className="relative">
+          {/* Timeline line skeleton */}
+          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          
+          <div className="space-y-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="relative flex items-start animate-pulse">
+                {/* Timeline dot skeleton */}
+                <div className="absolute left-0 top-1 w-8 h-8 bg-gray-200 rounded-full"></div>
+                
+                {/* Content skeleton */}
+                <div className="ml-12 flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -210,40 +218,42 @@ export function ActivityLog({ limit = 10, className = "" }: ActivityLogProps) {
           <p className="text-gray-500 text-sm">Няма последна активност</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {activities.map((activity, index) => {
-            const IconComponent = activity.icon;
-            
-            return (
-              <div key={activity.id} className="relative">
-                {/* Timeline line */}
-                {index < activities.length - 1 && (
-                  <div className="absolute left-4 top-8 w-0.5 h-8 bg-gray-200"></div>
-                )}
-                
-                <div className="flex items-start">
-                  {/* Icon */}
-                  <div className={`w-8 h-8 ${activity.color} rounded-full flex items-center justify-center mr-3 flex-shrink-0`}>
-                    <IconComponent className="h-4 w-4" />
+        <div className="relative">
+          {/* Main timeline line */}
+          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          
+          <div className="space-y-6">
+            {activities.map((activity, index) => {
+              const IconComponent = activity.icon;
+              
+              return (
+                <div key={activity.id} className="relative flex items-start">
+                  {/* Timeline dot */}
+                  <div className="absolute left-0 top-1 z-10">
+                    <div className={`w-8 h-8 ${activity.color} rounded-full flex items-center justify-center shadow-sm border-2 border-white`}>
+                      <IconComponent className="h-4 w-4 text-white" />
+                    </div>
                   </div>
                   
                   {/* Content */}
-                  <div className="flex-1 min-w-0">
+                  <div className="ml-12 flex-1 min-w-0">
                     <button
                       onClick={() => handleActivityClick(activity)}
-                      className="text-left hover:bg-gray-50 p-2 -m-2 rounded transition-colors w-full"
+                      className="text-left hover:bg-gray-50 p-3 -m-3 rounded-lg transition-colors w-full group"
                     >
-                      <p className="text-sm font-medium text-gray-900 mb-1">
+                      {/* Description */}
+                      <p className="text-sm font-medium text-gray-900 mb-2 leading-relaxed">
                         {activity.description}
                       </p>
                       
+                      {/* Time and link */}
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 font-medium">
                           {formatTimeAgo(activity.timestamp)}
                         </span>
                         
                         {activity.link && (
-                          <span className="text-xs text-blue-600 hover:text-blue-800 flex items-center">
+                          <span className="text-xs text-blue-600 hover:text-blue-800 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                             {activity.linkText}
                             <ChevronRight className="h-3 w-3 ml-1" />
                           </span>
@@ -252,9 +262,9 @@ export function ActivityLog({ limit = 10, className = "" }: ActivityLogProps) {
                     </button>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
