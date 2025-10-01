@@ -264,11 +264,6 @@ export default function NeighborhoodsManager() {
 
   return (
     <div className="space-y-6">
-      {/* Debug info */}
-      <div className="bg-yellow-100 p-2 text-sm">
-        Debug: NeighborhoodsManager loaded. Neighborhoods count: {neighborhoods.length}
-      </div>
-      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -280,11 +275,8 @@ export default function NeighborhoodsManager() {
           </Typography>
         </div>
         <Button
-          onClick={() => {
-            console.log("Add neighborhood button clicked!");
-            setShowForm(true);
-          }}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
         >
           <Plus className="h-4 w-4" />
           Добави квартал
@@ -293,8 +285,8 @@ export default function NeighborhoodsManager() {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-gray-50 p-6 rounded-lg border">
-          <Typography variant="h3" className="text-lg font-medium text-gray-900 mb-4">
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <Typography variant="h3" className="text-lg font-medium text-gray-900 mb-6">
             {editingNeighborhood ? "Редактиране на квартал" : "Нов квартал"}
           </Typography>
           
@@ -426,11 +418,18 @@ export default function NeighborhoodsManager() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3 pt-4">
-              <Button type="submit">
+            <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
+              <Button 
+                type="submit" 
+                className="min-w-[160px] font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+              >
                 {editingNeighborhood ? "Запази промените" : "Създай квартал"}
               </Button>
-              <Button type="button" variant="secondary" onClick={resetForm}>
+              <Button 
+                type="button" 
+                onClick={resetForm}
+                className="min-w-[100px] bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors"
+              >
                 Отказ
               </Button>
             </div>
