@@ -7,8 +7,12 @@ import { ChevronRight, Loader2 } from "lucide-react";
 import PropertyForm from "@/components/admin/PropertyForm";
 import { getAllPropertyCategories } from "@/lib/queries/categories";
 import { getAllNeighborhoods } from "@/lib/queries/neighborhoods";
+import { getAllPropertyFeatures } from "@/lib/queries/features";
 import type { PropertyCategory } from "@/types/property";
 import type { StaraZagoraNeighborhood } from "@/types/search";
+import type { Tables } from "@/types/database.generated";
+
+type PropertyFeature = Tables<"property_features">;
 
 export default function CreatePropertyPage() {
   const router = useRouter();
@@ -16,18 +20,21 @@ export default function CreatePropertyPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<PropertyCategory[]>([]);
   const [neighborhoods, setNeighborhoods] = useState<StaraZagoraNeighborhood[]>([]);
+  const [features, setFeatures] = useState<PropertyFeature[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch categories and neighborhoods on mount
+  // Fetch categories, neighborhoods, and features on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesData, neighborhoodsData] = await Promise.all([
+        const [categoriesData, neighborhoodsData, featuresData] = await Promise.all([
           getAllPropertyCategories(),
           getAllNeighborhoods(),
+          getAllPropertyFeatures(),
         ]);
         setCategories(categoriesData);
         setNeighborhoods(neighborhoodsData);
+        setFeatures(featuresData);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Грешка при зареждането на данните");
@@ -121,6 +128,7 @@ export default function CreatePropertyPage() {
       <PropertyForm
         categories={categories}
         neighborhoods={neighborhoods}
+        features={features}
         onSubmit={handleSubmit}
         isLoading={isSubmitting}
       />

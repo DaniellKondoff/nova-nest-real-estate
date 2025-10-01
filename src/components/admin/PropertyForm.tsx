@@ -1,10 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { PropertyCategory } from "@/types/property";
 import type { StaraZagoraNeighborhood } from "@/types/search";
+import type { Tables } from "@/types/database.generated";
+
+type PropertyFeature = Tables<"property_features">;
 
 // Extended schema for form with additional fields
 const PropertyFormSchema = z.object({
@@ -28,6 +31,7 @@ const PropertyFormSchema = z.object({
   year_built: z.number().int().min(1800).max(new Date().getFullYear()).optional().nullable(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
+  features: z.array(z.number()).optional(),
 });
 
 type PropertyFormData = z.infer<typeof PropertyFormSchema>;
@@ -35,6 +39,7 @@ type PropertyFormData = z.infer<typeof PropertyFormSchema>;
 interface PropertyFormProps {
   categories: PropertyCategory[];
   neighborhoods: StaraZagoraNeighborhood[];
+  features: PropertyFeature[];
   onSubmit: (data: PropertyFormData) => Promise<void>;
   defaultValues?: Partial<PropertyFormData>;
   isLoading?: boolean;
@@ -43,6 +48,7 @@ interface PropertyFormProps {
 export default function PropertyForm({
   categories,
   neighborhoods,
+  features,
   onSubmit,
   defaultValues,
   isLoading = false,
@@ -50,12 +56,14 @@ export default function PropertyForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<PropertyFormData>({
     resolver: zodResolver(PropertyFormSchema),
     defaultValues: {
       operation_type: "sale",
       status: "available",
+      features: [],
       ...defaultValues,
     },
   });
@@ -476,6 +484,84 @@ export default function PropertyForm({
             )}
           </div>
         </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="bg-white p-8 rounded-lg border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+          Характеристики
+        </h2>
+
+        <Controller
+          name="features"
+          control={control}
+          render={({ field }) => {
+            const handleFeatureToggle = (featureId: number) => {
+              const currentFeatures = field.value || [];
+              if (currentFeatures.includes(featureId)) {
+                field.onChange(currentFeatures.filter((id) => id !== featureId));
+              } else {
+                field.onChange([...currentFeatures, featureId]);
+              }
+            };
+
+            // Group features by category
+            const groupedFeatures = features.reduce((acc, feature) => {
+              if (!acc[feature.category]) {
+                acc[feature.category] = [];
+              }
+              acc[feature.category].push(feature);
+              return acc;
+            }, {} as Record<string, PropertyFeature[]>);
+
+            const categoryLabels: Record<string, string> = {
+              interior: "Интериор",
+              exterior: "Екстериор",
+              building: "Сграда",
+              location: "Локация",
+            };
+
+            return (
+              <div className="space-y-6">
+                {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
+                  <div key={category}>
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                      {categoryLabels[category] || category}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {categoryFeatures.map((feature) => {
+                        const isSelected = field.value?.includes(feature.id) || false;
+                        return (
+                          <label
+                            key={feature.id}
+                            className={`
+                              flex items-center p-3 border rounded-md cursor-pointer transition-all
+                              ${
+                                isSelected
+                                  ? "border-[#D4AF37] bg-[#D4AF37]/10"
+                                  : "border-gray-200 hover:border-[#D4AF37]"
+                              }
+                            `}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleFeatureToggle(feature.id)}
+                              className="w-4 h-4 text-[#D4AF37] border-gray-300 rounded focus:ring-[#D4AF37]"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">
+                              {feature.name_bg}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          }}
+        />
       </div>
 
       {/* Submit button will be added later */}
