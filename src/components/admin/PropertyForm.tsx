@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { PropertyCategory } from "@/types/property";
 import type { StaraZagoraNeighborhood } from "@/types/search";
 import type { Tables } from "@/types/database.generated";
+import ImageUpload from "./ImageUpload";
 
 type PropertyFeature = Tables<"property_features">;
 
@@ -53,6 +55,9 @@ export default function PropertyForm({
   defaultValues,
   isLoading = false,
 }: PropertyFormProps) {
+  const [images, setImages] = useState<File[]>([]);
+  const [imageError, setImageError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -68,8 +73,20 @@ export default function PropertyForm({
     },
   });
 
+  const handleFormSubmit = async (data: PropertyFormData) => {
+    // Validate images
+    if (images.length === 0) {
+      setImageError("Моля, добавете поне една снимка");
+      return;
+    }
+
+    setImageError(null);
+    // TODO: Handle image upload - pass images along with form data
+    await onSubmit(data);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Basic Information Section */}
       <div className="bg-white p-8 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">
@@ -562,6 +579,19 @@ export default function PropertyForm({
             );
           }}
         />
+      </div>
+
+      {/* Images Section */}
+      <div className="bg-white p-8 rounded-lg border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+          Снимки <span className="text-red-500">*</span>
+        </h2>
+
+        <ImageUpload images={images} onImagesChange={setImages} maxImages={10} />
+
+        {imageError && (
+          <p className="mt-4 text-sm text-red-600">{imageError}</p>
+        )}
       </div>
 
       {/* Submit button will be added later */}
