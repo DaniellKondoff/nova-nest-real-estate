@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, ReactNode } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
 interface DeleteConfirmModalProps {
@@ -10,6 +10,8 @@ interface DeleteConfirmModalProps {
   onCancel: () => void;
   loading?: boolean;
   isBulk?: boolean;
+  title?: string;
+  message?: string | ReactNode;
 }
 
 export default function DeleteConfirmModal({
@@ -19,6 +21,8 @@ export default function DeleteConfirmModal({
   onCancel,
   loading = false,
   isBulk = false,
+  title,
+  message,
 }: DeleteConfirmModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -75,12 +79,14 @@ export default function DeleteConfirmModal({
           id="modal-title"
           className="text-lg font-semibold text-gray-900 text-center mb-2"
         >
-          Изтриване на имот
+          {title || "Изтриване на имот"}
         </h3>
 
         {/* Message */}
         <p className="text-sm text-gray-600 text-center mb-6">
-          {isBulk ? (
+          {message ? (
+            message
+          ) : isBulk ? (
             <>
               Сигурни ли сте, че искате да изтриете{" "}
               <span className="font-semibold text-gray-900">{propertyTitle}</span>?

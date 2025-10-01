@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "@/lib/auth";
 import TestimonialsTable from "@/components/admin/TestimonialsTable";
+import DeleteConfirmModal from "@/components/admin/DeleteConfirmModal";
 import { Plus } from "lucide-react";
 
 interface Testimonial {
@@ -21,6 +22,9 @@ export default function AdminTestimonialsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [testimonialToDelete, setTestimonialToDelete] = useState<Testimonial | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch testimonials
   const fetchTestimonials = async () => {
@@ -161,15 +165,24 @@ export default function AdminTestimonialsPage() {
     }
   };
 
-  // Handle delete
-  const handleDelete = async (id: number) => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете този отзив?")) {
-      return;
+  // Handle delete - opens modal
+  const handleDelete = (id: number) => {
+    const testimonial = testimonials.find(t => t.id === id);
+    if (testimonial) {
+      setTestimonialToDelete(testimonial);
+      setDeleteModalOpen(true);
     }
+  };
 
-    setProcessingId(id);
+  // Confirm delete - actual deletion
+  const confirmDelete = async () => {
+    if (!testimonialToDelete) return;
+
+    setIsDeleting(true);
+    setProcessingId(testimonialToDelete.id);
+
     try {
-      const response = await fetch(`/api/admin/testimonials/${id}`, {
+      const response = await fetch(`/api/admin/testimonials/${testimonialToDelete.id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -183,14 +196,25 @@ export default function AdminTestimonialsPage() {
         throw new Error("Неуспешно изтриване на отзива");
       }
 
-      // Update local state
-      setTestimonials(prev => prev.filter(testimonial => testimonial.id !== id));
+      // Update local state - remove the deleted testimonial
+      setTestimonials(prev => prev.filter(testimonial => testimonial.id !== testimonialToDelete.id));
+      
+      // Close modal
+      setDeleteModalOpen(false);
+      setTestimonialToDelete(null);
     } catch (err) {
       console.error("Error deleting testimonial:", err);
       alert("Грешка при изтриване на отзива");
     } finally {
+      setIsDeleting(false);
       setProcessingId(null);
     }
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setTestimonialToDelete(null);
   };
 
   if (loading) {
@@ -241,6 +265,27 @@ export default function AdminTestimonialsPage() {
         onReject={isAuthenticated ? handleReject : undefined}
         onDelete={isAuthenticated ? handleDelete : undefined}
         processingId={processingId}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        propertyTitle={testimonialToDelete?.client_name || ""}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        loading={isDeleting}
+        title="Изтриване на отзив"
+        message={
+          testimonialToDelete ? (
+            <>
+              Сигурни ли сте, че искате да изтриете отзив от{" "}
+              <span className="font-semibold text-gray-900">
+                {testimonialToDelete.client_name}
+              </span>
+              ? Това действие не може да бъде отменено.
+            </>
+          ) : ""
+        }
       />
     </div>
   );
