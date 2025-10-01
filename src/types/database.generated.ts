@@ -183,6 +183,7 @@ export type Database = {
           created_at: string
           created_by: string
           description_bg: string | null
+          description_en: string | null
           features: Json | null
           floor: number | null
           id: number
@@ -202,6 +203,8 @@ export type Database = {
           seo_title: string | null
           status: Database["public"]["Enums"]["property_status"]
           title_bg: string
+          title_en: string | null
+          total_floors: number | null
           updated_at: string | null
           year_built: number | null
         }
@@ -215,6 +218,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description_bg?: string | null
+          description_en?: string | null
           features?: Json | null
           floor?: number | null
           id?: number
@@ -234,6 +238,8 @@ export type Database = {
           seo_title?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title_bg: string
+          title_en?: string | null
+          total_floors?: number | null
           updated_at?: string | null
           year_built?: number | null
         }
@@ -247,6 +253,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description_bg?: string | null
+          description_en?: string | null
           features?: Json | null
           floor?: number | null
           id?: number
@@ -266,6 +273,8 @@ export type Database = {
           seo_title?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title_bg?: string
+          title_en?: string | null
+          total_floors?: number | null
           updated_at?: string | null
           year_built?: number | null
         }
@@ -559,7 +568,7 @@ export type Database = {
           client_initial?: string | null
           client_name?: string
           client_role?: string | null
-          content_bg?: string | null
+          content_bg?: string
           content_en?: string | null
           created_at?: string
           id?: number
@@ -880,5 +889,3 @@ export const Constants = {
     },
   },
 } as const
-
-

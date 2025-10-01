@@ -84,9 +84,10 @@ export default function PropertiesSearchBar({
           >
             <option value="">Всички</option>
             <option value="available">Налични</option>
+            <option value="under_offer">В процес</option>
             <option value="sold">Продадени</option>
-            <option value="rented">Под наем</option>
-            <option value="draft">Чернова</option>
+            <option value="rented">Отдадени</option>
+            <option value="archived">Архивирани</option>
           </select>
         </div>
 

@@ -63,7 +63,9 @@ export async function PUT(
       .from("properties")
       .update({
         title_bg: data.title_bg,
+        title_en: (body as any).title_en || null,
         description_bg: data.description_bg,
+        description_en: (body as any).description_en || null,
         address_bg: data.address_bg,
         price_eur: data.price_eur,
         price_bgn: data.price_bgn,
@@ -76,6 +78,7 @@ export async function PUT(
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
         floor: data.floor,
+        total_floors: (body as any).total_floors || null,
         year_built: data.year_built,
         latitude: data.latitude,
         longitude: data.longitude,
