@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase/server";
+import { getServerClient } from "@/lib/supabase/server";
 import { AdminPropertySchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseClient();
+    const supabase = await getServerClient();
 
     // Check authentication
     const {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Невалидни данни", details: validationResult.error.errors },
+        { error: "Невалидни данни", details: validationResult.error.issues },
         { status: 400 }
       );
     }

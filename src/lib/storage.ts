@@ -1,4 +1,4 @@
-import { getSupabaseClient, getBrowserClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase/client";
 
 export type UploadResult = { path: string; url: string };
 
@@ -21,7 +21,7 @@ export async function uploadPropertyImage(propertyId: number, file: File): Promi
   const check = validateImageFile(file);
   if (!check.valid) throw new Error(check.error);
 
-  const supabase = typeof window !== "undefined" ? getBrowserClient() : await getSupabaseClient();
+  const supabase = getBrowserClient();
   const fileExt = file.name.split(".").pop() || "jpg";
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
   const filePath = `${propertyId}/${fileName}`;
@@ -32,18 +32,18 @@ export async function uploadPropertyImage(propertyId: number, file: File): Promi
   });
   if (uploadError) throw new Error("Качването на изображение неуспешно. Опитайте отново.");
 
-  const url = await getImageUrl(filePath);
+  const url = getImageUrl(filePath);
   return { path: filePath, url };
 }
 
 export async function deletePropertyImage(imagePath: string): Promise<void> {
-  const supabase = typeof window !== "undefined" ? getBrowserClient() : await getSupabaseClient();
+  const supabase = getBrowserClient();
   const { error } = await supabase.storage.from(BUCKET).remove([imagePath]);
   if (error) throw new Error("Изтриването на изображение неуспешно.");
 }
 
-export async function getImageUrl(imagePath: string): Promise<string> {
-  const supabase = typeof window !== "undefined" ? getBrowserClient() : await getSupabaseClient();
+export function getImageUrl(imagePath: string): string {
+  const supabase = getBrowserClient();
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(imagePath);
   return data.publicUrl;
 }

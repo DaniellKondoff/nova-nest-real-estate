@@ -1,10 +1,10 @@
 import type { Database } from "@/types/database.generated";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase/client";
 
 type PropertyFeature = Database["public"]["Tables"]["property_features"]["Row"];
 
 export async function getAllPropertyFeatures(): Promise<PropertyFeature[]> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   const { data, error } = await supabase
     .from("property_features")
     .select("*")

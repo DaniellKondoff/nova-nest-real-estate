@@ -1,11 +1,11 @@
 import type { Database } from "@/types/database.generated";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase/client";
 
 type CategoryRow = Database["public"]["Tables"]["property_categories"]["Row"];
 type PropertyRow = Database["public"]["Tables"]["properties"]["Row"];
 
 export async function getAllPropertyCategories(): Promise<CategoryRow[]> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   const { data, error } = await supabase
     .from("property_categories")
     .select("*")
@@ -16,7 +16,7 @@ export async function getAllPropertyCategories(): Promise<CategoryRow[]> {
 }
 
 export async function getPropertiesByCategory(categoryId: number): Promise<PropertyRow[]> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   const { data, error } = await supabase
     .from("properties")
     .select("*")

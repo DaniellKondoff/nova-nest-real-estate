@@ -185,6 +185,7 @@ export const ContactInquirySchema = z.object({
 export const AdminPropertySchema = z.object({
   title_bg: z.string().min(3, "Въведете заглавие."),
   description_bg: z.string().min(10, "Въведете описание."),
+  address_bg: z.string().min(3, "Въведете адрес.").nullable().optional(),
   category_id: z.number().int().positive(),
   neighborhood_id: z.number().int().positive(),
   operation_type: z.enum(["sale", "rent"]) as unknown as z.ZodType<Database["public"]["Enums"]["property_operation_type"]>,

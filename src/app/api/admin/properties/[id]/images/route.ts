@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase/server";
+import { getServerClient } from "@/lib/supabase/server";
 
 interface ImageRecord {
   property_id: number;
   url: string;
-  alt_text_bg?: string;
+  alt_text_bg?: string | null;
   is_primary: boolean;
   sort_order: number;
 }
@@ -14,7 +14,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await getSupabaseClient();
+    const supabase = await getServerClient();
 
     // Check authentication
     const {
