@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { PropertyCategory, PropertyWithDetails } from "@/types/property";
 import type { StaraZagoraNeighborhood } from "@/types/search";
 import type { Tables } from "@/types/database.generated";
@@ -738,55 +738,13 @@ export default function PropertyForm({
           Снимки <span className="text-red-500">*</span>
         </h2>
 
-        {/* Existing Images */}
-        {existingImages.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">
-              Текущи снимки
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {existingImages.map((image, index) => (
-                <div
-                  key={image.id}
-                  className="relative group rounded-lg overflow-hidden border-2 border-gray-200"
-                >
-                  <div className="relative w-full h-[120px] bg-gray-100">
-                    <img
-                      src={image.url}
-                      alt={image.alt_text_bg || `Image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {image.is_primary && (
-                    <div className="absolute top-2 left-2 bg-[#D4AF37] text-white text-xs font-medium px-2 py-1 rounded">
-                      Главна
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteExistingImage(image.id)}
-                    className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
-                    title="Изтрий"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* New Images Upload */}
-        <div>
-          {existingImages.length > 0 && (
-            <h3 className="text-sm font-medium text-gray-700 mb-3">
-              Добави нови снимки
-            </h3>
-          )}
-          <ImageUpload images={images} onImagesChange={setImages} maxImages={10} />
-        </div>
+        <ImageUpload
+          images={images}
+          existingImages={existingImages}
+          onImagesChange={setImages}
+          onExistingImageDelete={handleDeleteExistingImage}
+          maxImages={10}
+        />
 
         {imageError && (
           <p className="mt-4 text-sm text-red-600">{imageError}</p>
