@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { RecentInquiries } from "@/components/admin/RecentInquiries";
+import { RecentProperties } from "@/components/admin/RecentProperties";
 import { Home, MessageSquare, Star, TrendingUp } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
@@ -169,9 +170,10 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {/* Recent Inquiries Widget */}
-        <div className="mb-8">
+        {/* Recent Activity Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <RecentInquiries limit={8} />
+          <RecentProperties limit={8} />
         </div>
 
         {/* Quick Actions Section */}
