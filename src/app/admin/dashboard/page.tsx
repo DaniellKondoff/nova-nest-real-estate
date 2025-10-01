@@ -1,104 +1,220 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { AdminHeader } from "@/components/admin/AdminHeader";
+import { StatsCard } from "@/components/admin/StatsCard";
+import { Home, MessageSquare, Star, TrendingUp } from "lucide-react";
+import { getBrowserClient } from "@/lib/supabase/client";
+
+interface DashboardStats {
+  totalProperties: number;
+  activeInquiries: number;
+  pendingTestimonials: number;
+  propertiesThisMonth: number;
+}
 
 export default function AdminDashboard() {
-  const { user, isAdmin, adminRole } = useAuth();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalProperties: 0,
+    activeInquiries: 0,
+    pendingTestimonials: 0,
+    propertiesThisMonth: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const supabase = getBrowserClient();
+
+        // Get current month start date
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        // Fetch all statistics in parallel
+        const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes] = await Promise.all([
+          // Total properties (excluding archived)
+          supabase
+            .from("properties")
+            .select("id", { count: "exact", head: true })
+            .neq("status", "archived"),
+          
+          // Active inquiries (new or in_progress status)
+          supabase
+            .from("inquiries")
+            .select("id", { count: "exact", head: true })
+            .in("status", ["new", "in_progress"]),
+          
+          // Pending testimonials (not published)
+          supabase
+            .from("testimonials")
+            .select("id", { count: "exact", head: true })
+            .eq("is_published", false),
+          
+          // Properties created this month
+          supabase
+            .from("properties")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", monthStart.toISOString()),
+        ]);
+
+        // Check for errors
+        if (propertiesRes.error || activeInquiriesRes.error || pendingTestimonialsRes.error || monthlyPropertiesRes.error) {
+          throw new Error("Грешка при зареждане на статистиките от базата данни");
+        }
+
+        setStats({
+          totalProperties: propertiesRes.count || 0,
+          activeInquiries: activeInquiriesRes.count || 0,
+          pendingTestimonials: pendingTestimonialsRes.count || 0,
+          propertiesThisMonth: monthlyPropertiesRes.count || 0,
+        });
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+        setError(err instanceof Error ? err.message : "Възникна грешка при зареждането на статистиките");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AdminHeader pageTitle="Табло за управление" />
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white p-6 rounded-lg border border-gray-200 animate-pulse">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                  <div className="text-right">
+                    <div className="h-8 w-16 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AdminHeader pageTitle="Табло за управление" />
+        <div className="p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="text-red-800">
+              <strong>Грешка:</strong> {error}
+            </div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+            >
+              Опитай отново
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Административен панел
-        </h1>
-        <p className="text-gray-600 mt-1">
-          Добре дошли в административния панел на Nova Nest
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <AdminHeader pageTitle="Табло за управление" />
+      
+      <div className="p-6">
+        {/* Statistics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            title="Общо имоти"
+            value={stats.totalProperties}
+            icon={Home}
+            color="blue"
+            trend="Активни имоти"
+          />
+          
+          <StatsCard
+            title="Активни запитвания"
+            value={stats.activeInquiries}
+            icon={MessageSquare}
+            color="green"
+            trend="Нови и прочетени"
+          />
+          
+          <StatsCard
+            title="Чакащи отзиви"
+            value={stats.pendingTestimonials}
+            icon={Star}
+            color="yellow"
+            trend="За одобрение"
+          />
+          
+          <StatsCard
+            title="Имоти този месец"
+            value={stats.propertiesThisMonth}
+            icon={TrendingUp}
+            color="purple"
+            trend="Новодобавени"
+          />
+        </div>
 
-      {/* Welcome Card */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              Здравейте, {user?.email}
-            </h2>
-            <p className="text-gray-600">
-              Роля: {adminRole === 'admin' ? 'Администратор' : 
-                     adminRole === 'manager' ? 'Мениджър' : 
-                     adminRole === 'agent' ? 'Агент' : 'Неопределена'}
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-[#d4af37]">
-              Nova Nest
-            </div>
-            <div className="text-sm text-gray-500">
-              Недвижими имоти
-            </div>
+        {/* Quick Actions Section */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Бързи действия
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a
+              href="/admin/properties/create"
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                <Home className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="font-medium text-gray-900">Добави имот</div>
+                <div className="text-sm text-gray-500">Създай нов запис</div>
+              </div>
+            </a>
+            
+            <a
+              href="/admin/inquiries"
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                <MessageSquare className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <div className="font-medium text-gray-900">Запитвания</div>
+                <div className="text-sm text-gray-500">Преглед на съобщения</div>
+              </div>
+            </a>
+            
+            <a
+              href="/admin/testimonials"
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                <Star className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <div className="font-medium text-gray-900">Отзиви</div>
+                <div className="text-sm text-gray-500">Управление на отзиви</div>
+              </div>
+            </a>
           </div>
         </div>
-      </Card>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Общо имоти</p>
-              <p className="text-2xl font-semibold text-gray-900">0</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Нови запитвания</p>
-              <p className="text-2xl font-semibold text-gray-900">0</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Активни потребители</p>
-              <p className="text-2xl font-semibold text-gray-900">0</p>
-            </div>
-          </div>
-        </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Последна активност
-        </h3>
-        <div className="text-center py-8 text-gray-500">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <p className="mt-2">Няма последна активност</p>
-        </div>
-      </Card>
     </div>
   );
 }

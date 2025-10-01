@@ -17,28 +17,45 @@ export async function GET(_req: NextRequest) {
 
     const supabase = await getSupabaseClient();
 
-    const [propertiesRes, inquiriesRes, testimonialsRes, featuredRes] = await Promise.all([
-      supabase.from("properties").select("id", { count: "exact", head: true }),
-      supabase.from("inquiries").select("id", { count: "exact", head: true }).neq("status", "closed"),
+    // Get current month start date
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes] = await Promise.all([
+      // Total properties (excluding archived)
+      supabase
+        .from("properties")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "archived"),
+      
+      // Active inquiries (new or in_progress status)
+      supabase
+        .from("inquiries")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["new", "in_progress"]),
+      
+      // Pending testimonials (not published)
       supabase
         .from("testimonials")
-        .select("id, content_bg, client_name, review_date", { count: "exact" })
-        .order("review_date", { ascending: false })
-        .limit(5),
-      supabase.from("properties").select("id", { count: "exact", head: true }).eq("is_active", true),
+        .select("id", { count: "exact", head: true })
+        .eq("is_published", false),
+      
+      // Properties created this month
+      supabase
+        .from("properties")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", monthStart.toISOString()),
     ]);
 
-    if (propertiesRes.error || inquiriesRes.error || testimonialsRes.error || featuredRes.error) {
+    if (propertiesRes.error || activeInquiriesRes.error || pendingTestimonialsRes.error || monthlyPropertiesRes.error) {
       throw new DatabaseError("Неуспешно зареждане на статистики.");
     }
 
     const data = {
-      totals: {
-        properties: propertiesRes.count ?? 0,
-        activeInquiries: inquiriesRes.count ?? 0,
-        featuredProperties: featuredRes.count ?? 0,
-      },
-      recentTestimonials: (testimonialsRes.data as any[]) ?? [],
+      totalProperties: propertiesRes.count ?? 0,
+      activeInquiries: activeInquiriesRes.count ?? 0,
+      pendingTestimonials: pendingTestimonialsRes.count ?? 0,
+      propertiesThisMonth: monthlyPropertiesRes.count ?? 0,
     };
 
     const body: SuccessResponse<typeof data> = { data };
