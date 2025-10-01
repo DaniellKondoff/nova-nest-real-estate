@@ -88,7 +88,7 @@ export default function AdminTestimonialsPage() {
   const handleApprove = async (id: number) => {
     try {
       const response = await fetch(`/api/admin/testimonials/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -123,7 +123,7 @@ export default function AdminTestimonialsPage() {
   const handleReject = async (id: number) => {
     try {
       const response = await fetch(`/api/admin/testimonials/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
