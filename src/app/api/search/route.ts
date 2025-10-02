@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { searchProperties, type SearchFilters as QuerySearchFilters } from "@/lib/queries/properties";
+import { searchProperties, searchPropertiesFallback, type SearchFilters as QuerySearchFilters } from "@/lib/queries/properties";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
@@ -63,22 +63,31 @@ export async function GET(req: NextRequest) {
 
     // If user searched in English and we got no results, try EN fallback directly
     if ((results?.length ?? 0) === 0 && isLikelyEnglish(parsed.q)) {
-      const supabase = await getSupabaseClient();
-      const { data, error } = await supabase.rpc("search_properties_combined", {
-        search_term: parsed.q || undefined,
-        language_code: "en",
-        category_id: filters.categoryId,
-        neighborhood_id: filters.neighborhoodId,
-        operation_type: filters.operationType,
-        min_price: filters.minPrice,
-        max_price: filters.maxPrice,
-        min_area: filters.minArea,
-        max_area: filters.maxArea,
-      });
-      if (error) {
-        throw new DatabaseError("Грешка при търсене. Опитайте отново.");
+      try {
+        const supabase = await getSupabaseClient();
+        const { data, error } = await supabase.rpc("search_properties_combined", {
+          search_term: parsed.q || undefined,
+          language_code: "en",
+          category_id: filters.categoryId,
+          neighborhood_id: filters.neighborhoodId,
+          operation_type: filters.operationType,
+          min_price: filters.minPrice,
+          max_price: filters.maxPrice,
+          min_area: filters.minArea,
+          max_area: filters.maxArea,
+        });
+        if (error) {
+          console.warn("English RPC search failed, using fallback:", error);
+          // Use the same fallback search method
+          results = await searchPropertiesFallback(parsed.q, filters);
+        } else {
+          results = (data as any) ?? [];
+        }
+      } catch (error) {
+        console.warn("English RPC search failed, using fallback:", error);
+        // Use the same fallback search method
+        results = await searchPropertiesFallback(parsed.q, filters);
       }
-      results = (data as any) ?? [];
     }
 
     const tookMs = Date.now() - started;

@@ -142,15 +142,28 @@ export default function PropertySearchForm(): React.ReactElement {
 
   function buildQueryParams(validData: any): string {
     const params = new URLSearchParams();
+    
+    // Convert category slug to ID
     if (typeof validData.propertyType === "string" && validData.propertyType !== "") {
-      params.set("category", String(validData.propertyType));
+      const category = categories.find(c => c.slug === validData.propertyType);
+      if (category) {
+        params.set("category", String(category.id));
+      }
     }
+    
     params.set("operation", validData.operationType);
+    
     if (typeof validData.minPrice === "number") params.set("minPrice", String(validData.minPrice));
     if (typeof validData.maxPrice === "number") params.set("maxPrice", String(validData.maxPrice));
+    
+    // Convert neighborhood slug to ID
     if (typeof validData.neighborhood === "string" && validData.neighborhood !== "") {
-      params.set("neighborhood", String(validData.neighborhood));
+      const neighborhood = neighborhoods.find(n => n.slug === validData.neighborhood);
+      if (neighborhood) {
+        params.set("neighborhood", String(neighborhood.id));
+      }
     }
+    
     const qs = params.toString();
     return qs ? `/properties?${qs}` : "/properties";
   }

@@ -77,22 +77,98 @@ export async function searchProperties(
 ): Promise<Array<{ id: number; title_bg: string; price_eur: number; rank?: number }>> {
   const supabase = getBrowserClient();
   
-  const { data, error } = await supabase.rpc("search_properties_combined", {
-    search_term: searchTerm || undefined,
-    language_code: "bg",
-    category_id: filters.categoryId,
-    neighborhood_id: filters.neighborhoodId,
-    operation_type: filters.operationType as string | undefined,
-    min_price: filters.minPrice,
-    max_price: filters.maxPrice,
-    min_area: filters.minArea,
-    max_area: filters.maxArea,
-  });
+  try {
+    // Try the RPC function first
+    const { data, error } = await supabase.rpc("search_properties_combined", {
+      search_term: searchTerm || undefined,
+      language_code: "bg",
+      category_id: filters.categoryId,
+      neighborhood_id: filters.neighborhoodId,
+      operation_type: filters.operationType as string | undefined,
+      min_price: filters.minPrice,
+      max_price: filters.maxPrice,
+      min_area: filters.minArea,
+      max_area: filters.maxArea,
+    });
+
+    if (error) {
+      console.warn("RPC search failed, falling back to direct query:", error);
+      return await searchPropertiesFallback(searchTerm, filters);
+    }
+
+    return (data as any) || [];
+  } catch (error) {
+    console.warn("RPC search failed, falling back to direct query:", error);
+    return await searchPropertiesFallback(searchTerm, filters);
+  }
+}
+
+/**
+ * Fallback search method using direct Supabase queries
+ * Used when the RPC function fails due to database issues
+ */
+export async function searchPropertiesFallback(
+  searchTerm?: string,
+  filters: SearchFilters = {}
+): Promise<Array<{ id: number; title_bg: string; price_eur: number; rank?: number }>> {
+  const supabase = getBrowserClient();
+  
+  let query = supabase
+    .from("properties")
+    .select("id, title_bg, description_bg, price_eur")
+    .eq("status", "available");
+
+  // Apply text search if provided
+  if (searchTerm && searchTerm.trim()) {
+    query = query.or(`title_bg.ilike.%${searchTerm}%,description_bg.ilike.%${searchTerm}%`);
+  }
+
+  // Apply category filter
+  if (typeof filters.categoryId === "number") {
+    query = query.eq("category_id", filters.categoryId);
+  }
+
+  // Apply neighborhood filter
+  if (typeof filters.neighborhoodId === "number") {
+    query = query.eq("neighborhood_id", filters.neighborhoodId);
+  }
+
+  // Apply operation type filter
+  if (filters.operationType) {
+    query = query.eq("operation_type", filters.operationType);
+  }
+
+  // Apply price filters
+  if (typeof filters.minPrice === "number") {
+    query = query.gte("price_eur", filters.minPrice);
+  }
+  if (typeof filters.maxPrice === "number") {
+    query = query.lte("price_eur", filters.maxPrice);
+  }
+
+  // Apply area filters
+  if (typeof filters.minArea === "number") {
+    query = query.gte("area_sqm", filters.minArea);
+  }
+  if (typeof filters.maxArea === "number") {
+    query = query.lte("area_sqm", filters.maxArea);
+  }
+
+  // Order by creation date (newest first)
+  query = query.order("created_at", { ascending: false });
+
+  const { data, error } = await query;
 
   if (error) {
-    console.error("Error searching properties:", error);
+    console.error("Fallback search failed:", error);
     throw error;
   }
 
-  return (data as any) || [];
+  // Transform to match expected format with rank
+  return (data || []).map((item, index) => ({
+    id: item.id,
+    title_bg: item.title_bg,
+    price_eur: item.price_eur || 0,
+    rank: index + 1, // Simple rank based on order
+  }));
 }
