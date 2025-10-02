@@ -12,7 +12,7 @@ import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
-import { Search } from "lucide-react";
+import { Search, Home, DollarSign, MapPin } from "lucide-react";
 
 // Types
 const PROPERTY_TYPE_VALUES = [
@@ -183,12 +183,22 @@ export default function PropertySearchForm(): React.ReactElement {
     <form
       onSubmit={onSubmit}
       aria-label="Property search form"
-      className="mx-auto max-w-5xl bg-white rounded-xl shadow-2xl p-6 sm:p-8"
+      className="bg-gray-100 rounded-lg shadow-lg p-6 w-full max-w-lg"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Property Type */}
+      {/* Header with title and icon */}
+      <div className="flex items-center gap-3 mb-6">
+        <Search className="h-6 w-6 text-[#d4af37]" />
+        <h3 className="text-xl font-bold text-gray-800">
+          Бърза търсене
+        </h3>
+      </div>
+      
+      {/* 2x2 Grid Layout */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {/* Property Type - Top Left */}
         <div>
-          <label htmlFor="propertyType" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="propertyType" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <Home className="h-4 w-4" />
             Тип имот
           </label>
           <select
@@ -198,10 +208,11 @@ export default function PropertySearchForm(): React.ReactElement {
             onChange={handleChange("propertyType")}
             aria-invalid={Boolean(errors.propertyType)}
             aria-describedby={errors.propertyType ? "propertyType-error" : undefined}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d4af37] focus:border-transparent text-sm"
             disabled={isSubmitting}
           >
-            {PROPERTY_TYPE_OPTIONS.map((opt) => (
+            <option value="">Избери тип</option>
+            {PROPERTY_TYPE_OPTIONS.slice(1).map((opt) => (
               <option key={opt.label} value={opt.value}>
                 {opt.label}
               </option>
@@ -214,9 +225,10 @@ export default function PropertySearchForm(): React.ReactElement {
           )}
         </div>
 
-        {/* Operation Type */}
+        {/* Operation Type - Top Right */}
         <div>
-          <label htmlFor="operationType" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="operationType" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <DollarSign className="h-4 w-4" />
             Операция
           </label>
           <select
@@ -226,7 +238,7 @@ export default function PropertySearchForm(): React.ReactElement {
             onChange={handleChange("operationType")}
             aria-invalid={Boolean(errors.operationType)}
             aria-describedby={errors.operationType ? "operationType-error" : undefined}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d4af37] focus:border-transparent text-sm"
             disabled={isSubmitting}
           >
             {OPERATION_OPTIONS.map((opt) => (
@@ -242,48 +254,22 @@ export default function PropertySearchForm(): React.ReactElement {
           )}
         </div>
 
-        {/* Price Min */}
-        <div>
-          <label htmlFor="minPrice" className="block text-sm font-medium text-gray-700 mb-2">
-            Цена (EUR) — От
-          </label>
-          <input
-            type="number"
-            inputMode="numeric"
-            id="minPrice"
-            name="minPrice"
-            placeholder="От (EUR)"
-            value={form.minPrice}
-            onChange={handleChange("minPrice")}
-            aria-invalid={Boolean(errors.minPrice)}
-            aria-describedby={errors.minPrice ? "minPrice-error" : undefined}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-transparent"
-            min={0}
-            disabled={isSubmitting}
-          />
-          {errors.minPrice && (
-            <p id="minPrice-error" role="alert" className="mt-1 text-sm text-red-600">
-              {errors.minPrice}
-            </p>
-          )}
-        </div>
-
-        {/* Price Max */}
+        {/* Price Limit - Bottom Left */}
         <div>
           <label htmlFor="maxPrice" className="block text-sm font-medium text-gray-700 mb-2">
-            Цена (EUR) — До
+            Ценова граница (лв.)
           </label>
           <input
             type="number"
             inputMode="numeric"
             id="maxPrice"
             name="maxPrice"
-            placeholder="До (EUR)"
+            placeholder="Максимална цена"
             value={form.maxPrice}
             onChange={handleChange("maxPrice")}
             aria-invalid={Boolean(errors.maxPrice)}
             aria-describedby={errors.maxPrice ? "maxPrice-error" : undefined}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d4af37] focus:border-transparent text-sm"
             min={0}
             disabled={isSubmitting}
           />
@@ -294,10 +280,11 @@ export default function PropertySearchForm(): React.ReactElement {
           )}
         </div>
 
-        {/* Neighborhood */}
-        <div className="md:col-span-1 lg:col-span-1">
-          <label htmlFor="neighborhood" className="block text-sm font-medium text-gray-700 mb-2">
-            Квартал
+        {/* Region - Bottom Right */}
+        <div>
+          <label htmlFor="neighborhood" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <MapPin className="h-4 w-4" />
+            Район
           </label>
           <select
             id="neighborhood"
@@ -306,10 +293,11 @@ export default function PropertySearchForm(): React.ReactElement {
             onChange={handleChange("neighborhood")}
             aria-invalid={Boolean(errors.neighborhood)}
             aria-describedby={errors.neighborhood ? "neighborhood-error" : undefined}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d4af37] focus:border-transparent text-sm"
             disabled={isSubmitting}
           >
-            {NEIGHBORHOOD_OPTIONS.map((opt) => (
+            <option value="">Избери район</option>
+            {NEIGHBORHOOD_OPTIONS.slice(1).map((opt) => (
               <option key={opt.label} value={opt.value}>
                 {opt.label}
               </option>
@@ -321,32 +309,30 @@ export default function PropertySearchForm(): React.ReactElement {
             </p>
           )}
         </div>
-
-        {/* Search button */}
-        <div className="flex items-end md:col-span-2 lg:col-span-1">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-[#d4af37] text-white font-semibold px-8 py-4 rounded-lg hover:bg-[#c09d2f] transition-colors duration-200 disabled:opacity-75 disabled:cursor-not-allowed"
-            aria-label={isSubmitting ? "Търсене..." : "Търси имоти"}
-          >
-            {isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-                Търсене...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Search className="h-5 w-5" aria-hidden="true" />
-                Търси имоти
-              </span>
-            )}
-          </button>
-        </div>
       </div>
+
+      {/* Search button */}
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-[#1a2642] text-white font-semibold py-3 px-4 rounded-md hover:bg-[#2c3e50] transition-colors duration-200 disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
+        aria-label={isSubmitting ? "Търсене..." : "Търси имоти"}
+      >
+        {isSubmitting ? (
+          <span className="flex items-center gap-2">
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Търсене...
+          </span>
+        ) : (
+          <span className="flex items-center gap-2">
+            <Search className="h-4 w-4" aria-hidden="true" />
+            Търси имоти
+          </span>
+        )}
+      </button>
     </form>
   );
 }
