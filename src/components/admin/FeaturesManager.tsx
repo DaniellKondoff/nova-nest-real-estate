@@ -53,7 +53,12 @@ export default function FeaturesManager() {
     isOpen: false,
     feature: null,
   });
-  const [errors, setErrors] = useState<Partial<FeatureFormData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FeatureFormData, string>>>({});
+  
+  // Filter and sort states
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"name_bg" | "category" | "sort_order" | "created_at">("sort_order");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Load features
   const loadFeatures = async () => {
@@ -74,6 +79,35 @@ export default function FeaturesManager() {
     loadFeatures();
   }, []);
 
+  // Filter and sort features
+  const filteredAndSortedFeatures = features
+    .filter(feature => {
+      if (selectedCategory === "all") return true;
+      return feature.category === selectedCategory;
+    })
+    .sort((a, b) => {
+      let aValue: any = a[sortBy];
+      let bValue: any = b[sortBy];
+      
+      // Handle string comparison
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      // Handle date comparison
+      if (sortBy === "created_at") {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      }
+      
+      if (sortOrder === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
   const handleInputChange = (field: keyof FeatureFormData, value: string | boolean | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -84,7 +118,7 @@ export default function FeaturesManager() {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<FeatureFormData> = {};
+    const newErrors: Partial<Record<keyof FeatureFormData, string>> = {};
     
     if (!formData.name_bg.trim()) {
       newErrors.name_bg = "Българското име е задължително";
@@ -236,6 +270,80 @@ export default function FeaturesManager() {
         </Button>
       </div>
 
+      {/* Filter and Sort Controls */}
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Category Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                Филтър по категория:
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="all">
+                  Всички категории ({features.length})
+                </option>
+                {Object.entries(categoryLabels).map(([value, label]) => {
+                  const count = features.filter(f => f.category === value).length;
+                  return (
+                    <option key={value} value={value}>
+                      {label} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Sort Options */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                Сортиране по:
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="sort_order">Сортиращ ред</option>
+                <option value="name_bg">Име (български)</option>
+                <option value="category">Категория</option>
+                <option value="created_at">Дата на създаване</option>
+              </select>
+              <button
+                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                className="px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-medium"
+                title={`Сортиране ${sortOrder === "asc" ? "възходящо" : "низходящо"}`}
+              >
+                {sortOrder === "asc" ? "↑" : "↓"}
+              </button>
+            </div>
+          </div>
+
+          {/* Results Count and Clear Filter */}
+          <div className="ml-auto flex items-center gap-4">
+            <div className="text-sm text-gray-600">
+              Показване на {filteredAndSortedFeatures.length} от {features.length} характеристики
+            </div>
+            {(selectedCategory !== "all" || sortBy !== "sort_order" || sortOrder !== "asc") && (
+              <button
+                onClick={() => {
+                  setSelectedCategory("all");
+                  setSortBy("sort_order");
+                  setSortOrder("asc");
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Изчисти филтри
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Form */}
       {showForm && (
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -379,14 +487,17 @@ export default function FeaturesManager() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {features.length === 0 ? (
+              {filteredAndSortedFeatures.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    Няма създадени характеристики
+                    {features.length === 0 
+                      ? "Няма създадени характеристики" 
+                      : "Няма характеристики, отговарящи на филтъра"
+                    }
                   </td>
                 </tr>
               ) : (
-                features.map((feature) => (
+                filteredAndSortedFeatures.map((feature) => (
                   <tr key={feature.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       {feature.icon ? (
