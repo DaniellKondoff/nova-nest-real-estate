@@ -28,7 +28,7 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
     <section
       id={id}
       aria-label="Hero section"
-      className="relative w-full min-h-[600px] lg:min-h-[700px] scroll-mt-[80px] overflow-hidden"
+      className="relative w-full min-h-[80vh] lg:min-h-[85vh] xl:min-h-[90vh] scroll-mt-[80px] overflow-hidden"
     >
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
@@ -45,30 +45,30 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
 
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex min-h-[600px] lg:min-h-[700px] items-center py-16 sm:py-20 lg:py-24">
+        <div className="flex min-h-[80vh] lg:min-h-[85vh] xl:min-h-[90vh] items-center py-12 sm:py-16 lg:py-20 xl:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 w-full items-center">
             {/* Left Column - Content */}
             <div className="text-center lg:text-left">
               <h1
-                className="font-bold tracking-tight text-white leading-tight text-4xl sm:text-5xl lg:text-6xl xl:text-7xl mb-6"
+                className="font-bold tracking-tight text-white leading-tight text-4xl sm:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8"
               >
-                Открийте своето ново гнездо в Стара Загора
+                Открийте своето <span className="bg-gradient-to-r from-[#d4af37] to-[#f4d03f] bg-clip-text text-transparent">ново гнездо</span> в Стара Загора
               </h1>
 
               <p
-                className="text-white/90 leading-relaxed text-lg sm:text-xl lg:text-2xl mb-8 max-w-2xl mx-auto lg:mx-0"
+                className="text-white/90 leading-relaxed text-lg sm:text-xl lg:text-2xl xl:text-3xl mb-10 max-w-2xl mx-auto lg:mx-0"
               >
                 Професионални услуги за недвижими имоти с индивидуален подход и експертни съвети
               </p>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
                 <Link
                   href="/properties"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#d4af37] px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#c49d2f] hover:shadow-xl hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
+                  className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#d4af37] px-10 py-5 text-xl font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#c49d2f] hover:shadow-xl hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
                   aria-label="Търси имоти сега"
                 >
-                  <Search className="h-5 w-5" />
+                  <Search className="h-6 w-6" />
                   Търси имоти сега
                 </Link>
                 <button
@@ -78,7 +78,7 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
                       contactSection.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-700 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:bg-gray-600 hover:shadow-xl hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
+                  className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-700 px-10 py-5 text-xl font-semibold text-white shadow-lg transition-all duration-200 hover:bg-gray-600 hover:shadow-xl hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
                   aria-label="Свържи се с нас"
                 >
                   Свържи се с нас
@@ -88,7 +88,7 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
 
             {/* Right Column - Search Form */}
             <div className="flex justify-center lg:justify-end">
-              <div className="w-full max-w-md">
+              <div className="w-full max-w-lg">
                 <PropertySearchForm />
               </div>
             </div>
