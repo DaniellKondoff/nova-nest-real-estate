@@ -49,7 +49,11 @@ async function getPropertyByIdServer(id: number): Promise<PropertyWithRelations 
     .from("properties")
     .select(`
       *,
-      images:property_images(*)
+      images:property_images(*),
+      features:property_property_features(
+        feature_id,
+        property_features(*)
+      )
     `)
     .eq("id", id)
     .single();
@@ -61,10 +65,14 @@ async function getPropertyByIdServer(id: number): Promise<PropertyWithRelations 
 
   if (!data) return null;
 
-  // Return flat property with images attached
+  // Transform features data to match expected format
+  const transformedFeatures = data.features?.map((pf: any) => pf.property_features).filter(Boolean) || [];
+
+  // Return flat property with images and features attached
   return {
     ...data,
     images: data.images || [],
+    features: transformedFeatures,
   } as PropertyWithRelations;
 }
 
@@ -97,16 +105,8 @@ async function fetchPropertyDetails(idNum: number): Promise<PropertyWithDetails 
     category = (cat as CategoryRow) ?? null;
   }
 
-  // Features: resolve by IDs stored in properties.features JSON (if array of numbers)
-  let features: FeatureRow[] = [];
-  const rawFeatures: unknown = (base as unknown as PropertyRow).features;
-  if (Array.isArray(rawFeatures) && rawFeatures.every((v) => typeof v === "number")) {
-  const { data: feat } = await supabase
-      .from("property_features")
-      .select("*")
-      .in("id", rawFeatures as number[]);
-    features = (feat ?? []) as FeatureRow[];
-  }
+  // Features are already fetched in getPropertyByIdServer
+  const features: FeatureRow[] = base.features || [];
 
   const images: ImageRow[] = (base.images ?? []) as ImageRow[];
 

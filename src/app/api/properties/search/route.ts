@@ -137,7 +137,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const { data, error } = await supabase
         .from("properties")
         .select(
-          "*, neighborhood:neighborhood_id(id,name_bg,slug), category:property_categories(*), images:property_images(id,url,is_primary,sort_order,alt_text_bg)"
+          "*, neighborhood:neighborhood_id(id,name_bg,slug), category:property_categories(*), images:property_images(id,url,is_primary,sort_order,alt_text_bg), features:property_property_features(feature_id,property_features(*))"
         )
         .in("id", pageIds)
         .eq("status", "available")
@@ -159,12 +159,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           neighborhood?: Record<string, unknown> | null;
           category?: Record<string, unknown> | null;
           images?: Record<string, unknown>[] | null;
+          features?: Array<{ property_features: Record<string, unknown> }> | null;
         };
+        
+        // Transform features data to match expected format
+        const transformedFeatures = r.features?.map((pf) => pf.property_features).filter(Boolean) || [];
+        
         return {
           property: row as unknown as PropertyWithDetails["property"],
           neighborhood: (r.neighborhood as PropertyWithDetails["neighborhood"]) ?? null,
           category: (r.category as PropertyWithDetails["category"]) ?? null,
           images: ((r.images as PropertyWithDetails["images"]) ?? []) as PropertyWithDetails["images"],
+          features: transformedFeatures as PropertyWithDetails["features"],
         } satisfies PropertyWithDetails;
       });
     }

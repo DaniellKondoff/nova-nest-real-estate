@@ -15,6 +15,7 @@ export type SearchFilters = {
 // Type for property row with basic relations (used in detail page fetching)
 export type PropertyWithRelations = Tables<"properties"> & {
   images?: Tables<"property_images">[];
+  features?: Tables<"property_features">[];
   neighborhood_id: number;
   category_id: number;
 };
@@ -26,7 +27,11 @@ export async function getPropertyById(id: number): Promise<PropertyWithRelations
     .from("properties")
     .select(`
       *,
-      images:property_images(*)
+      images:property_images(*),
+      features:property_property_features(
+        feature_id,
+        property_features(*)
+      )
     `)
     .eq("id", id)
     .single();
@@ -38,10 +43,14 @@ export async function getPropertyById(id: number): Promise<PropertyWithRelations
 
   if (!data) return null;
 
-  // Return flat property with images attached
+  // Transform features data to match expected format
+  const transformedFeatures = data.features?.map((pf: any) => pf.property_features).filter(Boolean) || [];
+
+  // Return flat property with images and features attached
   return {
     ...data,
     images: data.images || [],
+    features: transformedFeatures,
   } as PropertyWithRelations;
 }
 

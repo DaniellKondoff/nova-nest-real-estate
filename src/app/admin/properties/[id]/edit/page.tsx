@@ -50,7 +50,7 @@ export default function EditPropertyPage() {
           neighborhood: null, // Will be fetched separately if needed
           category: null, // Will be fetched separately if needed
           images: propertyData.images || [],
-          features: [], // Will be populated from features data
+          features: propertyData.features || [], // Use the features from the query
         };
 
         setProperty(propertyWithDetails);
