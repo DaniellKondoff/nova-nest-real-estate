@@ -1,5 +1,4 @@
 import { getBrowserClient } from "@/lib/supabase/client";
-import { getSupabaseClient } from "@/lib/supabase";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Tables, Database } from "@/types/database.generated";
 
@@ -47,7 +46,7 @@ export async function getPropertyById(id: number): Promise<PropertyWithRelations
 }
 
 export async function getPublishedProperties(): Promise<Tables<"properties">[]> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   
   const { data, error } = await supabase
     .from("properties")
@@ -67,7 +66,7 @@ export async function searchProperties(
   searchTerm?: string,
   filters: SearchFilters = {}
 ): Promise<Array<{ id: number; title_bg: string; price_eur: number; rank?: number }>> {
-  const supabase = await getSupabaseClient();
+  const supabase = getBrowserClient();
   
   const { data, error } = await supabase.rpc("search_properties_combined", {
     search_term: searchTerm || undefined,

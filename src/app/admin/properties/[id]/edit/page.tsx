@@ -44,7 +44,16 @@ export default function EditPropertyPage() {
           return;
         }
 
-        setProperty(propertyData);
+        // Transform PropertyWithRelations to PropertyWithDetails
+        const propertyWithDetails: PropertyWithDetails = {
+          property: propertyData as any, // Cast to the properties table type
+          neighborhood: null, // Will be fetched separately if needed
+          category: null, // Will be fetched separately if needed
+          images: propertyData.images || [],
+          features: [], // Will be populated from features data
+        };
+
+        setProperty(propertyWithDetails);
         setCategories(categoriesData);
         setNeighborhoods(neighborhoodsData);
         setFeatures(featuresData);

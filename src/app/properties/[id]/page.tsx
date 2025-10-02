@@ -3,8 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { getSupabaseClient } from "@/lib/supabase";
-import { getPropertyById } from "@/lib/queries/properties";
+import { getServerClient } from "@/lib/supabase/server";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Database } from "@/types/database.generated";
 import type { PropertyWithRelations } from "@/lib/queries/properties";
@@ -43,12 +42,38 @@ function validateIdOrNotFound(id: string): number {
   return idNum;
 }
 
+async function getPropertyByIdServer(id: number): Promise<PropertyWithRelations | null> {
+  const supabase = await getServerClient();
+  
+  const { data, error } = await supabase
+    .from("properties")
+    .select(`
+      *,
+      images:property_images(*)
+    `)
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching property:", error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  // Return flat property with images attached
+  return {
+    ...data,
+    images: data.images || [],
+  } as PropertyWithRelations;
+}
+
 async function fetchPropertyDetails(idNum: number): Promise<PropertyWithDetails | null> {
   // Base property with neighborhood and images
-  const base: PropertyWithRelations | null = await getPropertyById(idNum);
+  const base: PropertyWithRelations | null = await getPropertyByIdServer(idNum);
   if (!base) return null;
 
-  const supabase = await getSupabaseClient();
+  const supabase = await getServerClient();
 
   // Neighborhood (fetch full row for strict typing)
   let neighborhood: NeighborhoodRow | null = null;
