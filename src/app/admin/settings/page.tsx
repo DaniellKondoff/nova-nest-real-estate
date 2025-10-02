@@ -6,9 +6,10 @@ import { Typography } from "@/components/ui/Typography";
 import { Container } from "@/components/ui/Container";
 import CategoriesManager from "@/components/admin/CategoriesManager";
 import NeighborhoodsManager from "@/components/admin/NeighborhoodsManager";
+import FeaturesManager from "@/components/admin/FeaturesManager";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<"categories" | "neighborhoods">("categories");
+  const [activeTab, setActiveTab] = useState<"categories" | "neighborhoods" | "features">("categories");
 
   return (
     <Container className="py-8">
@@ -17,7 +18,7 @@ export default function SettingsPage() {
           Настройки
         </Typography>
         <Typography variant="p" className="text-gray-600 mt-2">
-          Управление на категории и квартали
+          Управление на категории, квартали и характеристики
         </Typography>
       </div>
 
@@ -45,6 +46,16 @@ export default function SettingsPage() {
             >
               Квартали
             </button>
+            <button
+              onClick={() => setActiveTab("features")}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "features"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Характеристики
+            </button>
           </nav>
         </div>
       </div>
@@ -60,6 +71,12 @@ export default function SettingsPage() {
         {activeTab === "neighborhoods" && (
           <Card className="p-6">
             <NeighborhoodsManager />
+          </Card>
+        )}
+        
+        {activeTab === "features" && (
+          <Card className="p-6">
+            <FeaturesManager />
           </Card>
         )}
       </div>
