@@ -203,7 +203,7 @@ export default function PropertySearchForm(): React.ReactElement {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="bg-gray-100 rounded-lg shadow-lg p-6 w-full max-w-lg">
+      <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-lg p-6 w-full max-w-lg border border-white/20">
         <div className="flex items-center gap-3 mb-6">
           <Search className="h-6 w-6 text-[#d4af37]" />
           <h3 className="text-xl font-bold text-gray-800">
@@ -221,7 +221,7 @@ export default function PropertySearchForm(): React.ReactElement {
   // Show error state
   if (loadError) {
     return (
-      <div className="bg-gray-100 rounded-lg shadow-lg p-6 w-full max-w-lg">
+      <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-lg p-6 w-full max-w-lg border border-white/20">
         <div className="flex items-center gap-3 mb-6">
           <Search className="h-6 w-6 text-[#d4af37]" />
           <h3 className="text-xl font-bold text-gray-800">
@@ -245,7 +245,7 @@ export default function PropertySearchForm(): React.ReactElement {
     <form
       onSubmit={onSubmit}
       aria-label="Property search form"
-      className="bg-gray-100 rounded-lg shadow-lg p-6 w-full max-w-lg"
+      className="backdrop-blur-sm bg-white/95 rounded-lg shadow-lg p-6 w-full max-w-lg border border-white/20"
     >
       {/* Header with title and icon */}
       <div className="flex items-center gap-3 mb-6">
