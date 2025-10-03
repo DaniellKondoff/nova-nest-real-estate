@@ -94,7 +94,7 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
             id="why-choose-us-heading"
             size="h1"
             weight="semibold"
-            className="text-4xl md:text-5xl font-bold text-blue-900 mb-6"
+            className="text-4xl md:text-5xl font-bold text-primary mb-6"
           >
             Защо да изберете Nova Nest?
           </Heading>
@@ -124,10 +124,10 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
                 
                 <div className="relative">
                   <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ease-out">
-                    <Icon className="w-7 h-7 text-blue-900" />
+                     <Icon className="w-7 h-7 text-primary" />
                   </div>
                   <div className="mb-3">
-                    <h3 className="text-xl font-bold text-blue-900 mb-1">{advantage.title}</h3>
+                    <h3 className="text-xl font-bold text-primary mb-1">{advantage.title}</h3>
                     <div className="text-sm font-medium text-yellow-600">{advantage.stat}</div>
                   </div>
                   <p className="text-gray-700 leading-relaxed">{advantage.description}</p>
@@ -145,7 +145,7 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
           className="mt-16 text-center"
         >
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-yellow-200">
-            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+             <h3 className="text-2xl font-bold text-primary mb-4">
               Готови да започнем заедно?
             </h3>
             <p className="text-gray-700 mb-6 max-w-xl mx-auto">
@@ -154,13 +154,13 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="#contact" 
-                className="inline-flex items-center justify-center gap-2 h-12 px-8 bg-gradient-to-r from-blue-900 to-blue-800 text-white rounded-lg font-semibold hover:scale-105 shadow-lg hover:shadow-xl transition-all duration-300 ease-out"
+                className="inline-flex items-center justify-center gap-2 h-12 px-8 bg-[#1a2642] text-white rounded-lg font-semibold hover:scale-105 shadow-lg hover:shadow-xl transition-all duration-300 ease-out"
               >
                 Безплатна консултация
               </a>
               <a 
                 href="tel:+359888123456" 
-                className="inline-flex items-center justify-center gap-2 h-12 px-8 bg-gradient-to-r from-yellow-400 to-yellow-600 text-blue-900 rounded-lg font-semibold hover:scale-105 shadow-lg hover:shadow-xl transition-all duration-300 ease-out"
+                 className="inline-flex items-center justify-center gap-2 h-12 px-8 bg-gradient-to-r from-yellow-400 to-yellow-600 text-primary rounded-lg font-semibold hover:scale-105 shadow-lg hover:shadow-xl transition-all duration-300 ease-out"
               >
                 <Headphones className="w-5 h-5" />
                 Обади се сега
