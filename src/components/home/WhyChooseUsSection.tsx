@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { MapPin, Users, Award, Smartphone, CheckCircle } from "lucide-react";
+import { MapPin, Users, Award, Smartphone, Headphones, TrendingUp } from "lucide-react";
 import { Heading, Text } from "@/components/ui/Typography";
 import { cn } from "@/lib/design-tokens";
 
@@ -10,39 +10,46 @@ interface Advantage {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
+  stat: string;
 }
 
 const advantages: Advantage[] = [
   {
     icon: MapPin,
     title: "Местна експертиза",
-    description:
-      "Дълбоко познаване на пазара в Стара Загора и всички нюанси на местните квартали.",
+    description: "Дълбоко познаване на пазара в Стара Загора и всичките й райони",
+    stat: "10+ години опит"
   },
   {
     icon: Users,
-    title: "Персонален подход",
-    description:
-      "Всеки клиент получава индивидуално внимание и решения, съобразени с неговите специфични нужди.",
+    title: "Личен подход",
+    description: "Индивидуално внимание и персонализирани решения за всеки клиент",
+    stat: "500+ доволни клиенти"
   },
   {
     icon: Award,
     title: "Професионален екип",
-    description:
-      "Сертифицирани специалисти с дългогодишен опит в сферата на недвижимите имоти.",
+    description: "Сертифицирани специалисти с богат опит в недвижимите имоти",
+    stat: "#1 в региона"
   },
   {
     icon: Smartphone,
     title: "Модерни технологии",
-    description:
-      "Използваме най-новите технологии за маркетинг, оценка и управление на имоти.",
+    description: "Най-новите инструменти за търсене, оценка и представяне на имоти",
+    stat: "Винаги актуални"
   },
   {
-    icon: CheckCircle,
-    title: "Пълно съпровождане",
-    description:
-      "От първата консултация до подписване на договора - ние сме с вас на всяка стъпка.",
+    icon: Headphones,
+    title: "Пълна подкрепа",
+    description: "Съпровождане през целия процес от първата среща до подписването",
+    stat: "24/7 поддръжка"
   },
+  {
+    icon: TrendingUp,
+    title: "Доказани резултати",
+    description: "Успешно реализирани сделки с максимална стойност за клиентите",
+    stat: "95% успеваемост"
+  }
 ];
 
 const containerVariants = {
@@ -69,40 +76,35 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
     <section
       aria-labelledby="why-choose-us-heading"
       className={cn(
-        // Navy background with subtle gradient to enrich depth
-        "w-full bg-[#1a2642] text-white",
-        "bg-gradient-to-b from-[#1a2642] to-[#1a2642]/95",
-        // Generous vertical spacing
-        "py-16 md:py-24",
+        "py-20 bg-gradient-to-br from-gray-100 to-white",
         className
       )}
       {...rest}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 md:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="mx-auto max-w-3xl text-center"
+          className="text-center mb-16"
         >
           <Heading
             as="h2"
             id="why-choose-us-heading"
-            size="h2"
+            size="h1"
             weight="semibold"
-            color="white"
-            className="mb-4"
+            className="text-4xl md:text-5xl font-bold text-blue-900 mb-6"
           >
-            Защо да изберете Nova Nest
+            Защо да изберете Nova Nest?
           </Heading>
-          <Text as="p" size="lg" color="white" align="center" className="text-white/80">
-            Вашият надежден партньор за недвижими имоти в Стара Загора
+          <Text as="p" size="xl" className="text-xl text-gray-700 max-w-2xl mx-auto">
+            Ние не сме просто агенция - ние сме вашите партньори в намирането на перфектния дом
           </Text>
         </motion.div>
 
-        <motion.ul
-          className="mt-12 grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3"
+        <motion.div
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.2 }}
@@ -111,26 +113,61 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
         >
           {advantages.map((advantage, index) => {
             const Icon = advantage.icon;
-            // For the 2-3 desktop split: span 2 columns for first two items on lg screens
-            const desktopSpanClass = index < 2 ? "lg:col-span-1 lg:[&:nth-child(-n+2)]:col-span-1 lg:[&:nth-child(-n+2)]:col-span-1" : "";
             return (
-              <motion.li
+              <motion.div
                 key={advantage.title}
                 variants={itemVariants}
-                className={cn(
-                  "group relative rounded-lg border p-6 transition-all duration-200 ease-out",
-                  "border-white/20 hover:scale-[1.01] hover:border-[#d4af37]/50",
-                  "bg-transparent",
-                  desktopSpanClass
-                )}
+                className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:scale-105"
               >
-                <Icon className="mb-4 h-10 w-10 text-[#d4af37]" aria-hidden="true" />
-                <h3 className="text-xl font-semibold text-white mb-2">{advantage.title}</h3>
-                <p className="text-base text-white/90 leading-relaxed">{advantage.description}</p>
-              </motion.li>
+                {/* Background decoration */}
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 opacity-10 rounded-full transform translate-x-6 -translate-y-6 group-hover:scale-150 transition-transform duration-500 ease-out"></div>
+                
+                <div className="relative">
+                  <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ease-out">
+                    <Icon className="w-7 h-7 text-blue-900" />
+                  </div>
+                  <div className="mb-3">
+                    <h3 className="text-xl font-bold text-blue-900 mb-1">{advantage.title}</h3>
+                    <div className="text-sm font-medium text-yellow-600">{advantage.stat}</div>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">{advantage.description}</p>
+                </div>
+              </motion.div>
             );
           })}
-        </motion.ul>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
+          className="mt-16 text-center"
+        >
+          <div className="bg-white p-8 rounded-2xl shadow-xl border border-yellow-200">
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              Готови да започнем заедно?
+            </h3>
+            <p className="text-gray-700 mb-6 max-w-xl mx-auto">
+              Нека ви помогнем да намерите вашето ново гнездо или да продадете сегашния ви имот на най-добра цена
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="#contact" 
+                className="inline-flex items-center justify-center gap-2 h-12 px-8 bg-gradient-to-r from-blue-900 to-blue-800 text-white rounded-lg font-semibold hover:scale-105 shadow-lg hover:shadow-xl transition-all duration-300 ease-out"
+              >
+                Безплатна консултация
+              </a>
+              <a 
+                href="tel:+359888123456" 
+                className="inline-flex items-center justify-center gap-2 h-12 px-8 bg-gradient-to-r from-yellow-400 to-yellow-600 text-blue-900 rounded-lg font-semibold hover:scale-105 shadow-lg hover:shadow-xl transition-all duration-300 ease-out"
+              >
+                <Headphones className="w-5 h-5" />
+                Обади се сега
+              </a>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
