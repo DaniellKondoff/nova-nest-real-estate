@@ -297,7 +297,7 @@ export function TestimonialsSection({
           <Heading as="h2" size="h2" weight="semibold" color="primary" className="tracking-wide mb-4">
             {heading}
           </Heading>
-          <Text as="p" size="lg" color="gray" className="text-lg text-muted-foreground">
+          <Text as="p" size="lg" color="gray" className="text-lg text-muted-foreground text-center">
             {subheading}
           </Text>
         </div>
