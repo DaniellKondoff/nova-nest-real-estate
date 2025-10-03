@@ -34,10 +34,10 @@ export default function Home(): React.ReactElement {
   return (
     <main>
       <HeroSection id="home" />
-      <AboutSection id="about" />
+      <AboutSection />
       <ServicesSection id="services" />
       <PropertyShowcase />
-      <TestimonialsSection variant="white" />
+      <TestimonialsSection />
       <WhyChooseUsSection />
       <ContactCTASection id="contact" />
     </main>

@@ -13,12 +13,23 @@
   --color-brand: var(--brand-navy);
   --color-accent: var(--brand-gold);
   --font-sans: var(--font-inter);
+  --color-muted: #f8f9fa;
+  --color-muted-foreground: #6b7280;
+  --color-card: #ffffff;
+  --color-card-foreground: #0e141b;
+  --color-border: #e5e7eb;
+  --color-ring: #d4af37;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0a0f17;
     --fg: #e6e9ed;
+    --color-muted: #1f2937;
+    --color-muted-foreground: #9ca3af;
+    --color-card: #1f2937;
+    --color-card-foreground: #e6e9ed;
+    --color-border: #374151;
   }
 }
 
@@ -29,4 +40,22 @@ html, body {
 body {
   background: var(--bg);
   color: var(--fg);
+}
+
+/* Marquee animation for testimonials */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
