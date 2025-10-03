@@ -1,132 +1,110 @@
 "use client";
 import React from "react";
-import { Inter } from "next/font/google";
-import ServiceCard from "@/components/home/ServiceCard";
-import { motion, type Variants } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  Home, 
+  ShoppingCart, 
+  KeyRound, 
+  Building2, 
+  Calculator, 
+  FileText,
+  ArrowRight
+} from "lucide-react";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin", "cyrillic"],
-  display: "swap",
-});
-
-export interface ServiceItem {
-  id: string;
-  icon: string; // Lucide icon name
-  title_bg: string;
-  description_bg: string;
-  link?: string;
-}
-
-const services: ServiceItem[] = [
-  {
-    id: "sell",
-    icon: "Home",
-    title_bg: "Продажба на имоти",
-    description_bg:
-      "Професионална оценка, маркетинг стратегия и пълно съпровождане на процеса на продажба. Осигуряваме максимална видимост на вашия имот и привличаме сериозни купувачи.",
-  },
-  {
-    id: "buy",
-    icon: "Search",
-    title_bg: "Покупка на имоти",
-    description_bg:
-      "Помагаме ви да намерите идеалния имот според вашите нужди и бюджет. Предоставяме детайлна информация за всеки имот и организираме огледи.",
-  },
-  {
-    id: "rent_out",
-    icon: "KeyRound",
-    title_bg: "Отдаване под наем",
-    description_bg:
-      "Намираме надежди наематели за вашия имот. Проверяваме референции, подготвяме договори и осигуряваме спокойствие.",
-  },
-  {
-    id: "rent",
-    icon: "Building",
-    title_bg: "Наемане на имоти",
-    description_bg:
-      "Богата база данни с имоти под наем в различни квартали на града. Съдействие при преговори и сключване на договор.",
-  },
-  {
-    id: "valuation",
-    icon: "ClipboardCheck",
-    title_bg: "Оценка на имоти",
-    description_bg:
-      "Професионална оценка на пазарната стойност на вашия имот от лицензирани оценители.",
-  },
-  {
-    id: "legal",
-    icon: "Scale",
-    title_bg: "Юридическо съдействие",
-    description_bg:
-      "Пълна правна поддръжка на сделките - проверка на документи, подготовка на договори, съдействие при нотариални процедури.",
-  },
-];
-
-export default function ServicesSection({ id }: { id?: string }): React.ReactElement {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        delay: 0.2,
-        when: "beforeChildren",
-        staggerChildren: 0.1,
-      },
+const ServicesSection = ({ id }: { id?: string }) => {
+  const services = [
+    {
+      icon: ShoppingCart,
+      title: "Продажба на имоти",
+      description: "Професионална помощ при продажбата на вашия имот с максимална цена и бързи сроков",
+      features: ["Оценка на имота", "Маркетинг стратегия", "Договаряне на цената"]
     },
-  };
-
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
+    {
+      icon: Home,
+      title: "Покупка на имоти",
+      description: "Намираме перфектния дом според вашите критерии и бюджет",
+      features: ["Персонализирана търсене", "Правни проверки", "Съпровождане до сделката"]
     },
-  };
+    {
+      icon: KeyRound,
+      title: "Отдаване под наем",
+      description: "Управление на вашия имот и намиране на надеждни наематели",
+      features: ["Скрининг на наематели", "Договори за наем", "Управление на имота"]
+    },
+    {
+      icon: Building2,
+      title: "Наемане на имоти",
+      description: "Богат избор от апартаменти и къщи за наем в различни райони",
+      features: ["Верифицирани имоти", "Гъвкави условия", "Бърза процедура"]
+    },
+    {
+      icon: Calculator,
+      title: "Оценка на имоти",
+      description: "Професионална оценка на пазарната стойност на недвижими имоти",
+      features: ["Пазарен анализ", "Детайлен доклад", "Консултация с експерт"]
+    },
+    {
+      icon: FileText,
+      title: "Правна подкрепа",
+      description: "Пълно юридическо обслужване при сделки с недвижими имоти",
+      features: ["Проверка на документи", "Изготвяне на договори", "Нотариални услуги"]
+    }
+  ];
 
   return (
-    <section
-      id={id}
-      aria-labelledby="services-heading"
-      className={[
-        inter.variable,
-        "w-full bg-[#1a2642] py-16 md:py-24 scroll-mt-[80px]",
-      ].join(" ")}
-    >
-      <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2
-            id="services-heading"
-            className="text-4xl md:text-5xl font-semibold text-white mb-4"
-          >
+    <section id={id || "services"} className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-6">
             Нашите услуги
           </h2>
-          <p className="text-lg md:text-xl text-white/80 mb-16">
-            Професионални решения за всички ваши нужди
+          <p className="text-xl text-charcoal max-w-2xl mx-auto">
+            Предлагаме пълен спектър от услуги в областта на недвижимите имоти
           </p>
         </div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-100px", amount: 0.2 }}
-        >
-          {services.map((item) => (
-            <motion.div key={item.id} variants={cardVariants}>
-              <ServiceCard
-                icon={item.icon}
-                title_bg={item.title_bg}
-                description_bg={item.description_bg}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {services.map((service, index) => {
+            const Icon = service.icon;
+            return (
+              <Card key={index} className="p-6 shadow-lift hover:shadow-card transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ease-out" style={{backgroundColor: '#d4af37'}}>
+                  <Icon className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold text-primary mb-3">{service.title}</h3>
+                <p className="text-charcoal mb-4 leading-relaxed">{service.description}</p>
+                <ul className="space-y-2">
+                  {service.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-center text-sm text-charcoal">
+                      <div className="w-1.5 h-1.5 rounded-full mr-2" style={{backgroundColor: '#d4af37'}}></div>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="mt-16 text-center">
+          <div className="p-8 rounded-2xl shadow-card" style={{backgroundColor: '#d4af37'}}>
+            <h3 className="text-2xl font-bold text-primary mb-4">
+              Не намирате това, което търсите?
+            </h3>
+            <p className="text-primary mb-6 max-w-xl mx-auto">
+              Свържете се с нас за персонализирана консултация и ние ще намерим най-доброто решение за вас
+            </p>
+            <Button variant="secondary" size="lg" className="bg-gray-800 hover:bg-gray-900 text-white border-0">
+              Безплатна консултация
+            </Button>
+          </div>
+        </div>
       </div>
     </section>
   );
-}
+};
+
+export default ServicesSection;
 
 
