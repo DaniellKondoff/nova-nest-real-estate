@@ -80,9 +80,9 @@ const AboutSection = () => {
                 </div>
                 
                 {/* Title */}
-                <h3 className="text-sm font-bold text-nova-blue mb-3 leading-tight">
+                <h4 className="text-base md:text-lg lg:text-xl font-bold text-nova-blue mb-3 leading-tight whitespace-nowrap">
                   {value.title}
-                </h3>
+                </h4>
                 
                 {/* Description */}
                 <p className="text-nova-gray-dark leading-relaxed">
