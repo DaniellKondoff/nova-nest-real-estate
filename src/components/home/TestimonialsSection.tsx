@@ -324,16 +324,26 @@ export function TestimonialsSection({
           <>
             <div className="flex justify-center gap-2 mb-8">
               <Button
-                variant={viewMode === "carousel" ? "primary" : "secondary"}
+                variant="secondary"
                 onClick={() => setViewMode("carousel")}
-                className="rounded-full"
+                className={cn(
+                  "rounded-full transition-all duration-200",
+                  viewMode === "carousel" 
+                    ? "bg-[#1a2642] text-white border-[#1a2642] hover:bg-[#1a2642]/90" 
+                    : "border-[#1a2642] text-[#1a2642] bg-transparent hover:bg-[#d4af37] hover:text-white"
+                )}
               >
                 Карусел
               </Button>
               <Button
-                variant={viewMode === "marquee" ? "primary" : "secondary"}
+                variant="secondary"
                 onClick={() => setViewMode("marquee")}
-                className="rounded-full"
+                className={cn(
+                  "rounded-full transition-all duration-200",
+                  viewMode === "marquee" 
+                    ? "bg-[#1a2642] text-white border-[#1a2642] hover:bg-[#1a2642]/90" 
+                    : "border-[#1a2642] text-[#1a2642] bg-transparent hover:bg-[#d4af37] hover:text-white"
+                )}
               >
                 Маркиз
               </Button>
