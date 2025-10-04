@@ -28,51 +28,18 @@ export default function ContactCTASection({
 }: ContactCTASectionProps): React.ReactElement {
   const verticalPadding = compactMode ? "py-16 md:py-20" : "py-24 md:py-32";
 
-  // Enhanced contact functionality
-  const handleCall = (e: React.MouseEvent) => {
-    e.preventDefault();
-    
-    // Track analytics if needed
-    if (typeof window !== 'undefined') {
-      console.log('Call button clicked:', site.contact.phone);
-      // Example: gtag('event', 'contact_call', { method: 'phone' });
-    }
-    
-    // Fallback: try to open tel link programmatically
-    try {
-      window.location.href = `tel:${site.contact.phone}`;
-    } catch (error) {
-      console.error('Error opening phone dialer:', error);
-      // Fallback: copy phone number to clipboard
-      navigator.clipboard?.writeText(site.contact.phone).then(() => {
-        alert(`Phone number copied to clipboard: ${site.contact.phone}`);
-      });
-    }
-  };
-
-  const handleEmail = (e: React.MouseEvent) => {
-    e.preventDefault();
-    
-    // Track analytics if needed
-    if (typeof window !== 'undefined') {
-      console.log('Email button clicked:', site.contact.email);
-      // Example: gtag('event', 'contact_email', { method: 'email' });
-    }
-    
-    // Fallback: try to open mailto link programmatically
-    try {
-      window.location.href = mailtoUrl;
-    } catch (error) {
-      console.error('Error opening email client:', error);
-      // Fallback: copy email to clipboard
-      navigator.clipboard?.writeText(site.contact.email).then(() => {
-        alert(`Email address copied to clipboard: ${site.contact.email}`);
-      });
-    }
-  };
-
   // Generate mailto with pre-filled subject and body
   const mailtoUrl = `mailto:${site.contact.email}?subject=${encodeURIComponent('Запитване за недвижими имоти - Nova Nest')}&body=${encodeURIComponent('Здравейте,\n\nИнтересувам се от вашите услуги за недвижими имоти.\n\nМоля, свържете се с мен за повече информация.\n\nБлагодаря!')}`;
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('ContactCTASection loaded with:', {
+      phone: site.contact.phone,
+      phoneDisplay: site.contact.phoneDisplay,
+      email: site.contact.email,
+      mailtoUrl: mailtoUrl
+    });
+  }, []);
 
   return (
     <section
@@ -261,35 +228,6 @@ export default function ContactCTASection({
                       <div className="h-1.5 w-1.5 rounded-full bg-red-400" />
                       <p className="text-white/70 text-sm">Неделя: {site.contact.businessHours.sunday}</p>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Call to Action */}
-              <div className="rounded-2xl bg-gradient-to-r from-[#d4af37]/10 to-[#d4af37]/5 backdrop-blur-sm p-6 ring-1 ring-[#d4af37]/20">
-                <div className="text-center">
-                  <h4 className="text-white text-lg font-semibold mb-2">Готови за следващата стъпка?</h4>
-                  <p className="text-white/80 text-sm mb-4">Свържете се с нас днес за безплатна консултация</p>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      type="button"
-                      onClick={handleCall}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#d4af37] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#c29d2f] hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 active:scale-95"
-                      aria-label={`Обадете се на ${site.contact.phoneDisplay}`}
-                    >
-                      <Phone className="h-4 w-4" />
-                      Обадете се сега
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleEmail}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-white/20 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 active:scale-95"
-                      aria-label={`Изпратете имейл на ${site.contact.email}`}
-                    >
-                      <Mail className="h-4 w-4" />
-                      Изпратете имейл
-                      <ArrowRight className="h-3 w-3" />
-                    </button>
                   </div>
                 </div>
               </div>
