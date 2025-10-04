@@ -36,9 +36,10 @@ export default function Home(): React.ReactElement {
       <HeroSection id="home" />
       <AboutSection />
       <ServicesSection id="services" />
-      <PropertyShowcase />
-      <TestimonialsSection />
       <WhyChooseUsSection />
+      {/* <PropertyShowcase /> */}
+      <TestimonialsSection />
+
       <ContactCTASection id="contact" />
     </main>
   );

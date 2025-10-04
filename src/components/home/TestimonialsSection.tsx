@@ -284,7 +284,7 @@ export function TestimonialsSection({
   return (
     <Section
       tone="white"
-      className={cn("w-full py-16 md:py-24 px-4 bg-background", className)}
+      className={cn("w-full py-16 md:py-24 px-4 bg-gradient-to-br from-slate-50 to-gray-100", className)}
       aria-label="Testimonials section"
       {...rest}
     >
