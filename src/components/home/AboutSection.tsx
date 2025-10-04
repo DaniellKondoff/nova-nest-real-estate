@@ -75,7 +75,10 @@ const AboutSection = () => {
                 className="p-6 text-center shadow-medium hover:shadow-large transition-smooth group"
               >
                 {/* Icon Circle Container */}
-                <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-bounce">
+                <div 
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-bounce"
+                  style={{backgroundColor: '#d4af37'}}
+                >
                   <Icon className="w-8 h-8 text-nova-blue" />
                 </div>
                 
