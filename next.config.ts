@@ -27,6 +27,9 @@ const csp = [
     "https://*.googleusercontent.com",
     "https://*.gstatic.com",
     "https://*.google-analytics.com",
+    "https://images.unsplash.com",
+    "https://*.unsplash.com",
+    "https://ui-avatars.com",
     SUPABASE_HOST ? `https://${SUPABASE_HOST}` : undefined,
     `https://${PROPERTY_IMAGES_HOST}`,
   ]
@@ -74,6 +77,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "example.com", pathname: "/**" },
       { protocol: "https", hostname: "maps.gstatic.com", pathname: "/**" },
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+      // Allow Unsplash for testimonial avatars
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      { protocol: "https", hostname: "*.unsplash.com", pathname: "/**" },
+      // Allow UI Avatars for generated avatars
+      { protocol: "https", hostname: "ui-avatars.com", pathname: "/**" },
     ].filter(Boolean) as any,
   },
   serverExternalPackages: ["@supabase/supabase-js"],
@@ -85,7 +93,8 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: csp },
+          // Temporarily disable CSP to test
+          // { key: "Content-Security-Policy", value: csp },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-DNS-Prefetch-Control", value: "on" },

@@ -6,7 +6,6 @@ import PropertyShowcase from "@/components/home/PropertyShowcase";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import WhyChooseUsSection from "@/components/home/WhyChooseUsSection";
 import ContactCTASection from "@/components/home/ContactCTASection";
-import ContactTest from "@/components/test/ContactTest";
 
 export const metadata: Metadata = {
   title: "Nova Nest Real Estate - Имоти в Стара Загора",

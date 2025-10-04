@@ -266,7 +266,7 @@ export function TestimonialsSection({
             role: testimonial.role || "Клиент",
             rating: testimonial.rating,
             quote: testimonial.testimonial,
-            avatar: `https://images.unsplash.com/photo-${1500000000000 + Math.random() * 1000000000}?w=150&h=150&fit=crop&crop=face`,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.clientName)}&background=d4af37&color=ffffff&size=150`,
             propertyType: "Недвижим имот"
           }));
           setData(transformedData);
