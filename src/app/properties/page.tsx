@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Filter, TriangleAlert, X } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 import { usePropertySearch } from "@/hooks/usePropertySearch";
-import PropertyFilters from "@/components/property/PropertyFilters";
+import HorizontalPropertyFilters from "@/components/property/HorizontalPropertyFilters";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import PropertySort from "@/components/property/PropertySort";
 import ViewToggle from "@/components/property/ViewToggle";
@@ -48,32 +48,27 @@ export default function PropertiesPage(): React.ReactElement {
 
   return (
     <main className="bg-gray-50">
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      {/* Horizontal Filters Section */}
+      <HorizontalPropertyFilters
+        initialFilters={filters}
+        onFilterChange={setFilters}
+        categories={[]}
+        neighborhoods={[]}
+        totalResults={totalResults}
+      />
+
+      {/* Results Section */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6 flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-semibold text-[#1a2642]">Имоти в Стара Загора</h1>
-              <p className="mt-2 text-gray-600">Разгледайте актуални оферти за продажба и наем</p>
-            </div>
-            {/* Mobile filters toggle (handled inside PropertyFilters) */}
-            <button
-              type="button"
-              className="lg:hidden inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-              onClick={() => {
-                const el = document.getElementById("filters-toggle");
-                if (el) el.click();
-              }}
-            >
-              <Filter className="h-4 w-4" /> Филтри {appliedCount > 0 && (
-                <span className="ml-1 rounded-full bg-[#d4af37] px-2 py-0.5 text-xs text-white">{appliedCount}</span>
-              )}
-            </button>
+          <div className="mb-6">
+            <h1 className="text-3xl md:text-4xl font-semibold text-[#1a2642]">Имоти в Стара Загора</h1>
+            <p className="mt-2 text-gray-600">Разгледайте актуални оферти за продажба и наем</p>
           </div>
 
           {/* Active filter chips */}
           {appliedCount > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-2">
+            <div className="mb-6 flex flex-wrap items-center gap-2">
               {activeChips.map((chip) => (
                 <span key={String(chip.key)} className="inline-flex items-center gap-2 rounded-full bg-[#f1f5f9] px-3 py-1 text-sm text-[#1a2642]">
                   {chip.label}
@@ -124,40 +119,29 @@ export default function PropertiesPage(): React.ReactElement {
             </div>
           )}
 
-          {/* Layout: sidebar + grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-1">
-              <PropertyFilters
-                initialFilters={filters}
-                onFilterChange={setFilters}
-                categories={[]}
-                neighborhoods={[]}
-              />
+          {/* Control bar: results + sort + view */}
+          <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="text-gray-600 text-sm">
+              {totalResults > 0 ? `Намерени ${totalResults} имота` : "Няма намерени имоти"}
             </div>
-            <div className="lg:col-span-3">
-              {/* Control bar: results + sort + view */}
-              <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div className="text-gray-600 text-sm">
-                  {totalResults > 0 ? `Намерени ${totalResults} имота` : "Няма намерени имоти"}
-                </div>
-                <div className="flex items-center gap-3">
-                  <PropertySort currentSort={sortBy} onSortChange={setSortBy} />
-                  <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
-                </div>
-              </div>
-
-              <PropertyGrid properties={properties} loading={loading} viewMode={viewMode} />
-
-              <div className="mt-10">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalResults={totalResults}
-                  loading={loading}
-                  onPageChange={setPage}
-                />
-              </div>
+            <div className="flex items-center gap-3">
+              <PropertySort currentSort={sortBy} onSortChange={setSortBy} />
+              <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
             </div>
+          </div>
+
+          {/* Properties Grid */}
+          <PropertyGrid properties={properties} loading={loading} viewMode={viewMode} />
+
+          {/* Pagination */}
+          <div className="mt-10">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalResults={totalResults}
+              loading={loading}
+              onPageChange={setPage}
+            />
           </div>
         </div>
       </section>

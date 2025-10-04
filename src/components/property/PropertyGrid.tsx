@@ -50,13 +50,7 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
   const isEmpty = !loading && properties.length === 0;
 
   return (
-    <section aria-labelledby="all-properties-heading" className="bg-white py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <h2 id="all-properties-heading" className="mb-12 text-4xl font-semibold text-[#1a2642]">
-          Всички имоти
-        </h2>
-
-        <div className={gridClasses} aria-busy={loading ? true : undefined} role="list" aria-label="Списък с имоти">
+    <div className={gridClasses} aria-busy={loading ? true : undefined} role="list" aria-label="Списък с имоти">
           {loading
             ? Array.from({ length: 6 }).map((_, idx) => renderSkeletonCard(idx))
             : isEmpty
@@ -77,9 +71,7 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
                 );
               })
             )}
-        </div>
-      </div>
-    </section>
+    </div>
   );
 }
 
