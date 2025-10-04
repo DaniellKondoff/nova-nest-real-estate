@@ -14,7 +14,11 @@ import {
   ArrowRight,
   CheckCircle,
   X,
-  Send
+  Send,
+  Sparkles,
+  Star,
+  Shield,
+  Clock
 } from "lucide-react";
 
 // Memoized service data for performance
@@ -86,7 +90,7 @@ const ServiceCard = memo(({
 
   return (
     <Card 
-      className="group relative p-6 h-full shadow-lift hover:shadow-card transition-all duration-300 ease-out cursor-pointer focus-within:ring-2 focus-within:ring-accent/20 focus-within:ring-offset-2"
+      className="group relative p-8 h-full bg-white border-0 shadow-lg hover:shadow-2xl transition-all duration-500 ease-out cursor-pointer focus-within:ring-2 focus-within:ring-accent/20 focus-within:ring-offset-4 overflow-hidden"
       onClick={handleCardClick}
       role="article"
       aria-labelledby={`service-title-${service.id}`}
@@ -99,22 +103,29 @@ const ServiceCard = memo(({
         }
       }}
     >
-      {/* Icon Container with improved accessibility */}
-      <div 
-        className="w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ease-out"
-        style={{backgroundColor: '#d4af37'}}
-        aria-hidden="true"
-      >
-        <Icon 
-          className="w-7 h-7 text-primary" 
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      {/* Icon Container with enhanced design */}
+      <div className="relative mb-6">
+        <div 
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ease-out shadow-lg"
+          style={{backgroundColor: '#d4af37'}}
           aria-hidden="true"
-        />
+        >
+          <Icon 
+            className="w-8 h-8 text-white drop-shadow-sm" 
+            aria-hidden="true"
+          />
+        </div>
+        {/* Decorative element */}
+        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-800/10 group-hover:bg-gray-800/20 transition-colors duration-300" />
       </div>
       
-      {/* Title with proper heading hierarchy */}
+      {/* Title with enhanced typography */}
       <h3 
         id={`service-title-${service.id}`}
-        className="text-xl font-bold text-primary mb-3 leading-tight"
+        className="text-2xl font-bold text-primary mb-4 leading-tight group-hover:text-gray-800 transition-colors duration-300"
       >
         {service.title}
       </h3>
@@ -122,29 +133,34 @@ const ServiceCard = memo(({
       {/* Description with improved readability */}
       <p 
         id={`service-description-${service.id}`}
-        className="text-charcoal mb-4 leading-relaxed text-base"
+        className="text-charcoal mb-6 leading-relaxed text-base group-hover:text-gray-700 transition-colors duration-300"
       >
         {service.description}
       </p>
       
-      {/* Features list with better visual hierarchy */}
-      <ul className="space-y-2" role="list" aria-label={`Основни услуги за ${service.title}`}>
+      {/* Features list with enhanced design */}
+      <ul className="space-y-3" role="list" aria-label={`Основни услуги за ${service.title}`}>
         {service.features.map((feature, idx) => (
           <li 
             key={`${service.id}-feature-${idx}`}
-            className="flex items-start text-sm text-charcoal"
+            className="flex items-start text-sm text-charcoal group-hover:text-gray-700 transition-colors duration-300"
           >
-            <CheckCircle 
-              className="w-4 h-4 text-accent mr-3 mt-0.5 flex-shrink-0" 
-              aria-hidden="true"
-            />
-            <span className="leading-relaxed">{feature}</span>
+            <div className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+              <CheckCircle 
+                className="w-3 h-3 text-white" 
+                aria-hidden="true"
+              />
+            </div>
+            <span className="leading-relaxed font-medium">{feature}</span>
           </li>
         ))}
       </ul>
       
-      {/* Subtle hover indicator */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent/0 via-accent/50 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Enhanced hover indicator */}
+      <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-gray-800 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      {/* Corner accent */}
+      <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </Card>
   );
 });
@@ -230,43 +246,57 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-primary">
-              Безплатна консултация
-            </h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{backgroundColor: '#d4af37'}}
+              >
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-primary">
+                Безплатна консултация
+              </h2>
+            </div>
             <button
               onClick={onClose}
-              className="text-charcoal hover:text-primary transition-colors"
+              className="text-charcoal hover:text-primary transition-colors p-2 hover:bg-gray-100 rounded-lg"
               aria-label="Затвори"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
           
-          <p className="text-charcoal mb-6">
-            Попълнете формата и ние ще се свържем с вас в най-скоро време
-          </p>
+          <div className="bg-gray-50 rounded-2xl p-6 mb-8">
+            <div className="flex items-center space-x-3 mb-3">
+              <Clock className="w-5 h-5 text-gray-800" />
+              <span className="font-semibold text-gray-800">Бърз отговор</span>
+            </div>
+            <p className="text-charcoal text-sm leading-relaxed">
+              Попълнете формата и ние ще се свържем с вас в най-скоро време за персонализирана консултация
+            </p>
+          </div>
           
           {isSuccess ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-primary mb-2">
+              <h3 className="text-2xl font-bold text-primary mb-3">
                 Благодарим ви!
               </h3>
-              <p className="text-charcoal">
+              <p className="text-charcoal text-lg">
                 Вашата заявка е изпратена успешно. Ще се свържем с вас в най-скоро време.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-primary mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-primary mb-3">
                 Име *
               </label>
               <Input
@@ -274,15 +304,20 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                className={errors.name ? 'border-red-500' : ''}
+                className={`h-12 px-4 rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-gray-800/20 ${
+                  errors.name ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-gray-800'
+                }`}
                 placeholder="Вашето име"
               />
-              {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-red-500 mt-2 flex items-center">
+                <X className="w-4 h-4 mr-1" />
+                {errors.name}
+              </p>}
             </div>
             
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-primary mb-3">
                 Имейл *
               </label>
               <Input
@@ -290,15 +325,20 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={errors.email ? 'border-red-500' : ''}
+                className={`h-12 px-4 rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-gray-800/20 ${
+                  errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-gray-800'
+                }`}
                 placeholder="your@email.com"
               />
-              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-sm text-red-500 mt-2 flex items-center">
+                <X className="w-4 h-4 mr-1" />
+                {errors.email}
+              </p>}
             </div>
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-primary mb-2">
+              <label htmlFor="phone" className="block text-sm font-semibold text-primary mb-3">
                 Телефон *
               </label>
               <Input
@@ -306,23 +346,28 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
-                className={errors.phone ? 'border-red-500' : ''}
+                className={`h-12 px-4 rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-gray-800/20 ${
+                  errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-gray-800'
+                }`}
                 placeholder="+359 888 123 456"
               />
-              {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
+              {errors.phone && <p className="text-sm text-red-500 mt-2 flex items-center">
+                <X className="w-4 h-4 mr-1" />
+                {errors.phone}
+              </p>}
             </div>
             
             {/* Property Type */}
             <div>
-              <label htmlFor="propertyType" className="block text-sm font-medium text-primary mb-2">
+              <label htmlFor="propertyType" className="block text-sm font-semibold text-primary mb-3">
                 Тип имот *
               </label>
               <select
                 id="propertyType"
                 value={formData.propertyType}
                 onChange={(e) => handleInputChange('propertyType', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20 ${
-                  errors.propertyType ? 'border-red-500' : 'border-charcoal/20'
+                className={`w-full h-12 px-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-800/20 transition-all duration-200 ${
+                  errors.propertyType ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-gray-800'
                 }`}
               >
                 <option value="">Изберете тип имот</option>
@@ -333,12 +378,15 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 <option value="valuation">Оценка на имот</option>
                 <option value="legal">Правна подкрепа</option>
               </select>
-              {errors.propertyType && <p className="text-sm text-red-500 mt-1">{errors.propertyType}</p>}
+              {errors.propertyType && <p className="text-sm text-red-500 mt-2 flex items-center">
+                <X className="w-4 h-4 mr-1" />
+                {errors.propertyType}
+              </p>}
             </div>
 
             {/* Message */}
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-primary mb-2">
+              <label htmlFor="message" className="block text-sm font-semibold text-primary mb-3">
                 Допълнителна информация
               </label>
               <textarea
@@ -346,24 +394,25 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 value={formData.message}
                 onChange={(e) => handleInputChange('message', e.target.value)}
                 placeholder="Опишете вашите нужди и въпроси..."
-                className="w-full px-3 py-2 border border-charcoal/20 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20 min-h-[100px] resize-vertical"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-800/20 focus:border-gray-800 min-h-[120px] resize-vertical transition-all duration-200"
               />
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-6">
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gray-800 hover:bg-gray-900 text-white px-10 py-4 border-0 font-semibold text-base min-w-[200px]"
+                className="bg-gray-800 hover:bg-gray-900 text-white px-12 py-4 border-0 font-semibold text-lg min-w-[240px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
                     Изпращане...
                   </>
                 ) : (
                   <>
+                    <Send className="w-5 h-5 mr-2" />
                     Изпрати заявка
                   </>
                 )}
@@ -389,30 +438,43 @@ const ServicesSection = ({ id }: { id?: string }) => {
   return (
     <section 
       id={id || "services"} 
-      className="py-16 sm:py-20 lg:py-24 bg-white relative overflow-hidden"
+      className="py-20 sm:py-24 lg:py-32 bg-gradient-to-b from-white to-gray-50/30 relative overflow-hidden"
       aria-labelledby="services-heading"
       role="region"
     >
       {/* Background decoration for visual interest */}
       <div className="absolute inset-0 bg-white pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-800 to-transparent opacity-20" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        {/* Header with improved typography and spacing */}
-        <header className="text-center mb-12 sm:mb-16 lg:mb-20">
+        {/* Header with enhanced design */}
+        <header className="text-center mb-16 sm:mb-20 lg:mb-24">
+          <div className="inline-flex items-center space-x-2 mb-6">
+            <div 
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{backgroundColor: '#d4af37'}}
+            >
+              <Star className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-sm font-semibold text-gray-800 uppercase tracking-wider">
+              Нашите услуги
+            </span>
+          </div>
           <h2 
             id="services-heading"
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-4 sm:mb-6 leading-tight tracking-tight"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary mb-6 sm:mb-8 leading-tight tracking-tight"
           >
-            Нашите услуги
+            Професионални услуги
+            <span className="block text-gray-800 mt-2">за недвижими имоти</span>
           </h2>
-          <p className="text-lg sm:text-xl text-charcoal max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl sm:text-2xl text-charcoal max-w-4xl mx-auto leading-relaxed">
             Предлагаме пълен спектър от услуги в областта на недвижимите имоти с професионален подход и персонализирано обслужване
           </p>
         </header>
 
-        {/* Services Grid with improved responsive design */}
+        {/* Services Grid with enhanced responsive design */}
         <div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12"
           role="grid"
           aria-label="Списък с услуги"
         >
@@ -422,43 +484,53 @@ const ServicesSection = ({ id }: { id?: string }) => {
               role="gridcell"
               className="animate-in fade-in-0 slide-in-from-bottom-4"
               style={{
-                animationDelay: `${index * 100}ms`,
+                animationDelay: `${index * 150}ms`,
                 animationFillMode: 'both'
               }}
             >
               <ServiceCard service={service} index={index} />
-                </div>
+            </div>
           ))}
         </div>
 
         <div className="mt-16 text-center">
           <div 
-            className="p-8 rounded-2xl shadow-card"
+            className="relative p-8 rounded-2xl shadow-lg overflow-hidden max-w-4xl mx-auto"
             style={{backgroundColor: '#d4af37'}}
             role="complementary"
             aria-labelledby="cta-heading"
           >
-            <h3 
-              id="cta-heading"
-              className="text-2xl font-bold text-primary mb-4"
-            >
-              Не намирате това, което търсите?
-            </h3>
-            <p className="text-primary/80 mb-6 max-w-xl mx-auto">
-              Свържете се с нас за персонализирана консултация и ние ще намерим най-доброто решение за вас
-            </p>
-            <Button 
-              variant="secondary" 
-              size="lg"
-              className="bg-gray-800 hover:bg-gray-900 text-white border-0"
-              onClick={handleConsultationClick}
-              aria-describedby="cta-description"
-            >
-              Безплатна консултация
-            </Button>
-            <p id="cta-description" className="sr-only">
-              Ще бъде отворена форма за заявка за безплатна консултация
-            </p>
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
+            <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+            
+            <div className="relative z-10">
+              <h3 
+                id="cta-heading"
+                className="text-2xl font-bold text-white mb-4 leading-tight"
+              >
+                Не намирате това, което търсите?
+              </h3>
+              
+              <p className="text-white/90 mb-6 max-w-xl mx-auto leading-relaxed">
+                Свържете се с нас за персонализирана консултация и ние ще намерим най-доброто решение за вас
+              </p>
+              
+              <Button 
+                variant="secondary" 
+                size="lg"
+                className="bg-gray-800 hover:bg-gray-900 text-white border-0 px-6 py-3 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                onClick={handleConsultationClick}
+                aria-describedby="cta-description"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Безплатна консултация
+              </Button>
+              
+              <p id="cta-description" className="sr-only">
+                Ще бъде отворена форма за заявка за безплатна консултация
+              </p>
+            </div>
           </div>
         </div>
       </div>
