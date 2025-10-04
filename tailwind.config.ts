@@ -34,6 +34,8 @@ const config: Config = {
         white: "#ffffff",
         charcoal: "#2d3748",
         lightGray: "#f8f9fa",
+        // Additional brand colors
+        "nova-gold": "#d4af37",
       },
 
       fontFamily: {
@@ -115,6 +117,12 @@ const config: Config = {
         "3xl": ["1.875rem", { lineHeight: "1.25" }],
         "4xl": ["2.25rem", { lineHeight: "1.2" }],
         "5xl": ["3rem", { lineHeight: "1.1" }],
+      },
+
+      // Gradient backgrounds
+      backgroundImage: {
+        "gradient-primary": "linear-gradient(135deg, #1a2642 0%, #2c3e50 100%)",
+        "gradient-accent": "linear-gradient(135deg, #d4af37 0%, #f0d78c 100%)",
       },
     },
   },
