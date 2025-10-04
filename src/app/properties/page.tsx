@@ -3,6 +3,9 @@
 import React from "react";
 import { TriangleAlert, X } from "lucide-react";
 import { usePropertySearch } from "@/hooks/usePropertySearch";
+import { usePropertyFeatures } from "@/hooks/usePropertyFeatures";
+import { usePropertyCategories } from "@/hooks/usePropertyCategories";
+import { useNeighborhoods } from "@/hooks/useNeighborhoods";
 import HorizontalPropertyFilters from "@/components/property/HorizontalPropertyFilters";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import PropertySort from "@/components/property/PropertySort";
@@ -28,6 +31,9 @@ export default function PropertiesPage(): React.ReactElement {
     setSortBy,
   } = usePropertySearch();
 
+  const { features, loading: featuresLoading } = usePropertyFeatures();
+  const { categories, loading: categoriesLoading } = usePropertyCategories();
+  const { neighborhoods, loading: neighborhoodsLoading } = useNeighborhoods();
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
 
   // Active filter chips (show only non-empty)
@@ -52,8 +58,9 @@ export default function PropertiesPage(): React.ReactElement {
       <HorizontalPropertyFilters
         initialFilters={filters}
         onFilterChange={setFilters}
-        categories={[]}
-        neighborhoods={[]}
+        categories={categories}
+        neighborhoods={neighborhoods}
+        features={features}
         totalResults={totalResults}
       />
 

@@ -9,8 +9,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/Select";
 import { Slider } from "@/components/ui/slider";
-import type { PropertyCategory, PropertySearchFilters } from "@/types/property";
-import type { StaraZagoraNeighborhood } from "@/types/search";
+import type { PropertySearchFilters } from "@/types/property";
+import type { PropertyFeature } from "@/hooks/usePropertyFeatures";
+import type { PropertyCategory } from "@/hooks/usePropertyCategories";
+import type { Neighborhood } from "@/hooks/useNeighborhoods";
 import { PropertySearchSchema } from "@/lib/validations";
 import { cn } from "@/lib/design-tokens";
 import type { z } from "zod";
@@ -23,7 +25,8 @@ export interface HorizontalPropertyFiltersProps {
   initialFilters?: PropertySearchFilters;
   onFilterChange: (filters: PropertySearchFilters) => void;
   categories: PropertyCategory[];
-  neighborhoods: StaraZagoraNeighborhood[];
+  neighborhoods: Neighborhood[];
+  features?: PropertyFeature[];
   totalResults?: number;
 }
 
@@ -32,10 +35,15 @@ export default function HorizontalPropertyFilters({
   onFilterChange, 
   categories, 
   neighborhoods,
+  features = [],
   totalResults = 0 
 }: HorizontalPropertyFiltersProps): React.ReactElement {
-  const [priceRange, setPriceRange] = React.useState<[number, number]>([50000, 500000]);
-  const [areaRange, setAreaRange] = React.useState<[number, number]>([30, 200]);
+  // Based on actual database data: min €150, max €116,319
+  const [priceRange, setPriceRange] = React.useState<[number, number]>([150, 120000]);
+  // Based on actual database data: min 20 sqm, max 56 sqm (but we'll use realistic ranges)
+  const [areaRange, setAreaRange] = React.useState<[number, number]>([20, 300]);
+  const [floorRange, setFloorRange] = React.useState<[number, number]>([0, 10]);
+  const [selectedFeatures, setSelectedFeatures] = React.useState<number[]>([]);
 
   const form = useForm<PropertySearchData>({
     resolver: zodResolver(FormSchema),
@@ -45,10 +53,10 @@ export default function HorizontalPropertyFilters({
       operationType: initialFilters?.operationType ?? undefined,
       categoryId: initialFilters?.categoryId,
       neighborhoodId: initialFilters?.neighborhoodId,
-      minPrice: initialFilters?.minPriceEur ?? 50000,
-      maxPrice: initialFilters?.maxPriceEur ?? 500000,
-      minArea: initialFilters?.minArea ?? 30,
-      maxArea: initialFilters?.maxArea ?? 200,
+      minPrice: initialFilters?.minPriceEur ?? 150,
+      maxPrice: initialFilters?.maxPriceEur ?? 120000,
+      minArea: initialFilters?.minArea ?? 20,
+      maxArea: initialFilters?.maxArea ?? 300,
     },
   });
 
@@ -59,10 +67,10 @@ export default function HorizontalPropertyFilters({
       operationType: initialFilters?.operationType ?? undefined,
       categoryId: initialFilters?.categoryId,
       neighborhoodId: initialFilters?.neighborhoodId,
-      minPrice: initialFilters?.minPriceEur ?? 50000,
-      maxPrice: initialFilters?.maxPriceEur ?? 500000,
-      minArea: initialFilters?.minArea ?? 30,
-      maxArea: initialFilters?.maxArea ?? 200,
+      minPrice: initialFilters?.minPriceEur ?? 150,
+      maxPrice: initialFilters?.maxPriceEur ?? 120000,
+      minArea: initialFilters?.minArea ?? 20,
+      maxArea: initialFilters?.maxArea ?? 300,
     });
     
     if (initialFilters?.minPriceEur && initialFilters?.maxPriceEur) {
@@ -104,13 +112,15 @@ export default function HorizontalPropertyFilters({
       operationType: undefined,
       categoryId: undefined,
       neighborhoodId: undefined,
-      minPrice: 50000,
-      maxPrice: 500000,
-      minArea: 30,
-      maxArea: 200,
+      minPrice: 150,
+      maxPrice: 120000,
+      minArea: 20,
+      maxArea: 300,
     });
-    setPriceRange([50000, 500000]);
-    setAreaRange([30, 200]);
+    setPriceRange([150, 120000]);
+    setAreaRange([20, 300]);
+    setFloorRange([0, 10]);
+    setSelectedFeatures([]);
     onFilterChange({});
   }
 
@@ -220,9 +230,9 @@ export default function HorizontalPropertyFilters({
                     form.setValue("minPrice", value[0]);
                     form.setValue("maxPrice", value[1]);
                   }}
-                  max={500000}
-                  min={50000}
-                  step={10000}
+                  max={120000}
+                  min={150}
+                  step={1000}
                   className="w-full"
                 />
               </div>
@@ -239,8 +249,8 @@ export default function HorizontalPropertyFilters({
                     form.setValue("minArea", value[0]);
                     form.setValue("maxArea", value[1]);
                   }}
-                  max={200}
-                  min={30}
+                  max={300}
+                  min={20}
                   step={5}
                   className="w-full"
                 />
@@ -251,77 +261,85 @@ export default function HorizontalPropertyFilters({
             <div className="space-y-4">
               <h4 className="text-base font-semibold text-[#1a2642] mb-3">Допълнителни характеристики</h4>
               
-              {/* Room Count */}
+              {/* Rooms */}
               <div>
                 <label className="block text-sm font-medium text-[#1a2642] mb-2">
-                  Минимални стаи
+                  Стаи
                 </label>
                 <Select
                   options={[
-                    { value: "1", label: "1+" },
-                    { value: "2", label: "2+" },
-                    { value: "3", label: "3+" },
-                    { value: "4", label: "4+" }
+                    { value: "1", label: "1 стая" },
+                    { value: "2", label: "2 стаи" },
+                    { value: "3", label: "3 стаи" },
+                    { value: "4", label: "4+ стаи" }
                   ]}
-                  placeholder="Брой"
+                  placeholder="Брой стаи"
                 />
               </div>
 
-              {/* Floor */}
+              {/* Floor Range */}
+              <div>
+                <label className="block text-sm font-medium text-[#1a2642] mb-3">
+                  Етаж: {floorRange[0] === 0 ? "Партер" : floorRange[0]} - {floorRange[1] === 0 ? "Партер" : floorRange[1]}
+                </label>
+                <Slider
+                  value={floorRange}
+                  onValueChange={(value) => {
+                    setFloorRange(value as [number, number]);
+                  }}
+                  max={10}
+                  min={0}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>Партер</span>
+                  <span>10+ етаж</span>
+                </div>
+              </div>
+
+              {/* Year Built */}
               <div>
                 <label className="block text-sm font-medium text-[#1a2642] mb-2">
-                  Етаж
+                  Година на строеж
                 </label>
                 <Select
                   options={[
-                    { value: "ground", label: "Партер" },
-                    { value: "1-3", label: "1-3 етаж" },
-                    { value: "4-6", label: "4-6 етаж" },
-                    { value: "7+", label: "7+ етаж" }
+                    { value: "2020", label: "2020+" },
+                    { value: "2010", label: "2010-2019" },
+                    { value: "2000", label: "2000-2009" },
+                    { value: "1990", label: "1990-1999" },
+                    { value: "1980", label: "1980-1989" },
+                    { value: "1970", label: "1970-1979" },
+                    { value: "1960", label: "1960-1969" }
                   ]}
-                  placeholder="Избери"
+                  placeholder="Избери период"
                 />
               </div>
 
-              {/* Condition */}
+              {/* Property Features */}
               <div>
                 <label className="block text-sm font-medium text-[#1a2642] mb-2">
-                  Състояние
+                  Характеристики
                 </label>
-                <Select
-                  options={[
-                    { value: "new", label: "Ново строителство" },
-                    { value: "excellent", label: "Отличо" },
-                    { value: "very-good", label: "Много добро" },
-                    { value: "good", label: "Добро" },
-                    { value: "needs-repair", label: "За ремонт" }
-                  ]}
-                  placeholder="Избери състояние"
-                />
-              </div>
-
-              {/* Additional Features */}
-              <div>
-                <label className="block text-sm font-medium text-[#1a2642] mb-2">
-                  Допълнителни удобства
-                </label>
-                <div className="space-y-2 text-sm">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded border-[#1a2642]/20" />
-                    Асансьор
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded border-[#1a2642]/20" />
-                    Тераса/Балкон
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded border-[#1a2642]/20" />
-                    Двор/Градина
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded border-[#1a2642]/20" />
-                    Мазе/Таван
-                  </label>
+                <div className="space-y-2 text-sm max-h-32 overflow-y-auto">
+                  {features.map((feature) => (
+                    <label key={feature.id} className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-[#1a2642]/20 text-[#d4af37] focus:ring-[#d4af37]"
+                        checked={selectedFeatures.includes(feature.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedFeatures([...selectedFeatures, feature.id]);
+                          } else {
+                            setSelectedFeatures(selectedFeatures.filter(id => id !== feature.id));
+                          }
+                        }}
+                      />
+                      <span className="text-[#1a2642]">{feature.name_bg}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
