@@ -36,51 +36,11 @@ export default function Footer() {
   const listLinkBase =
     `text-white/80 text-sm transition-all duration-200 ease-out hover:text-[#d4af37] hover:translate-x-1 ${focusRing}`;
 
-  // Newsletter form state
-  const [email, setEmail] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const successTimerRef = useRef<number | null>(null);
 
   // Back-to-top visibility state
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
   const scrollTickingRef = useRef<boolean>(false);
 
-  // Email validator – basic format check
-  const isValidEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
-  // Handle form submit – simulate async submission
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-
-    // Validate email
-    if (!isValidEmail(email)) {
-      setError("Моля, въведете валиден имейл адрес.");
-      setSubmitSuccess(false);
-      return;
-    }
-
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      // Simulate API request latency
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      setSubmitSuccess(true);
-      setEmail("");
-
-      // Auto-hide success after 3 seconds
-      if (successTimerRef.current) {
-        window.clearTimeout(successTimerRef.current);
-      }
-      successTimerRef.current = window.setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 3000);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Back-to-top scroll listener with lightweight throttle
   useEffect(() => {
@@ -99,9 +59,6 @@ export default function Footer() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      if (successTimerRef.current) {
-        window.clearTimeout(successTimerRef.current);
-      }
     };
   }, []);
 
@@ -119,73 +76,6 @@ export default function Footer() {
         Vertical padding: 48px on mobile (py-12), 64px on desktop (lg:py-16).
       */}
       <div className="mx-auto max-w-[1280px] px-5 md:px-6 py-10 md:py-12 lg:py-16 2xl:max-w-[1440px]">
-        {/* Newsletter subscription – centered, gold-tinted card */}
-        <section className="mb-12">
-          <div className="mx-auto w-full max-w-[600px] rounded-xl border border-[#d4af37]/20 bg-[#d4af37]/10 px-5 py-5 md:px-7 md:py-7 lg:px-8 lg:py-8">
-            <h3 className="text-xl font-semibold text-white text-center mb-2">Абонирайте се за новини</h3>
-            <p className="text-sm text-white/80 text-center mb-5">Получавайте най-новите обяви и новини директно на вашия имейл</p>
-            <form onSubmit={handleSubmit} noValidate>
-              {/* Input + button: vertical on mobile, horizontal on desktop */}
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="flex-1">
-                  <label htmlFor="newsletter-email" className="sr-only">Имейл адрес</label>
-                  <input
-                    id="newsletter-email"
-                    name="email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (error) setError(null);
-                    }}
-                    placeholder="Вашият имейл адрес"
-                    aria-invalid={!!error}
-                    aria-describedby={error ? "newsletter-error" : undefined}
-                    className={[
-                      "w-full",
-                      "rounded-lg border bg-white/10",
-                      "border-white/20 text-white placeholder-white/60",
-                      "px-4 py-[14px] text-[16px] min-h-[48px]",
-                      "transition-colors duration-200",
-                      "focus:border-[#d4af37] focus:bg-white/15",
-                      "focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:ring-offset-2 focus:ring-offset-[#1a2642]",
-                    ].join(" ")}
-                  />
-                  {error ? (
-                    <p id="newsletter-error" role="alert" className="mt-2 text-sm text-rose-300">
-                      {error}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="sm:w-auto">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={[
-                      "w-full sm:w-auto whitespace-nowrap",
-                      "rounded-lg px-8 py-3 text-[15px] font-semibold min-h-[48px]",
-                      "bg-gradient-to-r from-[#d4af37] to-[#c49b33] text-[#1a2642]",
-                      "shadow-md transition-all duration-200 ease-out",
-                      "hover:-translate-y-0.5 hover:shadow-lg hover:from-[#e0bd4d] hover:to-[#e0bd4d]",
-                      "active:scale-95 active:opacity-80 active:-translate-y-0 active:shadow",
-                      isSubmitting ? "opacity-80 cursor-not-allowed" : "",
-                      focusRing,
-                    ].join(" ")}
-                  >
-                    {isSubmitting ? "Изпращане..." : "Абонирай се"}
-                  </button>
-                </div>
-              </div>
-              {/* Success message */}
-              {submitSuccess ? (
-                <p aria-live="polite" className="mt-3 text-sm text-[#e0bd4d]">
-                  Благодаря! Абонирахте се успешно.
-                </p>
-              ) : null}
-            </form>
-          </div>
-        </section>
         {/* Grid: mobile-first single column; tablet 2 cols (24px col / 40px row); desktop 4 cols (32px gap) */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-6 md:gap-y-10 lg:grid-cols-4 lg:gap-8">
           {/* Column 1: Company Info */}
