@@ -394,7 +394,7 @@ const ServicesSection = ({ id }: { id?: string }) => {
       role="region"
     >
       {/* Background decoration for visual interest */}
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none" />
+      <div className="absolute inset-0 bg-white pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header with improved typography and spacing */}
