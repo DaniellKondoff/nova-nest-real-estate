@@ -40,7 +40,7 @@ const AboutSection = () => {
 
   return (
     <section 
-      className={`py-16 md:py-20 lg:py-24 bg-nova-gray ${inter.variable}`}
+      className={`py-16 md:py-20 lg:py-24 bg-gradient-to-br from-gray-100 to-white ${inter.variable}`}
       aria-labelledby="about-heading"
       role="region"
     >
