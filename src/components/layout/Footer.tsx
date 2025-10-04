@@ -12,12 +12,12 @@ import { Facebook, Instagram, Linkedin, Phone, Mail, MapPin, Clock, ChevronUp, M
  */
 export default function Footer() {
   // Navigation routes aligned with header
-  const quickLinks: { label: string; href: `/${string}` | "/" }[] = [
+  const quickLinks: { label: string; href: `/${string}` | "/" | `#${string}` }[] = [
     { label: "Начало", href: "/" },
-    { label: "За нас", href: "/about" },
-    { label: "Услуги", href: "/services" },
+    { label: "За нас", href: "/#about" },
+    { label: "Услуги", href: "/#services" },
     { label: "Обяви", href: "/properties" },
-    { label: "Контакти", href: "/contact" },
+    { label: "Контакти", href: "/#contact" },
   ];
 
   const services: { label: string; icon: any }[] = [
@@ -26,15 +26,6 @@ export default function Footer() {
     { label: "Наемане", icon: Star },
     { label: "Оценка на имоти", icon: Users },
   ];
-
-  const socialLinks = [
-    { icon: Facebook, href: "https://facebook.com/novanest", name: "Facebook" },
-    { icon: Instagram, href: "https://instagram.com/novanest", name: "Instagram" },
-    { icon: Linkedin, href: "https://linkedin.com/company/novanest", name: "LinkedIn" },
-    { icon: MessageCircle, href: "https://wa.me/359XXXXXXXXX", name: "WhatsApp" }
-  ];
-
-
 
   // Back-to-top visibility state
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
@@ -84,23 +75,6 @@ export default function Footer() {
               Професионални услуги в областта на недвижимите имоти в Стара Загора. 
               Вашият доверен партньор за намиране на перфектното гнездо.
             </p>
-            <div className="flex gap-3">
-              {socialLinks.map((social, index) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={index}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${social.name} (отваря в нов раздел)`}
-                    className="w-10 h-10 inline-flex items-center justify-center rounded-md border border-white/20 text-white/80 bg-white/10 hover:bg-[#d4af37] hover:text-white hover:border-[#d4af37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642] transition-all duration-200 hover:scale-110"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </a>
-                );
-              })}
-            </div>
           </div>
 
           {/* Quick Links */}
