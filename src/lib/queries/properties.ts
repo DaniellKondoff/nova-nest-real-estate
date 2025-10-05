@@ -10,6 +10,7 @@ export type SearchFilters = {
   maxPrice?: number;
   minArea?: number;
   maxArea?: number;
+  featureIds?: number[];
 };
 
 // Type for property row with basic relations (used in detail page fetching)
@@ -89,6 +90,7 @@ export async function searchProperties(
       max_price: filters.maxPrice,
       min_area: filters.minArea,
       max_area: filters.maxArea,
+      feature_ids: filters.featureIds,
     });
 
     if (error) {
@@ -154,6 +156,9 @@ export async function searchPropertiesFallback(
     query = query.lte("area_sqm", filters.maxArea);
   }
 
+  // Note: Feature filtering will be handled after the main query
+  // due to the complexity of the many-to-many relationship
+
   // Order by creation date (newest first)
   query = query.order("created_at", { ascending: false });
 
@@ -164,8 +169,32 @@ export async function searchPropertiesFallback(
     throw error;
   }
 
+  let filteredData = data || [];
+
+  // Apply feature filtering if needed
+  if (filters.featureIds && filters.featureIds.length > 0) {
+    // Get property IDs that have the required features
+    const { data: featureData, error: featureError } = await supabase
+      .from("property_property_features")
+      .select("property_id")
+      .in("feature_id", filters.featureIds);
+
+    if (featureError) {
+      console.warn("Feature filtering failed:", featureError);
+    } else {
+      const propertyIdsWithFeatures = new Set(
+        (featureData || []).map((item) => item.property_id)
+      );
+      
+      // Filter properties to only include those with the required features
+      filteredData = filteredData.filter((item) => 
+        propertyIdsWithFeatures.has(item.id)
+      );
+    }
+  }
+
   // Transform to match expected format with rank
-  return (data || []).map((item, index) => ({
+  return filteredData.map((item, index) => ({
     id: item.id,
     title_bg: item.title_bg,
     price_eur: item.price_eur || 0,

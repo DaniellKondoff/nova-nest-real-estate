@@ -102,6 +102,7 @@ export default function HorizontalPropertyFilters({
       maxPriceEur: values.maxPrice,
       minArea: values.minArea,
       maxArea: values.maxArea,
+      featureIds: selectedFeatures.length > 0 ? selectedFeatures : undefined,
     };
     onFilterChange(applied);
   }

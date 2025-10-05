@@ -50,3 +50,4 @@ export function usePropertyCategories() {
 
   return { categories, loading, error };
 }
+

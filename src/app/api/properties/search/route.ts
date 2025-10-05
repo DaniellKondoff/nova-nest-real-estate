@@ -36,6 +36,7 @@ function toQueryFilters(filters: PropertySearchFilters): {
   maxPrice?: number;
   minArea?: number;
   maxArea?: number;
+  featureIds?: number[];
 } {
   return {
     searchTerm: filters.searchTerm,
@@ -48,6 +49,7 @@ function toQueryFilters(filters: PropertySearchFilters): {
       (filters as unknown as { maxPrice?: number }).maxPrice,
     minArea: filters.minArea,
     maxArea: filters.maxArea,
+    featureIds: filters.featureIds,
   };
 }
 
@@ -97,7 +99,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       typeof restFilters.maxPrice === "number" ||
       typeof restFilters.minArea === "number" ||
       typeof restFilters.maxArea === "number" ||
-      restFilters.operationType
+      restFilters.operationType ||
+      (restFilters.featureIds && restFilters.featureIds.length > 0)
     );
 
     if (hasAnyFilter) {
@@ -115,7 +118,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           const byAreaMin = typeof restFilters.minArea === "number" ? (p.area_sqm ?? 0) >= restFilters.minArea : true;
           const byAreaMax = typeof restFilters.maxArea === "number" ? (p.area_sqm ?? 0) <= restFilters.maxArea : true;
           const bySearch = searchTerm && p.title_bg ? p.title_bg.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-          return byCategory && byNeighborhood && byMinPrice && byMaxPrice && byAreaMin && byAreaMax && bySearch;
+          const byOperationType = restFilters.operationType ? p.operation_type === restFilters.operationType : true;
+          return byCategory && byNeighborhood && byMinPrice && byMaxPrice && byAreaMin && byAreaMax && bySearch && byOperationType;
         });
         ids = filtered.map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
       }

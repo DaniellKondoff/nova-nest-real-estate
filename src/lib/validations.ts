@@ -158,15 +158,22 @@ export const validators = {
 
 // New requested schemas
 export const PropertySearchSchema = z.object({
-  searchTerm: z.string().trim().min(1).optional(),
+  searchTerm: z.string().trim().optional(),
   categoryId: z.number().int().positive().optional(),
   neighborhoodId: z.number().int().positive().optional(),
   operationType: z.enum(["sale", "rent"]) as unknown as z.ZodType<Database["public"]["Enums"]["property_operation_type"]>,
   minPrice: z.number().int().min(0).optional(),
   maxPrice: z.number().int().min(0).optional(),
+  minPriceEur: z.number().int().min(0).optional(),
+  maxPriceEur: z.number().int().min(0).optional(),
   minArea: z.number().int().min(0).optional(),
   maxArea: z.number().int().min(0).optional(),
-}).refine((val) => (val.minPrice && val.maxPrice ? val.minPrice <= val.maxPrice : true), {
+  featureIds: z.array(z.number().int().positive()).optional(),
+}).refine((val) => {
+  const minPrice = val.minPriceEur ?? val.minPrice;
+  const maxPrice = val.maxPriceEur ?? val.maxPrice;
+  return (minPrice && maxPrice ? minPrice <= maxPrice : true);
+}, {
   message: "Минималната цена не може да е по-голяма от максималната.",
   path: ["minPrice"],
 }).refine((val) => (val.minArea && val.maxArea ? val.minArea <= val.maxArea : true), {
