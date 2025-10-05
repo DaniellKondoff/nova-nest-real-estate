@@ -372,7 +372,8 @@ export default function HorizontalPropertyFilters({
                       interior: "Интериор",
                       exterior: "Екстериор", 
                       building: "Сграда",
-                      location: "Локация"
+                      location: "Локация",
+                      buildingType: "Тип сграда"
                     };
 
                     return Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (

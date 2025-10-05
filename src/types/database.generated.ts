@@ -663,17 +663,29 @@ export type Database = {
         Returns: boolean
       }
       search_properties_combined: {
-        Args: {
-          category_id?: number
-          language_code?: string
-          max_area?: number
-          max_price?: number
-          min_area?: number
-          min_price?: number
-          neighborhood_id?: number
-          operation_type?: string
-          search_term?: string
-        }
+        Args:
+          | {
+              category_id?: number
+              language_code?: string
+              max_area?: number
+              max_price?: number
+              min_area?: number
+              min_price?: number
+              neighborhood_id?: number
+              operation_type?: string
+              search_term?: string
+            }
+          | {
+              filter_category_id?: number
+              filter_neighborhood_id?: number
+              language_code?: string
+              max_area?: number
+              max_price?: number
+              min_area?: number
+              min_price?: number
+              operation_type?: string
+              search_term?: string
+            }
         Returns: {
           description_bg: string
           id: number
@@ -727,6 +739,7 @@ export type Database = {
         | "exterior"
         | "building"
         | "location"
+        | "buildingType"
       property_operation_type: "sale" | "rent"
       property_status:
         | "available"
@@ -876,6 +889,7 @@ export const Constants = {
         "exterior",
         "building",
         "location",
+        "buildingType",
       ],
       property_operation_type: ["sale", "rent"],
       property_status: [

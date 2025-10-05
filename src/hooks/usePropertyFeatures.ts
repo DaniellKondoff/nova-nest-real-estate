@@ -7,7 +7,7 @@ export interface PropertyFeature {
   id: number;
   name_bg: string;
   name_en: string | null;
-  category: 'interior' | 'exterior' | 'building' | 'location';
+  category: 'interior' | 'exterior' | 'building' | 'location' | 'buildingType';
 }
 
 export function usePropertyFeatures() {
