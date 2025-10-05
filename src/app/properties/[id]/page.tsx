@@ -7,6 +7,7 @@ import { getServerClient } from "@/lib/supabase/server";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Database } from "@/types/database.generated";
 import type { PropertyWithRelations } from "@/lib/queries/properties";
+import { generatePropertyMetadata, generatePropertyNotFoundMetadata } from "@/lib/seo/property-metadata";
 import PropertyGallery from "@/components/property/PropertyGallery";
 import PropertyHeader from "@/components/property/PropertyHeader";
 import PropertyDescription from "@/components/property/PropertyDescription";
@@ -127,39 +128,19 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     const { id } = await params;
     const idNum = validateIdOrNotFound(id);
     const details = await fetchPropertyDetails(idNum);
-    if (!details) notFound();
+    
+    if (!details) {
+      // Return 404 metadata instead of calling notFound() to avoid redirect
+      return generatePropertyNotFoundMetadata(id);
+    }
 
-    const { property, neighborhood, category, images } = details;
-    const title = `${property.title_bg} | Nova Nest Real Estate`;
-    const description = (property.description_bg ?? "").slice(0, 160);
-    const primaryImage = (images ?? []).find((img) => img.is_primary) ?? images[0];
-    const ogImages = primaryImage ? [{ url: primaryImage.url, width: primaryImage.width ?? 1200, height: primaryImage.height ?? 630, alt: primaryImage.alt_text_bg ?? property.title_bg }] : undefined;
-
-    const keywords = [
-      category?.name_bg,
-      neighborhood?.name_bg,
-      "Стара Загора",
-      "имоти",
-    ].filter(Boolean) as string[];
-
-    const canonical = `https://novanest.bg/properties/${id}`;
-
-    return {
-      title,
-      description,
-      keywords,
-      alternates: { canonical },
-        openGraph: {
-          title,
-          description,
-          url: canonical,
-          locale: "bg_BG",
-          images: ogImages,
-        },
-    } satisfies Metadata;
-  } catch {
-    // If anything goes wrong during metadata generation, surface 404 to avoid leaking errors
-    notFound();
+    // Generate comprehensive metadata using our SEO utility
+    return generatePropertyMetadata(details);
+  } catch (error) {
+    // If anything goes wrong during metadata generation, return 404 metadata
+    console.error('Error generating property metadata:', error);
+    const { id } = await params;
+    return generatePropertyNotFoundMetadata(id);
   }
 }
 
