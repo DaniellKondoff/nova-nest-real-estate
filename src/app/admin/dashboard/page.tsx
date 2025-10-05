@@ -7,7 +7,7 @@ import { RecentInquiries } from "@/components/admin/RecentInquiries";
 import { RecentProperties } from "@/components/admin/RecentProperties";
 import { ActivityLog } from "@/components/admin/ActivityLog";
 import { QuickActions } from "@/components/admin/QuickActions";
-import { Home, MessageSquare, Star, TrendingUp } from "lucide-react";
+import { Home, MessageSquare, Star, TrendingUp, Eye } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
 interface DashboardStats {
@@ -15,6 +15,12 @@ interface DashboardStats {
   activeInquiries: number;
   pendingTestimonials: number;
   propertiesThisMonth: number;
+  totalViews: number;
+  mostViewedProperty: {
+    id: number;
+    title: string;
+    view_count: number;
+  } | null;
 }
 
 export default function AdminDashboard() {
@@ -23,6 +29,8 @@ export default function AdminDashboard() {
     activeInquiries: 0,
     pendingTestimonials: 0,
     propertiesThisMonth: 0,
+    totalViews: 0,
+    mostViewedProperty: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +48,7 @@ export default function AdminDashboard() {
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
         // Fetch all statistics in parallel
-        const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes] = await Promise.all([
+        const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes, totalViewsRes, mostViewedRes] = await Promise.all([
           // Total properties (excluding archived)
           supabase
             .from("properties")
@@ -64,18 +72,40 @@ export default function AdminDashboard() {
             .from("properties")
             .select("id", { count: "exact", head: true })
             .gte("created_at", monthStart.toISOString()),
+
+          // Total views across all properties
+          supabase
+            .from("properties")
+            .select("view_count")
+            .neq("status", "archived"),
+
+          // Most viewed property
+          supabase
+            .from("properties")
+            .select("id, title_bg, view_count")
+            .neq("status", "archived")
+            .order("view_count", { ascending: false })
+            .limit(1)
+            .single(),
         ]);
 
         // Check for errors
-        if (propertiesRes.error || activeInquiriesRes.error || pendingTestimonialsRes.error || monthlyPropertiesRes.error) {
+        if (propertiesRes.error || activeInquiriesRes.error || pendingTestimonialsRes.error || monthlyPropertiesRes.error || totalViewsRes.error) {
           throw new Error("Грешка при зареждане на статистиките от базата данни");
         }
+
+        // Calculate total views
+        const totalViews = (totalViewsRes.data || []).reduce((sum, property) => {
+          return sum + (property.view_count || 0);
+        }, 0);
 
         setStats({
           totalProperties: propertiesRes.count || 0,
           activeInquiries: activeInquiriesRes.count || 0,
           pendingTestimonials: pendingTestimonialsRes.count || 0,
           propertiesThisMonth: monthlyPropertiesRes.count || 0,
+          totalViews,
+          mostViewedProperty: mostViewedRes.data || null,
         });
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);
@@ -138,7 +168,7 @@ export default function AdminDashboard() {
       
       <div className="p-6">
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <StatsCard
             title="Общо имоти"
             value={stats.totalProperties}
@@ -169,6 +199,14 @@ export default function AdminDashboard() {
             icon={TrendingUp}
             color="purple"
             trend="Новодобавени"
+          />
+          
+          <StatsCard
+            title="Общо прегледи"
+            value={stats.totalViews}
+            icon={Eye}
+            color="indigo"
+            trend={stats.mostViewedProperty ? `Най-гледан: ${stats.mostViewedProperty.title_bg}` : "Няма данни"}
           />
         </div>
 

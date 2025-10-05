@@ -10,7 +10,8 @@ import {
   Star,
   Settings,
   LogOut,
-  Loader2 
+  Loader2,
+  BarChart3
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -83,6 +84,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: "Отзиви",
       href: "/admin/testimonials/",
       icon: Star,
+    },
+    {
+      name: "Анализ на прегледи",
+      href: "/admin/analytics/views/",
+      icon: BarChart3,
     },
     {
       name: "Настройки",

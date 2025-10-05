@@ -6,7 +6,7 @@ interface StatsCardProps {
   title: string;
   value: number;
   icon: LucideIcon;
-  color: "blue" | "green" | "yellow" | "purple";
+  color: "blue" | "green" | "yellow" | "purple" | "indigo";
   trend?: string;
 }
 
@@ -26,6 +26,10 @@ const colorClasses = {
   purple: {
     bg: "bg-purple-100",
     icon: "text-purple-600",
+  },
+  indigo: {
+    bg: "bg-indigo-100",
+    icon: "text-indigo-600",
   },
 };
 

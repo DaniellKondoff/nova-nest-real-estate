@@ -189,6 +189,7 @@ export type Database = {
           id: number
           is_featured: boolean
           is_new: boolean
+          last_viewed_at: string | null
           latitude: number | null
           longitude: number | null
           neighborhood_id: number
@@ -206,6 +207,7 @@ export type Database = {
           title_en: string | null
           total_floors: number | null
           updated_at: string | null
+          view_count: number | null
           year_built: number | null
         }
         Insert: {
@@ -224,6 +226,7 @@ export type Database = {
           id?: number
           is_featured?: boolean
           is_new?: boolean
+          last_viewed_at?: string | null
           latitude?: number | null
           longitude?: number | null
           neighborhood_id: number
@@ -241,6 +244,7 @@ export type Database = {
           title_en?: string | null
           total_floors?: number | null
           updated_at?: string | null
+          view_count?: number | null
           year_built?: number | null
         }
         Update: {
@@ -259,6 +263,7 @@ export type Database = {
           id?: number
           is_featured?: boolean
           is_new?: boolean
+          last_viewed_at?: string | null
           latitude?: number | null
           longitude?: number | null
           neighborhood_id?: number
@@ -276,6 +281,7 @@ export type Database = {
           title_en?: string | null
           total_floors?: number | null
           updated_at?: string | null
+          view_count?: number | null
           year_built?: number | null
         }
         Relationships: [
@@ -653,6 +659,13 @@ export type Database = {
       gtrgm_out: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      increment_property_view: {
+        Args: { property_id: number }
+        Returns: {
+          last_viewed_at: string
+          view_count: number
+        }[]
       }
       is_admin: {
         Args: Record<PropertyKey, never>

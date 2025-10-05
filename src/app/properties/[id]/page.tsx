@@ -14,6 +14,7 @@ import PropertyDetails from "@/components/property/PropertyDetails";
 import PropertyFeatures from "@/components/property/PropertyFeatures";
 import NeighborhoodInfo from "@/components/property/NeighborhoodInfo";
 import PropertyContact from "@/components/property/PropertyContact";
+import PropertyViewTracker from "@/components/property/PropertyViewTracker";
 
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
@@ -214,6 +215,9 @@ export default async function PropertyDetailPage({ params }: PageParams) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* View Tracker - tracks views when page loads */}
+      <PropertyViewTracker propertyId={property.id} />
+      
       {/* Simple Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">

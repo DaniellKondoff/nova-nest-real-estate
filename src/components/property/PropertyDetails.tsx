@@ -1,7 +1,15 @@
 import React from "react";
 import type { PropertyWithDetails } from "@/types/property";
-import { Square, BedDouble, Bed, Bath, Building2, Calendar, Home as HomeIcon, MapPin, Layers, Building } from "lucide-react";
+import { Square, BedDouble, Bed, Bath, Building2, Calendar, Home as HomeIcon, MapPin, Layers, Building, Eye } from "lucide-react";
 import { formatArea, formatFloor, formatYear } from "./utils";
+
+function formatViewCount(count: number | null): string {
+  if (!count || count === 0) return "0 прегледа";
+  if (count === 1) return "1 преглед";
+  if (count < 1000) return `${count} прегледа`;
+  if (count < 1000000) return `${(count / 1000).toFixed(1)}K прегледа`;
+  return `${(count / 1000000).toFixed(1)}M прегледа`;
+}
 
 export interface PropertyDetailsProps {
   property: PropertyWithDetails;
@@ -59,6 +67,11 @@ export default function PropertyDetails({ property }: PropertyDetailsProps): Rea
   
   // Location
   if (n?.name_bg) items.push({ label: "Квартал", value: n.name_bg, icon: MapPin });
+
+  // View count - show if available
+  if (typeof p.view_count === "number") {
+    items.push({ label: "Прегледи", value: formatViewCount(p.view_count), icon: Eye });
+  }
 
   if (items.length === 0) return null;
 

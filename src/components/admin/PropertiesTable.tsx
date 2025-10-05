@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Eye } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 
 interface PropertiesTableProps {
@@ -50,6 +50,14 @@ export default function PropertiesTable({
       return `${priceBgn.toLocaleString("bg-BG")} лв`;
     }
     return "—";
+  };
+
+  // Format view count
+  const formatViewCount = (count: number | null) => {
+    if (!count || count === 0) return "0";
+    if (count < 1000) return count.toString();
+    if (count < 1000000) return `${(count / 1000).toFixed(1)}K`;
+    return `${(count / 1000000).toFixed(1)}M`;
   };
 
   // Get status badge styling
@@ -141,6 +149,9 @@ export default function PropertiesTable({
               <th className="px-4 py-3 text-left font-semibold text-gray-700 text-sm">
                 Статус
               </th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700 text-sm">
+                Прегледи
+              </th>
               <th className="px-4 py-3 text-left font-semibold text-gray-700 text-sm w-24">
                 Действия
               </th>
@@ -205,6 +216,14 @@ export default function PropertiesTable({
                   </td>
                   <td className="px-4 py-3">
                     {getStatusBadge(item.property.status)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <Eye className="w-4 h-4" />
+                      <span className="font-medium">
+                        {formatViewCount(item.property.view_count)}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
