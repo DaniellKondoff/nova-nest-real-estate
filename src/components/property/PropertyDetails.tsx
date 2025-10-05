@@ -15,12 +15,14 @@ interface DetailItemProps {
 
 function DetailItem({ label, value, icon: Icon }: DetailItemProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <div className="flex items-start gap-3">
-        <Icon className="h-5 w-5 text-[#1a2642]" aria-hidden />
+    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 p-6 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center gap-4">
+        <div className="p-3 bg-[#d4af37]/10 rounded-lg">
+          <Icon className="h-6 w-6 text-[#d4af37]" aria-hidden />
+        </div>
         <div>
           <div className="text-gray-600 text-sm font-medium">{label}</div>
-          <div className="text-[#1a2642] text-base font-semibold mt-0.5">{value}</div>
+          <div className="text-[#1a2642] text-lg font-semibold mt-1">{value}</div>
         </div>
       </div>
     </div>
@@ -46,9 +48,12 @@ export default function PropertyDetails({ property }: PropertyDetailsProps): Rea
   if (items.length === 0) return null;
 
   return (
-    <section className="py-12">
-      <h2 className="text-[#1a2642] font-semibold text-2xl mb-6">Детайли</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <section>
+      <h2 className="text-[#1a2642] font-bold text-2xl mb-8 flex items-center gap-3">
+        <div className="h-1 w-8 bg-[#d4af37] rounded-full"></div>
+        Детайли на имота
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item, idx) => (
           <DetailItem key={idx} {...item} />
         ))}

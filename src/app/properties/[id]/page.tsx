@@ -213,89 +213,92 @@ export default async function PropertyDetailPage({ params }: PageParams) {
   } as const;
 
   return (
-    <main className="bg-white">
-      {/* Back link */}
-      <section className="py-6 px-4">
-        <div className="max-w-7xl mx-auto">
-          <Link href="/properties" className="text-[#1a2642] hover:text-[#d4af37] text-sm">← Назад към имотите</Link>
-        </div>
-      </section>
+    <div className="min-h-screen bg-gray-50">
+      {/* Simple Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          {/* Back link */}
+          <Link 
+            href="/properties" 
+            className="inline-flex items-center gap-2 text-[#1a2642] hover:text-[#d4af37] transition-colors duration-200 text-sm font-medium"
+          >
+            <ChevronRight className="h-4 w-4 rotate-180" />
+            Назад към имотите
+          </Link>
 
-      {/* Breadcrumbs */}
-      <section className="px-4">
-        <div className="max-w-7xl mx-auto mb-8 text-sm text-gray-600 flex items-center gap-2">
-          <Link href="/" className="hover:underline">Начало</Link>
-          <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
-          <Link href="/properties" className="hover:underline">Имоти</Link>
-          <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
-          <span className="text-[#1a2642] truncate" title={category?.name_bg ?? property.title_bg}>
-            {category?.name_bg ?? property.title_bg}
-          </span>
-          <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
-          <span className="text-[#1a2642] font-medium truncate" title={property.title_bg}>{property.title_bg}</span>
+          {/* Breadcrumbs */}
+          <nav className="mt-3 text-sm text-gray-600 flex items-center gap-2">
+            <Link href="/" className="hover:text-[#1a2642] transition-colors">Начало</Link>
+            <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
+            <Link href="/properties" className="hover:text-[#1a2642] transition-colors">Имоти</Link>
+            <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
+            <span className="truncate" title={category?.name_bg ?? property.title_bg}>
+              {category?.name_bg ?? property.title_bg}
+            </span>
+            <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
+            <span className="text-[#1a2642] font-medium truncate" title={property.title_bg}>
+              {property.title_bg}
+            </span>
+          </nav>
         </div>
-      </section>
+      </div>
 
-      {/* Header (full width) */}
-      <section className="px-4">
-        <div className="max-w-7xl mx-auto">
-          <PropertyHeader property={details as PropertyWithDetails} />
-        </div>
-      </section>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          {/* Left Column - Gallery & Details */}
+          <div className="xl:col-span-8 space-y-8">
+            {/* Image Gallery */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              {(() => {
+                const galleryImages = (images ?? []).map((img) => ({
+                  id: String(img.id),
+                  url: img.url,
+                  alt_text: img.alt_text_bg ?? property.title_bg,
+                  order: img.sort_order,
+                  is_primary: img.is_primary,
+                }));
+                return <PropertyGallery images={galleryImages} propertyTitle={property.title_bg} priority />;
+              })()}
+            </div>
 
-      {/* Main layout */}
-      <section className="py-6 px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-3">
-            {/* Image gallery */}
-            {(() => {
-              const galleryImages = (images ?? []).map((img) => ({
-                id: String(img.id),
-                url: img.url,
-                alt_text: img.alt_text_bg ?? property.title_bg,
-                order: img.sort_order,
-                is_primary: img.is_primary,
-              }));
-              return <PropertyGallery images={galleryImages} propertyTitle={property.title_bg} priority />;
-            })()}
+            {/* Property Information Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <PropertyHeader property={details as PropertyWithDetails} />
+            </div>
+
+            {/* Description */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <PropertyDescription description={property.description_bg ?? ""} />
+            </div>
+
+            {/* Property Details Grid */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <PropertyDetails property={details as PropertyWithDetails} />
+            </div>
+
+            {/* Features */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <PropertyFeatures features={featuresList} />
+            </div>
           </div>
-          <div className="lg:col-span-2 space-y-6">
-            <PropertyContact propertyId={String(property.id)} propertyTitle={property.title_bg} propertyPrice={property.price_eur ?? 0} />
+
+          {/* Right Column - Contact Form */}
+          <div className="xl:col-span-4">
+            <div className="sticky top-8">
+              <PropertyContact 
+                propertyId={String(property.id)} 
+                propertyTitle={property.title_bg} 
+                propertyPrice={property.price_eur ?? 0} 
+              />
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Details */}
-      <section className="py-12 px-4 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <PropertyDescription description={property.description_bg ?? ""} />
-        </div>
-      </section>
-
-      {/* Details grid */}
-      <section className="py-12 px-4 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <PropertyDetails property={details as PropertyWithDetails} />
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-12 px-4 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <PropertyFeatures features={featuresList} />
-        </div>
-      </section>
-
-      {/* Neighborhood */}
-      <section className="py-12 px-4 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <NeighborhoodInfo neighborhood={neighborhood} />
-        </div>
-      </section>
+      </div>
 
       {/* JSON-LD */}
       <script type="application/ld+json" suppressHydrationWarning>{JSON.stringify(structuredData)}</script>
-    </main>
+    </div>
   );
 }
 

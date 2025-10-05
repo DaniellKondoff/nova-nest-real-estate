@@ -13,14 +13,19 @@ export default function PropertyFeatures({ features }: PropertyFeaturesProps): R
   if (list.length === 0) return null;
 
   return (
-    <section className="py-12">
-      <h2 className="text-[#1a2642] font-semibold text-2xl mb-6">Характеристики</h2>
+    <section>
+      <h2 className="text-[#1a2642] font-bold text-2xl mb-8 flex items-center gap-3">
+        <div className="h-1 w-8 bg-[#d4af37] rounded-full"></div>
+        Характеристики и възможности
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {list.map((f) => (
-          <div key={f.id} className="rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors duration-300 hover:border-[#d4af37]">
-            <div className="flex items-start gap-3">
-              <Check className="h-5 w-5 text-[#1a2642]" aria-hidden />
-              <div className="text-[#2d3748]">{f.name_bg}</div>
+          <div key={f.id} className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 px-5 py-4 transition-all duration-300 hover:border-[#d4af37] hover:shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-green-100 rounded-full">
+                <Check className="h-4 w-4 text-green-600" aria-hidden />
+              </div>
+              <div className="text-[#2d3748] font-medium">{f.name_bg}</div>
             </div>
           </div>
         ))}

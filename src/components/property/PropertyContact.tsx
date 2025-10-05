@@ -76,19 +76,21 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
   };
 
   return (
-    <aside className="sticky top-24">
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <aside className="sticky top-8">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
         {/* Header */}
-        <div className="mb-4 flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-[#1a2642]" aria-hidden />
+        <div className="mb-6 flex items-center gap-3">
+          <div className="p-2 bg-[#d4af37]/10 rounded-lg">
+            <MessageSquare className="h-6 w-6 text-[#d4af37]" aria-hidden />
+          </div>
           <h2 className="text-[#1a2642] text-xl font-semibold">Свържете се с нас</h2>
         </div>
-        <p className="mb-4 text-sm text-gray-600">Попълнете формата за повече информация</p>
+        <p className="mb-6 text-sm text-gray-600">Попълнете формата за повече информация</p>
 
         {/* Property context */}
-        <div className="mb-4 rounded-md bg-gray-50 p-3">
-          <div className="truncate text-sm font-medium text-[#1a2642]" title={propertyTitle}>{propertyTitle}</div>
-          <div className="text-sm text-gray-600">{formatPriceEUR(propertyPrice)}</div>
+        <div className="mb-6 rounded-xl bg-gradient-to-r from-[#1a2642]/5 to-[#d4af37]/5 p-4 border border-gray-100">
+          <div className="truncate text-sm font-semibold text-[#1a2642] mb-1" title={propertyTitle}>{propertyTitle}</div>
+          <div className="text-lg font-bold text-[#d4af37]">{formatPriceEUR(propertyPrice)}</div>
         </div>
 
         {/* Success Alert */}
