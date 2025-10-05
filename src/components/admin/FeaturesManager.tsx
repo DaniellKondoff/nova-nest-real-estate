@@ -11,7 +11,7 @@ interface Feature {
   id: number;
   name_bg: string;
   name_en?: string;
-  category: "interior" | "exterior" | "building" | "location";
+  category: "interior" | "exterior" | "building" | "location" | "buildingType";
   icon?: string;
   is_active: boolean;
   sort_order: number;
@@ -21,7 +21,7 @@ interface Feature {
 interface FeatureFormData {
   name_bg: string;
   name_en: string;
-  category: "interior" | "exterior" | "building" | "location";
+  category: "interior" | "exterior" | "building" | "location" | "buildingType";
   icon: string;
   is_active: boolean;
   sort_order: number;
@@ -40,7 +40,8 @@ const categoryLabels = {
   interior: "Интериор",
   exterior: "Екстериор", 
   building: "Сграда",
-  location: "Локация"
+  location: "Локация",
+  buildingType: "Тип сграда"
 };
 
 export default function FeaturesManager() {

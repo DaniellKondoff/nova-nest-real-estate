@@ -5,8 +5,8 @@ import { z } from "zod";
 const FeatureSchema = z.object({
   name_bg: z.string().min(1, "Българското име е задължително").max(100, "Българското име не може да бъде повече от 100 символа"),
   name_en: z.string().optional(),
-  category: z.enum(["interior", "exterior", "building", "location"], {
-    errorMap: () => ({ message: "Невалидна категория" })
+  category: z.enum(["interior", "exterior", "building", "location", "buildingType"], {
+    message: "Невалидна категория"
   }),
   icon: z.string().optional(),
   is_active: z.boolean().default(true),
