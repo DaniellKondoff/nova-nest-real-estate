@@ -17,6 +17,9 @@ import NeighborhoodInfo from "@/components/property/NeighborhoodInfo";
 import PropertyContact from "@/components/property/PropertyContact";
 import PropertyViewTracker from "@/components/property/PropertyViewTracker";
 import { PropertyDetailSchema } from "@/components/seo/PropertySchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { getPropertyBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
@@ -163,11 +166,15 @@ export default async function PropertyDetailPage({ params }: PageParams) {
 
   const { property, neighborhood, category, images, features } = details!;
   const featuresList: FeatureRow[] = features ?? [];
+  
+  // Generate breadcrumbs for structured data and UI
+  const breadcrumbs = getPropertyBreadcrumbs(details);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Structured Data for Rich Search Results */}
       <PropertyDetailSchema property={details} />
+      <BreadcrumbSchema items={breadcrumbs} />
       
       {/* View Tracker - tracks views when page loads */}
       <PropertyViewTracker propertyId={property.id} />
@@ -185,19 +192,9 @@ export default async function PropertyDetailPage({ params }: PageParams) {
           </Link>
 
           {/* Breadcrumbs */}
-          <nav className="mt-3 text-sm text-gray-600 flex items-center gap-2">
-            <Link href="/" className="hover:text-[#1a2642] transition-colors">Начало</Link>
-            <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
-            <Link href="/properties" className="hover:text-[#1a2642] transition-colors">Имоти</Link>
-            <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
-            <span className="truncate" title={category?.name_bg ?? property.title_bg}>
-              {category?.name_bg ?? property.title_bg}
-            </span>
-            <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
-            <span className="text-[#1a2642] font-medium truncate" title={property.title_bg}>
-              {property.title_bg}
-            </span>
-          </nav>
+          <div className="mt-3">
+            <Breadcrumbs items={breadcrumbs} />
+          </div>
         </div>
       </div>
 
