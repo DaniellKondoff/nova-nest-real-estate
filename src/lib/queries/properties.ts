@@ -79,7 +79,7 @@ export async function searchProperties(
   const supabase = getBrowserClient();
   
   try {
-    // Try the RPC function first
+    // Try the RPC function first (without feature filtering)
     const { data, error } = await supabase.rpc("search_properties_combined", {
       search_term: searchTerm || undefined,
       language_code: "bg",
@@ -90,7 +90,6 @@ export async function searchProperties(
       max_price: filters.maxPrice,
       min_area: filters.minArea,
       max_area: filters.maxArea,
-      feature_ids: filters.featureIds,
     });
 
     if (error) {
@@ -98,7 +97,31 @@ export async function searchProperties(
       return await searchPropertiesFallback(searchTerm, filters);
     }
 
-    return (data as any) || [];
+    let results = (data as any) || [];
+
+    // Apply feature filtering to RPC results if needed
+    if (filters.featureIds && filters.featureIds.length > 0) {
+      // Get property IDs that have the required features
+      const { data: featureData, error: featureError } = await supabase
+        .from("property_property_features")
+        .select("property_id")
+        .in("feature_id", filters.featureIds);
+
+      if (featureError) {
+        console.warn("Feature filtering failed:", featureError);
+      } else {
+        const propertyIdsWithFeatures = new Set(
+          (featureData || []).map((item) => item.property_id)
+        );
+        
+        // Filter RPC results to only include those with the required features
+        results = results.filter((item: any) => 
+          propertyIdsWithFeatures.has(item.id)
+        );
+      }
+    }
+
+    return results;
   } catch (error) {
     console.warn("RPC search failed, falling back to direct query:", error);
     return await searchPropertiesFallback(searchTerm, filters);

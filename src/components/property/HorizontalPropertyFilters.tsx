@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/Select";
-import { Slider } from "@/components/ui/slider";
 import type { PropertySearchFilters } from "@/types/property";
 import type { PropertyFeature } from "@/hooks/usePropertyFeatures";
 import type { PropertyCategory } from "@/hooks/usePropertyCategories";
@@ -150,7 +149,7 @@ export default function HorizontalPropertyFilters({
             <h3 className="text-xl font-bold text-[#1a2642]">Детайлни филтри</h3>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Basic Filters */}
             <div className="space-y-4">
               <h4 className="text-base font-semibold text-[#1a2642] mb-3">Основни критерии</h4>
@@ -221,40 +220,88 @@ export default function HorizontalPropertyFilters({
               
               {/* Price Range */}
               <div>
-                <label className="block text-sm font-medium text-[#1a2642] mb-3">
-                  Ценова граница: {priceRange[0].toLocaleString()} - {priceRange[1].toLocaleString()} €
+                <label className="block text-sm font-medium text-[#1a2642] mb-2">
+                  Ценова граница (€)
                 </label>
-                <Slider
-                  value={priceRange}
-                  onValueChange={(value) => {
-                    setPriceRange(value as [number, number]);
-                    form.setValue("minPrice", value[0]);
-                    form.setValue("maxPrice", value[1]);
-                  }}
-                  max={120000}
-                  min={150}
-                  step={1000}
-                  className="w-full"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">От</label>
+                    <Input
+                      type="number"
+                      placeholder="150"
+                      value={priceRange[0] === 150 ? "" : priceRange[0]}
+                      onChange={(e) => {
+                        const value = e.target.value ? Number(e.target.value) : 150;
+                        const newRange: [number, number] = [value, priceRange[1]];
+                        setPriceRange(newRange);
+                        form.setValue("minPrice", value);
+                      }}
+                      className="h-10"
+                      min={150}
+                      max={120000}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">До</label>
+                    <Input
+                      type="number"
+                      placeholder="120000"
+                      value={priceRange[1] === 120000 ? "" : priceRange[1]}
+                      onChange={(e) => {
+                        const value = e.target.value ? Number(e.target.value) : 120000;
+                        const newRange: [number, number] = [priceRange[0], value];
+                        setPriceRange(newRange);
+                        form.setValue("maxPrice", value);
+                      }}
+                      className="h-10"
+                      min={150}
+                      max={120000}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Area Range */}
               <div>
-                <label className="block text-sm font-medium text-[#1a2642] mb-3">
-                  Площ: {areaRange[0]} - {areaRange[1]} кв.м
+                <label className="block text-sm font-medium text-[#1a2642] mb-2">
+                  Площ (кв.м)
                 </label>
-                <Slider
-                  value={areaRange}
-                  onValueChange={(value) => {
-                    setAreaRange(value as [number, number]);
-                    form.setValue("minArea", value[0]);
-                    form.setValue("maxArea", value[1]);
-                  }}
-                  max={300}
-                  min={20}
-                  step={5}
-                  className="w-full"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">От</label>
+                    <Input
+                      type="number"
+                      placeholder="20"
+                      value={areaRange[0] === 20 ? "" : areaRange[0]}
+                      onChange={(e) => {
+                        const value = e.target.value ? Number(e.target.value) : 20;
+                        const newRange: [number, number] = [value, areaRange[1]];
+                        setAreaRange(newRange);
+                        form.setValue("minArea", value);
+                      }}
+                      className="h-10"
+                      min={20}
+                      max={300}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">До</label>
+                    <Input
+                      type="number"
+                      placeholder="300"
+                      value={areaRange[1] === 300 ? "" : areaRange[1]}
+                      onChange={(e) => {
+                        const value = e.target.value ? Number(e.target.value) : 300;
+                        const newRange: [number, number] = [areaRange[0], value];
+                        setAreaRange(newRange);
+                        form.setValue("maxArea", value);
+                      }}
+                      className="h-10"
+                      min={20}
+                      max={300}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -280,22 +327,45 @@ export default function HorizontalPropertyFilters({
 
               {/* Floor Range */}
               <div>
-                <label className="block text-sm font-medium text-[#1a2642] mb-3">
-                  Етаж: {floorRange[0] === 0 ? "Партер" : floorRange[0]} - {floorRange[1] === 0 ? "Партер" : floorRange[1]}
+                <label className="block text-sm font-medium text-[#1a2642] mb-2">
+                  Етаж
                 </label>
-                <Slider
-                  value={floorRange}
-                  onValueChange={(value) => {
-                    setFloorRange(value as [number, number]);
-                  }}
-                  max={10}
-                  min={0}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Партер</span>
-                  <span>10+ етаж</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">От</label>
+                    <Input
+                      type="number"
+                      placeholder="0 (Партер)"
+                      value={floorRange[0] === 0 ? "" : floorRange[0]}
+                      onChange={(e) => {
+                        const value = e.target.value ? Number(e.target.value) : 0;
+                        const newRange: [number, number] = [value, floorRange[1]];
+                        setFloorRange(newRange);
+                      }}
+                      className="h-10"
+                      min={0}
+                      max={10}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">До</label>
+                    <Input
+                      type="number"
+                      placeholder="10"
+                      value={floorRange[1] === 10 ? "" : floorRange[1]}
+                      onChange={(e) => {
+                        const value = e.target.value ? Number(e.target.value) : 10;
+                        const newRange: [number, number] = [floorRange[0], value];
+                        setFloorRange(newRange);
+                      }}
+                      className="h-10"
+                      min={0}
+                      max={10}
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  <span>0 = Партер, 1-10 = Етажи</span>
                 </div>
               </div>
 
@@ -346,7 +416,7 @@ export default function HorizontalPropertyFilters({
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-6 pt-4 border-t border-[#1a2642]/10">
+          <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-[#1a2642]/10">
             <Button 
               variant="secondary" 
               className="flex-1 h-12"
