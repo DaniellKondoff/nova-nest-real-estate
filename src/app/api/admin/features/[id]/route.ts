@@ -15,9 +15,10 @@ const FeatureUpdateSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await getServerClient();
 
     // Check authentication
@@ -47,7 +48,7 @@ export async function GET(
       );
     }
 
-    const featureId = parseInt(params.id);
+    const featureId = parseInt(id);
     if (isNaN(featureId)) {
       return NextResponse.json(
         { error: "Невалиден ID на характеристика" },
@@ -88,9 +89,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await getServerClient();
 
     // Check authentication
@@ -120,7 +122,7 @@ export async function PUT(
       );
     }
 
-    const featureId = parseInt(params.id);
+    const featureId = parseInt(id);
     if (isNaN(featureId)) {
       return NextResponse.json(
         { error: "Невалиден ID на характеристика" },
@@ -232,7 +234,7 @@ export async function DELETE(
       );
     }
 
-    const featureId = parseInt(params.id);
+    const featureId = parseInt(id);
     if (isNaN(featureId)) {
       return NextResponse.json(
         { error: "Невалиден ID на характеристика" },
