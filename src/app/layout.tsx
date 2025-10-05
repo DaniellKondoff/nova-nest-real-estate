@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import ConditionalWrapper from "@/components/layout/ConditionalWrapper";
 import { generateDefaultMetadata, generateDefaultViewport } from "@/lib/seo/metadata";
+import { OrganizationSchema, WebsiteSchema } from "@/components/seo/StructuredData";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,6 +22,8 @@ export default function RootLayout({
   return (
     <html lang="bg">
       <body className={`${inter.variable} antialiased`}>
+        <OrganizationSchema />
+        <WebsiteSchema />
         <ConditionalWrapper>
           {children}
         </ConditionalWrapper>
