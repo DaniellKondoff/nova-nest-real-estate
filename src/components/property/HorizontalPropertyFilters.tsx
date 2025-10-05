@@ -356,7 +356,7 @@ export default function HorizontalPropertyFilters({
                 <label className="block text-sm font-medium text-[#1a2642] mb-2">
                   Характеристики
                 </label>
-                <div className="space-y-4 text-sm max-h-48 overflow-y-auto">
+                <div className="space-y-4 text-sm">
                   {(() => {
                     // Group features by category
                     const groupedFeatures = features.reduce((acc, feature) => {
@@ -367,41 +367,49 @@ export default function HorizontalPropertyFilters({
                       return acc;
                     }, {} as Record<string, typeof features>);
 
-                    // Category labels in Bulgarian
+                    // Category labels in Bulgarian with custom order
                     const categoryLabels = {
+                      buildingType: "Тип сграда",
                       interior: "Интериор",
                       exterior: "Екстериор", 
                       building: "Сграда",
-                      location: "Локация",
-                      buildingType: "Тип сграда"
+                      location: "Локация"
                     };
 
-                    return Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
-                      <div key={category} className="space-y-2">
-                        <h5 className="text-xs font-semibold text-[#1a2642] uppercase tracking-wide border-b border-[#1a2642]/10 pb-1">
-                          {categoryLabels[category as keyof typeof categoryLabels] || category}
-                        </h5>
-                        <div className="space-y-1 pl-2">
-                          {categoryFeatures.map((feature) => (
-                            <label key={feature.id} className="flex items-center gap-2">
-                              <input 
-                                type="checkbox" 
-                                className="rounded border-[#1a2642]/20 text-[#d4af37] focus:ring-[#d4af37]"
-                                checked={selectedFeatures.includes(feature.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedFeatures([...selectedFeatures, feature.id]);
-                                  } else {
-                                    setSelectedFeatures(selectedFeatures.filter(id => id !== feature.id));
-                                  }
-                                }}
-                              />
-                              <span className="text-[#1a2642] text-xs">{feature.name_bg}</span>
-                            </label>
-                          ))}
+                    // Define the order of categories (buildingType first)
+                    const categoryOrder = ['buildingType', 'interior', 'exterior', 'building', 'location'];
+
+                    return categoryOrder.map((category) => {
+                      const categoryFeatures = groupedFeatures[category];
+                      if (!categoryFeatures || categoryFeatures.length === 0) return null;
+
+                      return (
+                        <div key={category} className="space-y-2">
+                          <h5 className="text-xs font-semibold text-[#1a2642] uppercase tracking-wide border-b border-[#1a2642]/10 pb-1">
+                            {categoryLabels[category as keyof typeof categoryLabels] || category}
+                          </h5>
+                          <div className="space-y-1 pl-2 max-h-24 overflow-y-auto border border-gray-100 rounded-md p-2 bg-gray-50/50">
+                            {categoryFeatures.map((feature) => (
+                              <label key={feature.id} className="flex items-center gap-2">
+                                <input 
+                                  type="checkbox" 
+                                  className="rounded border-[#1a2642]/20 text-[#d4af37] focus:ring-[#d4af37]"
+                                  checked={selectedFeatures.includes(feature.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedFeatures([...selectedFeatures, feature.id]);
+                                    } else {
+                                      setSelectedFeatures(selectedFeatures.filter(id => id !== feature.id));
+                                    }
+                                  }}
+                                />
+                                <span className="text-[#1a2642] text-xs">{feature.name_bg}</span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ));
+                      );
+                    }).filter(Boolean);
                   })()}
                 </div>
               </div>
