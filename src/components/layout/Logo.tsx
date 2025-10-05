@@ -1,19 +1,35 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 export interface LogoProps {
   className?: string;
   ariaLabel?: string;
+  width?: number;
+  height?: number;
+  priority?: boolean;
 }
 
 /**
- * Minimal placeholder Logo component for Nova Nest Real Estate.
- * Replace with SVG or image when available.
+ * Nova Nest Real Estate Logo component using the actual logo image.
  */
-const Logo: React.FC<LogoProps> = ({ className }) => {
+const Logo: React.FC<LogoProps> = ({ 
+  className, 
+  ariaLabel = "Nova Nest Real Estate Logo",
+  width = 120,
+  height = 40,
+  priority = false
+}) => {
   return (
-    <span className={["font-sans text-white text-base font-semibold tracking-wide", className].filter(Boolean).join(" ")}>Nova Nest</span>
+    <Image
+      src="/images/logo.png"
+      alt={ariaLabel}
+      width={width}
+      height={height}
+      priority={priority}
+      className={className}
+    />
   );
 };
 

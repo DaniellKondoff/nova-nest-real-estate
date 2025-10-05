@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MessageSquare, Check, TriangleAlert, Home, Phone, Copy, X } from "lucide-react";
 import { ContactFormSchema } from "@/lib/validations";
 import type { z } from "zod";
+import Logo from "@/components/layout/Logo";
 
 export interface PropertyContactProps {
   propertyId: string;
@@ -89,8 +90,18 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
   return (
     <aside className="sticky top-8">
       <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
-        {/* Agent Header */}
+        {/* Agent Header with Logo */}
         <div className="mb-6">
+          {/* Company Logo */}
+          <div className="flex justify-center mb-4">
+            <Logo 
+              width={80} 
+              height={25} 
+              className="opacity-90"
+              ariaLabel="Nova Nest Real Estate"
+            />
+          </div>
+          
           <div className="flex items-center gap-4 mb-3">
             <div className="p-3 bg-gray-100 rounded-full border border-gray-200">
               <Home className="h-6 w-6 text-[#1a2642]" aria-hidden />
@@ -249,6 +260,16 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
 
             {/* Modal Header */}
             <div className="text-center mb-6">
+              {/* Company Logo in Modal */}
+              <div className="flex justify-center mb-4">
+                <Logo 
+                  width={70} 
+                  height={22} 
+                  className="opacity-90"
+                  ariaLabel="Nova Nest Real Estate"
+                />
+              </div>
+              
               <div className="mx-auto w-16 h-16 bg-[#d4af37]/10 rounded-full flex items-center justify-center mb-4">
                 <Phone className="h-8 w-8 text-[#d4af37]" />
               </div>

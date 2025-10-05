@@ -2,6 +2,7 @@ import React from "react";
 import { MapPin } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 import { formatPrice, isNewProperty } from "./utils";
+import Logo from "@/components/layout/Logo";
 
 export interface PropertyHeaderProps {
   property: PropertyWithDetails;
@@ -17,12 +18,27 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
 
   return (
     <header>
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <span className="inline-flex items-center rounded-full bg-[#d4af37] px-4 py-2 text-white text-sm font-medium">{op}</span>
-        {isNew && <span className="inline-flex items-center rounded-full bg-[#1a2642] px-4 py-2 text-white text-sm font-semibold">НОВО</span>}
+      {/* Brand Logo - Subtle but visible for brand recognition */}
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex-1">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <span className="inline-flex items-center rounded-full bg-[#d4af37] px-4 py-2 text-white text-sm font-medium">{op}</span>
+            {isNew && <span className="inline-flex items-center rounded-full bg-[#1a2642] px-4 py-2 text-white text-sm font-semibold">НОВО</span>}
+          </div>
+          
+          <h1 className="text-[#1a2642] font-bold leading-tight text-2xl md:text-3xl lg:text-4xl mb-3">{p.title_bg}</h1>
+        </div>
+        
+        {/* Logo positioned in top-right for brand visibility */}
+        <div className="hidden sm:block ml-4 flex-shrink-0">
+          <Logo 
+            width={100} 
+            height={32} 
+            className="opacity-80 hover:opacity-100 transition-opacity duration-200"
+            ariaLabel="Nova Nest Real Estate - Вашият доверен партньор за недвижими имоти"
+          />
+        </div>
       </div>
-      
-      <h1 className="text-[#1a2642] font-bold leading-tight text-2xl md:text-3xl lg:text-4xl mb-3">{p.title_bg}</h1>
       
       {/* Building Type - Make it more prominent */}
       {property.category?.name_bg && (

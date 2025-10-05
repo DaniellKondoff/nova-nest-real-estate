@@ -246,8 +246,12 @@ function Lightbox({ images, startIndex, onClose, onIndexChange, propertyTitle, o
         ref={closeButtonRef}
         type="button"
         aria-label="Затвори"
-        className="absolute top-4 right-4 rounded-full p-2 text-white hover:text-[#d4af37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]"
-        onClick={onClose}
+        className="absolute top-4 right-4 z-50 rounded-full p-2 bg-black/20 hover:bg-black/40 text-white hover:text-[#d4af37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] transition-all duration-200"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
       >
         <X className="h-7 w-7" />
       </button>
@@ -256,8 +260,13 @@ function Lightbox({ images, startIndex, onClose, onIndexChange, propertyTitle, o
       <button
         type="button"
         aria-label="Предишна снимка"
-        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full p-3 text-white hover:text-[#d4af37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]"
-        onClick={(e) => { e.stopPropagation(); prev(); setLoaded(false); }}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-50 rounded-full p-3 bg-black/20 hover:bg-black/40 text-white hover:text-[#d4af37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] transition-all duration-200"
+        onClick={(e) => { 
+          e.preventDefault();
+          e.stopPropagation(); 
+          prev(); 
+          setLoaded(false); 
+        }}
       >
         <ChevronLeft className="h-8 w-8" />
       </button>
@@ -265,14 +274,19 @@ function Lightbox({ images, startIndex, onClose, onIndexChange, propertyTitle, o
       <button
         type="button"
         aria-label="Следваща снимка"
-        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-3 text-white hover:text-[#d4af37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]"
-        onClick={(e) => { e.stopPropagation(); next(); setLoaded(false); }}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-50 rounded-full p-3 bg-black/20 hover:bg-black/40 text-white hover:text-[#d4af37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] transition-all duration-200"
+        onClick={(e) => { 
+          e.preventDefault();
+          e.stopPropagation(); 
+          next(); 
+          setLoaded(false); 
+        }}
       >
         <ChevronRight className="h-8 w-8" />
       </button>
 
       {/* Counter */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/20 rounded-full px-4 py-2 text-sm text-white">
         {index + 1} / {total}
       </div>
 
