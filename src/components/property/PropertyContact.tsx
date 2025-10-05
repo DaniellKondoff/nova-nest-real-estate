@@ -3,7 +3,7 @@
 import React from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MessageSquare, Check, TriangleAlert } from "lucide-react";
+import { MessageSquare, Check, TriangleAlert, Home, Phone, Copy, X } from "lucide-react";
 import { ContactInquirySchema } from "@/lib/validations";
 import type { z } from "zod";
 
@@ -43,6 +43,21 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
 
   const [success, setSuccess] = React.useState<boolean>(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
+  const [isPhoneModalOpen, setIsPhoneModalOpen] = React.useState<boolean>(false);
+  const [copySuccess, setCopySuccess] = React.useState<boolean>(false);
+
+  const phoneNumber = "+359 888 123 456";
+  const phoneNumberForCall = "+359888123456";
+
+  const handleCopyPhone = async () => {
+    try {
+      await navigator.clipboard.writeText(phoneNumber);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy phone number:", err);
+    }
+  };
 
   const onSubmit: SubmitHandler<InquiryFormData> = async (values) => {
     setApiError(null);
@@ -78,14 +93,27 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
   return (
     <aside className="sticky top-8">
       <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
-        {/* Header */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="p-2 bg-[#d4af37]/10 rounded-lg">
-            <MessageSquare className="h-6 w-6 text-[#d4af37]" aria-hidden />
+        {/* Agent Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="p-3 bg-gray-100 rounded-full border border-gray-200">
+              <Home className="h-6 w-6 text-[#1a2642]" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-[#1a2642] text-xl font-bold">Атанаска Кондова</h2>
+              <p className="text-gray-600 text-sm">Агент по недвижими имоти</p>
+            </div>
           </div>
-          <h2 className="text-[#1a2642] text-xl font-semibold">Свържете се с нас</h2>
+          
+          {/* Phone Number Button */}
+          <button 
+            onClick={() => setIsPhoneModalOpen(true)}
+            className="w-full flex items-center justify-center gap-3 bg-[#1a2642] hover:bg-[#2a3a5c] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200"
+          >
+            <Phone className="h-5 w-5" aria-hidden />
+            <span>{phoneNumber}</span>
+          </button>
         </div>
-        <p className="mb-6 text-sm text-gray-600">Попълнете формата за повече информация</p>
 
         {/* Property context */}
         <div className="mb-6 rounded-xl bg-gradient-to-r from-[#1a2642]/5 to-[#d4af37]/5 p-4 border border-gray-100">
@@ -108,6 +136,17 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
             <div>{apiError}</div>
           </div>
         )}
+
+        {/* Contact Form Section */}
+        <div className="border-t border-gray-200 pt-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="p-2 bg-[#d4af37]/10 rounded-lg">
+              <MessageSquare className="h-5 w-5 text-[#d4af37]" aria-hidden />
+            </div>
+            <h3 className="text-[#1a2642] text-lg font-semibold">Изпратете запитване</h3>
+          </div>
+          <p className="mb-4 text-sm text-gray-600">Попълнете формата за повече информация</p>
+        </div>
 
         {/* Form */}
         {!success && (
@@ -195,6 +234,78 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
           </form>
         )}
       </div>
+
+      {/* Phone Modal */}
+      {isPhoneModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsPhoneModalOpen(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsPhoneModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Затвори"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="text-center mb-6">
+              <div className="mx-auto w-16 h-16 bg-[#d4af37]/10 rounded-full flex items-center justify-center mb-4">
+                <Phone className="h-8 w-8 text-[#d4af37]" />
+              </div>
+              <h3 className="text-xl font-bold text-[#1a2642] mb-2">Атанаска Кондова</h3>
+              <p className="text-gray-600">Агент по недвижими имоти</p>
+            </div>
+
+            {/* Phone Number */}
+            <div className="text-center mb-6">
+              <p className="text-2xl font-bold text-[#1a2642] mb-4">{phoneNumber}</p>
+              
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                {/* Call Button */}
+                <a
+                  href={`tel:${phoneNumberForCall}`}
+                  className="w-full flex items-center justify-center gap-3 bg-[#d4af37] hover:bg-[#c49d2f] text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+                >
+                  <Phone className="h-5 w-5" />
+                  <span>Позвънете</span>
+                </a>
+                
+                {/* Copy Button */}
+                <button
+                  onClick={handleCopyPhone}
+                  className="w-full flex items-center justify-center gap-3 border-2 border-[#1a2642] hover:bg-[#1a2642] hover:text-white text-[#1a2642] font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+                >
+                  {copySuccess ? (
+                    <>
+                      <Check className="h-5 w-5" />
+                      <span>Копирано!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-5 w-5" />
+                      <span>Копирайте номера</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="text-center text-sm text-gray-500">
+              <p>Работно време: Пон-Пет 9:00-18:00</p>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
