@@ -1,47 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import ConditionalWrapper from "@/components/layout/ConditionalWrapper";
+import { generateDefaultMetadata, generateDefaultViewport } from "@/lib/seo/metadata";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin", "cyrillic"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://example.com"),
-  title: {
-    default: "Nova Nest Real Estate | Стара Загора",
-    template: "%s | Nova Nest",
-  },
-  description:
-    "Модерна агенция за недвижими имоти в Стара Загора. Продажби, наеми и консултации.",
-  keywords: [
-    "недвижими имоти",
-    "Стара Загора",
-    "апартаменти",
-    "къщи",
-    "офиси",
-    "наеми",
-    "продажби",
-  ],
-  openGraph: {
-    title: "Nova Nest Real Estate | Стара Загора",
-    description:
-      "Модерна агенция за недвижими имоти в Стара Загора. Продажби, наеми и консултации.",
-    locale: "bg_BG",
-    siteName: "Nova Nest",
-    type: "website",
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.png", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" }
-    ],
-  },
-  manifest: "/manifest.json",
-  alternates: undefined,
-};
+export const metadata: Metadata = generateDefaultMetadata();
+
+export const viewport: Viewport = generateDefaultViewport();
 
 export default function RootLayout({
   children,
