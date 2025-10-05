@@ -16,6 +16,7 @@ import PropertyFeatures from "@/components/property/PropertyFeatures";
 import NeighborhoodInfo from "@/components/property/NeighborhoodInfo";
 import PropertyContact from "@/components/property/PropertyContact";
 import PropertyViewTracker from "@/components/property/PropertyViewTracker";
+import { PropertyDetailSchema } from "@/components/seo/PropertySchema";
 
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
@@ -163,39 +164,11 @@ export default async function PropertyDetailPage({ params }: PageParams) {
   const { property, neighborhood, category, images, features } = details!;
   const featuresList: FeatureRow[] = features ?? [];
 
-  const primaryImage = (images ?? []).find((img) => img.is_primary) ?? images[0];
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: property.title_bg,
-    description: property.description_bg ?? "",
-    image: primaryImage?.url,
-    offers: {
-      "@type": "Offer",
-      price: property.price_eur ?? undefined,
-      priceCurrency: "EUR",
-      availability: "https://schema.org/InStock",
-      url: `https://novanest.bg/properties/${id}`,
-    },
-    brand: {
-      "@type": "Organization",
-      name: "Nova Nest Real Estate",
-    },
-    category: category?.name_bg,
-    areaServed: "Стара Загора",
-    material: undefined,
-    additionalProperty: undefined,
-    // Address/location
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: property.address_bg ?? "",
-      addressLocality: "Стара Загора",
-      addressCountry: "BG",
-    },
-  } as const;
-
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Structured Data for Rich Search Results */}
+      <PropertyDetailSchema property={details} />
+      
       {/* View Tracker - tracks views when page loads */}
       <PropertyViewTracker propertyId={property.id} />
       
@@ -280,9 +253,6 @@ export default async function PropertyDetailPage({ params }: PageParams) {
           </div>
         </div>
       </div>
-
-      {/* JSON-LD */}
-      <script type="application/ld+json" suppressHydrationWarning>{JSON.stringify(structuredData)}</script>
     </div>
   );
 }
