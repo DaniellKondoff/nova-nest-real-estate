@@ -14,7 +14,7 @@ export const metadata: Metadata = generateDefaultMetadata();
 
 export const viewport: Viewport = generateDefaultViewport();
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

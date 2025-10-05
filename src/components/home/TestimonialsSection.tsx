@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Section } from "@/components/ui/section";
 import { Heading, Text } from "@/components/ui/typography";
-import { getApprovedTestimonials, type Testimonial } from "@/lib/queries/testimonials";
+import { getApprovedTestimonialsClient, type TestimonialClient } from "@/lib/queries/testimonials-client";
 
 interface TestimonialData {
   id: string;
@@ -232,11 +232,11 @@ export function TestimonialsSection({
       setLoading(true);
       setError(null);
       try {
-        const res = await getApprovedTestimonials(12);
+        const res = await getApprovedTestimonialsClient(12);
         if (!cancelled) {
           // Transform the data to match our new interface
-          const transformedData: TestimonialData[] = res.map((testimonial: Testimonial) => ({
-            id: testimonial.id,
+          const transformedData: TestimonialData[] = res.map((testimonial: TestimonialClient) => ({
+            id: testimonial.id.toString(),
             name: testimonial.clientName,
             role: testimonial.role || "Клиент",
             rating: testimonial.rating,

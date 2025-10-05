@@ -1,40 +1,48 @@
 /**
- * Testimonials database queries for Nova Nest Real Estate
- * Handles fetching approved testimonials and calculating aggregate ratings
+ * Client-side testimonials queries for Nova Nest Real Estate
+ * Uses client-side Supabase client for browser components
  */
 
-import { getServerClient } from '@/lib/supabase/server';
+import { getBrowserClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database.generated';
 
-// Type for testimonial data
-export interface Testimonial {
+// Type for testimonial data (client version)
+export interface TestimonialClient {
   id: number;
   rating: number;
-  client_name: string;
-  comment_text: string;
+  clientName: string;
+  role?: string;
+  testimonial: string;
   created_at: string;
 }
 
 // Type for aggregate rating data
-export interface AggregateRating {
+export interface AggregateRatingClient {
   averageRating: number;
   reviewCount: number;
 }
 
 /**
- * Fetches all approved testimonials from the database
- * @returns Promise<Testimonial[]> - Array of approved testimonials
+ * Fetches all approved testimonials from the database (client-side)
+ * @param limit - Optional limit for number of testimonials to fetch
+ * @returns Promise<TestimonialClient[]> - Array of approved testimonials
  */
-export async function getApprovedTestimonials(): Promise<Testimonial[]> {
+export async function getApprovedTestimonialsClient(limit?: number): Promise<TestimonialClient[]> {
   try {
-    const supabase = await getServerClient();
+    const supabase = getBrowserClient();
     
-    const { data, error } = await supabase
+    let query = supabase
       .from('testimonials')
-      .select('id, rating, client_name, content_bg, created_at')
+      .select('id, rating, client_name, client_role, content_bg, created_at')
       .eq('is_published', true)
       .not('rating', 'is', null)
       .order('created_at', { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching testimonials:', error);
@@ -49,23 +57,24 @@ export async function getApprovedTestimonials(): Promise<Testimonial[]> {
       .map(testimonial => ({
         id: testimonial.id,
         rating: testimonial.rating,
-        client_name: testimonial.client_name,
-        comment_text: testimonial.content_bg,
+        clientName: testimonial.client_name,
+        role: testimonial.client_role || undefined,
+        testimonial: testimonial.content_bg,
         created_at: testimonial.created_at
       }));
   } catch (error) {
-    console.error('Error in getApprovedTestimonials:', error);
+    console.error('Error in getApprovedTestimonialsClient:', error);
     return [];
   }
 }
 
 /**
- * Calculates aggregate rating from approved testimonials
- * @returns Promise<AggregateRating> - Object with average rating and review count
+ * Calculates aggregate rating from approved testimonials (client-side)
+ * @returns Promise<AggregateRatingClient> - Object with average rating and review count
  */
-export async function getAggregateRating(): Promise<AggregateRating> {
+export async function getAggregateRatingClient(): Promise<AggregateRatingClient> {
   try {
-    const testimonials = await getApprovedTestimonials();
+    const testimonials = await getApprovedTestimonialsClient();
     
     if (testimonials.length === 0) {
       return {
@@ -82,7 +91,7 @@ export async function getAggregateRating(): Promise<AggregateRating> {
       reviewCount: testimonials.length
     };
   } catch (error) {
-    console.error('Error in getAggregateRating:', error);
+    console.error('Error in getAggregateRatingClient:', error);
     return {
       averageRating: 0,
       reviewCount: 0
@@ -91,17 +100,17 @@ export async function getAggregateRating(): Promise<AggregateRating> {
 }
 
 /**
- * Fetches testimonials for a specific property (for future use)
+ * Fetches testimonials for a specific property (client-side)
  * @param propertyId - The property ID to fetch testimonials for
- * @returns Promise<Testimonial[]> - Array of property-specific testimonials
+ * @returns Promise<TestimonialClient[]> - Array of property-specific testimonials
  */
-export async function getPropertyTestimonials(propertyId: number): Promise<Testimonial[]> {
+export async function getPropertyTestimonialsClient(propertyId: number): Promise<TestimonialClient[]> {
   try {
-    const supabase = await getServerClient();
+    const supabase = getBrowserClient();
     
     const { data, error } = await supabase
       .from('testimonials')
-      .select('id, rating, client_name, content_bg, created_at')
+      .select('id, rating, client_name, client_role, content_bg, created_at')
       .eq('property_id', propertyId)
       .eq('is_published', true)
       .not('rating', 'is', null)
@@ -119,12 +128,13 @@ export async function getPropertyTestimonials(propertyId: number): Promise<Testi
       .map(testimonial => ({
         id: testimonial.id,
         rating: testimonial.rating,
-        client_name: testimonial.client_name,
-        comment_text: testimonial.content_bg,
+        clientName: testimonial.client_name,
+        role: testimonial.client_role || undefined,
+        testimonial: testimonial.content_bg,
         created_at: testimonial.created_at
       }));
   } catch (error) {
-    console.error('Error in getPropertyTestimonials:', error);
+    console.error('Error in getPropertyTestimonialsClient:', error);
     return [];
   }
 }

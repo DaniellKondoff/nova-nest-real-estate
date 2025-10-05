@@ -4,6 +4,7 @@
  */
 
 import { SEO_CONFIG } from './config';
+import type { Testimonial } from '@/lib/queries/testimonials';
 
 /**
  * Type definitions for Schema.org structured data
@@ -58,6 +59,28 @@ export interface OrganizationSchema {
   areaServed: City;
   openingHoursSpecification: OpeningHoursSpecification[];
   sameAs: string[];
+  aggregateRating?: {
+    '@type': 'AggregateRating';
+    ratingValue: string;
+    reviewCount: number;
+    bestRating: number;
+    worstRating: number;
+  };
+  review?: Array<{
+    '@type': 'Review';
+    author: {
+      '@type': 'Person';
+      name: string;
+    };
+    reviewRating: {
+      '@type': 'Rating';
+      ratingValue: number;
+      bestRating: number;
+      worstRating: number;
+    };
+    reviewBody: string;
+    datePublished: string;
+  }>;
 }
 
 export interface WebsiteSchema {
@@ -218,4 +241,43 @@ export function generatePropertySchema(property: {
     numberOfRooms: property.bedrooms,
     numberOfBathroomsTotal: property.bathrooms
   };
+}
+
+/**
+ * Generates AggregateRating schema for organization
+ * @param averageRating - The average rating (0-5)
+ * @param reviewCount - The total number of reviews
+ * @returns AggregateRating schema object
+ */
+export function generateAggregateRatingSchema(averageRating: number, reviewCount: number) {
+  return {
+    '@type': 'AggregateRating',
+    ratingValue: averageRating.toFixed(1),
+    reviewCount: reviewCount,
+    bestRating: 5,
+    worstRating: 1
+  };
+}
+
+/**
+ * Generates Review schemas from testimonials
+ * @param testimonials - Array of testimonials to convert to reviews
+ * @returns Array of Review schema objects (limited to 10 most recent)
+ */
+export function generateReviewsSchema(testimonials: Testimonial[]) {
+  return testimonials.slice(0, 10).map(testimonial => ({
+    '@type': 'Review',
+    author: {
+      '@type': 'Person',
+      name: testimonial.client_name
+    },
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue: testimonial.rating,
+      bestRating: 5,
+      worstRating: 1
+    },
+    reviewBody: testimonial.comment_text,
+    datePublished: new Date(testimonial.created_at).toISOString()
+  }));
 }
