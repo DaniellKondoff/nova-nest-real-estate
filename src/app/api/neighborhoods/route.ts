@@ -7,10 +7,7 @@ import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import { ok, fail } from "@/lib/api";
 
 const QuerySchema = z.object({
-  is_active: z
-    .union([z.literal("true"), z.literal("false")])
-    .transform((v) => v === "true")
-    .optional(),
+  // No query parameters needed for neighborhoods endpoint
 });
 
 /**
@@ -24,12 +21,8 @@ export async function GET(req: NextRequest) {
     const raw = Object.fromEntries(url.searchParams.entries());
     const parsed = await QuerySchema.parseAsync(raw);
 
-    // Base load
-    let neighborhoods = await getAllNeighborhoods();
-
-    if (typeof parsed.is_active === "boolean") {
-      neighborhoods = neighborhoods.filter((n: any) => n.is_active === parsed.is_active);
-    }
+    // Get all neighborhoods
+    const neighborhoods = await getAllNeighborhoods();
 
     // Ensure coordinates and amenities present by enriching from DB if needed
     const supabase = await getSupabaseClient();
