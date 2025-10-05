@@ -24,6 +24,15 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
       
       <h1 className="text-[#1a2642] font-bold leading-tight text-2xl md:text-3xl lg:text-4xl mb-3">{p.title_bg}</h1>
       
+      {/* Building Type - Make it more prominent */}
+      {property.category?.name_bg && (
+        <div className="mb-3">
+          <span className="inline-flex items-center rounded-lg bg-[#1a2642]/10 px-3 py-1.5 text-[#1a2642] text-sm font-semibold">
+            {property.category.name_bg}
+          </span>
+        </div>
+      )}
+      
       <div className="flex items-center gap-2 text-gray-600 text-base md:text-lg mb-4">
         <MapPin className="h-5 w-5 text-[#1a2642]" aria-hidden />
         <span>{neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}</span>

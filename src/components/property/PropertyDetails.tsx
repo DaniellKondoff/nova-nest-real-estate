@@ -1,6 +1,6 @@
 import React from "react";
 import type { PropertyWithDetails } from "@/types/property";
-import { Square, BedDouble, Bed, Bath, Building2, Calendar, Home as HomeIcon, MapPin } from "lucide-react";
+import { Square, BedDouble, Bed, Bath, Building2, Calendar, Home as HomeIcon, MapPin, Layers, Building } from "lucide-react";
 import { formatArea, formatFloor, formatYear } from "./utils";
 
 export interface PropertyDetailsProps {
@@ -33,16 +33,31 @@ export default function PropertyDetails({ property }: PropertyDetailsProps): Rea
   const p = property.property;
   const n = property.neighborhood;
   const c = property.category;
+  const features = property.features || [];
 
   const items: DetailItemProps[] = [];
 
+  // Building Type from categories - Make this more prominent by putting it first
+  if (c?.name_bg) items.push({ label: "Тип имот", value: c.name_bg, icon: Building });
+  
+  // Building Type Features - Look for buildingType category features
+  const buildingTypeFeatures = features.filter(f => f.category === "buildingType");
+  buildingTypeFeatures.forEach(feature => {
+    items.push({ label: feature.name_bg, value: "Да", icon: Building2 });
+  });
+  
+  // Basic property details
   if (typeof p.area_sqm === "number") items.push({ label: "Площ", value: formatArea(p.area_sqm), icon: Square });
   if (typeof p.rooms === "number") items.push({ label: "Стаи", value: String(p.rooms), icon: BedDouble });
   if (typeof p.bedrooms === "number") items.push({ label: "Спални", value: String(p.bedrooms), icon: Bed });
   if (typeof p.bathrooms === "number") items.push({ label: "Бани", value: String(p.bathrooms), icon: Bath });
-  if (typeof p.floor === "number") items.push({ label: "Етаж", value: formatFloor(p.floor, (p as any).total_floors ?? null), icon: Building2 });
-  if (typeof p.year_built === "number") items.push({ label: "Година", value: formatYear(p.year_built), icon: Calendar });
-  if (c?.name_bg) items.push({ label: "Тип имот", value: c.name_bg, icon: HomeIcon });
+  
+  // Building information - very important for customers
+  if (typeof p.floor === "number") items.push({ label: "Етаж", value: formatFloor(p.floor, p.total_floors ?? null), icon: Building2 });
+  if (typeof p.total_floors === "number") items.push({ label: "Общо етажи", value: `${p.total_floors} етажа`, icon: Layers });
+  if (typeof p.year_built === "number") items.push({ label: "Година на строеж", value: formatYear(p.year_built), icon: Calendar });
+  
+  // Location
   if (n?.name_bg) items.push({ label: "Квартал", value: n.name_bg, icon: MapPin });
 
   if (items.length === 0) return null;
