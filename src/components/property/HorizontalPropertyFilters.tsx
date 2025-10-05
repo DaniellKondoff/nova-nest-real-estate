@@ -419,7 +419,7 @@ export default function HorizontalPropertyFilters({
           <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-[#1a2642]/10">
             <Button 
               variant="secondary" 
-              className="flex-1 h-12"
+              className="flex-1 h-12 border-[#1a2642] text-[#1a2642] bg-white hover:bg-gray-100 hover:text-[#1a2642] hover:border-[#1a2642] transition-all duration-200"
               onClick={clearFilters}
             >
               Изчисти филтри
