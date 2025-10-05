@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Section } from "@/components/ui/section";
-import { Heading, Text } from "@/components/ui/Typography";
+import { Heading, Text } from "@/components/ui/typography";
 import { getApprovedTestimonials, type Testimonial } from "@/lib/queries/testimonials";
 
 interface TestimonialData {

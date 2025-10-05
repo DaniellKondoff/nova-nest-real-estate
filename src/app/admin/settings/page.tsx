@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Typography } from "@/components/ui/Typography";
+import { Typography } from "@/components/ui/typography";
 import { Container } from "@/components/ui/Container";
 import CategoriesManager from "@/components/admin/CategoriesManager";
 import NeighborhoodsManager from "@/components/admin/NeighborhoodsManager";

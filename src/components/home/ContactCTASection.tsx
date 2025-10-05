@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/design-tokens";
-import { Heading, Text } from "@/components/ui/Typography";
+import { Heading, Text } from "@/components/ui/typography";
 import { Phone, Mail, MapPin, Clock, ArrowRight, CheckCircle, Star } from "lucide-react";
 import ContactForm from "@/components/forms/ContactForm";
 import { site } from "@/config/site";

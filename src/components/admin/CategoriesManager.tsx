@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Typography } from "@/components/ui/Typography";
+import { Typography } from "@/components/ui/typography";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/design-tokens";
-import { Text } from "@/components/ui/Typography";
+import { Text } from "@/components/ui/typography";
 import { Star, Quote } from "lucide-react";
 
 const cardVariants = cva(

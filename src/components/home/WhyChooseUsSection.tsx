@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { MapPin, Users, Award, Smartphone, Headphones, TrendingUp, X, Phone, Copy, Check } from "lucide-react";
-import { Heading, Text } from "@/components/ui/Typography";
+import { Heading, Text } from "@/components/ui/typography";
 import { cn } from "@/lib/design-tokens";
 
 interface Advantage {
