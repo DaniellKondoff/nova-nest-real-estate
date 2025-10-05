@@ -110,7 +110,7 @@ async function getPropertyPages(): Promise<MetadataRoute.Sitemap> {
 
     return properties.map((property) => ({
       url: `${SEO_CONFIG.siteUrl}/properties/${property.id}`,
-      lastModified: new Date(property.updated_at),
+      lastModified: property.updated_at ? new Date(property.updated_at) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));
@@ -130,9 +130,8 @@ async function getNeighborhoodPages(): Promise<MetadataRoute.Sitemap> {
     
     const { data: neighborhoods, error } = await supabase
       .from('neighborhoods')
-      .select('slug, updated_at')
-      .eq('is_active', true)
-      .order('updated_at', { ascending: false });
+      .select('slug')
+      .order('name_bg', { ascending: true });
 
     if (error) {
       console.error('Error fetching neighborhoods for sitemap:', error);
@@ -145,7 +144,7 @@ async function getNeighborhoodPages(): Promise<MetadataRoute.Sitemap> {
 
     return neighborhoods.map((neighborhood) => ({
       url: `${SEO_CONFIG.siteUrl}/${neighborhood.slug}`,
-      lastModified: new Date(neighborhood.updated_at),
+      lastModified: new Date(), // Use current date since neighborhoods don't have updated_at
       changeFrequency: 'weekly' as const,
       priority: 0.85,
     }));
@@ -156,7 +155,7 @@ async function getNeighborhoodPages(): Promise<MetadataRoute.Sitemap> {
 }
 
 /**
- * Fetches active SEO pages from database
+ * Fetches published SEO pages from database
  * @returns Array of SEO page sitemap entries
  */
 async function getSEOPages(): Promise<MetadataRoute.Sitemap> {
@@ -166,7 +165,7 @@ async function getSEOPages(): Promise<MetadataRoute.Sitemap> {
     const { data: seoPages, error } = await supabase
       .from('seo_pages')
       .select('slug, updated_at')
-      .eq('is_active', true)
+      .eq('is_published', true)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -180,7 +179,7 @@ async function getSEOPages(): Promise<MetadataRoute.Sitemap> {
 
     return seoPages.map((page) => ({
       url: `${SEO_CONFIG.siteUrl}/${page.slug}`,
-      lastModified: new Date(page.updated_at),
+      lastModified: page.updated_at ? new Date(page.updated_at) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     }));

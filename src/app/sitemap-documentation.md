@@ -72,17 +72,16 @@ ORDER BY updated_at DESC
 
 ### Neighborhoods Query
 ```sql
-SELECT slug, updated_at 
+SELECT slug 
 FROM neighborhoods 
-WHERE is_active = true 
-ORDER BY updated_at DESC
+ORDER BY name_bg ASC
 ```
 
 ### SEO Pages Query
 ```sql
 SELECT slug, updated_at 
 FROM seo_pages 
-WHERE is_active = true 
+WHERE is_published = true 
 ORDER BY updated_at DESC
 ```
 
