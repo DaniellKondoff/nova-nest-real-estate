@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Shield, Users, Eye, Zap, Star, Award, TrendingUp, Heart } from "lucide-react";
 import { Inter } from "next/font/google";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -13,6 +14,19 @@ const inter = Inter({
 
 const AboutSection = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const router = useRouter();
+
+  // Navigation handlers
+  const handleStartSearch = () => {
+    router.push("/properties");
+  };
+
+  const handleContactUs = () => {
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -208,10 +222,18 @@ const AboutSection = () => {
 
               {/* Call to action buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <button className="px-8 py-4 bg-gradient-to-r from-nova-blue to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
+                <button 
+                  onClick={handleStartSearch}
+                  className="px-8 py-4 bg-gradient-to-r from-nova-blue to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                  aria-label="Започнете търсенето на имоти"
+                >
                   Започнете търсенето
                 </button>
-                <button className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                <button 
+                  onClick={handleContactUs}
+                  className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105"
+                  aria-label="Свържете се с нас за повече информация"
+                >
                   Свържете се с нас
                 </button>
               </div>
