@@ -4,7 +4,7 @@ import React from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MessageSquare, Check, TriangleAlert, Home, Phone, Copy, X } from "lucide-react";
-import { ContactInquirySchema } from "@/lib/validations";
+import { ContactFormSchema } from "@/lib/validations";
 import type { z } from "zod";
 
 export interface PropertyContactProps {
@@ -13,7 +13,7 @@ export interface PropertyContactProps {
   propertyPrice: number;
 }
 
-type InquiryFormData = z.infer<typeof ContactInquirySchema>;
+type InquiryFormData = z.infer<typeof ContactFormSchema>;
 
 function formatPriceEUR(value?: number | null): string {
   if (typeof value !== "number" || Number.isNaN(value)) return "-";
@@ -30,13 +30,12 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
     reset,
     formState: { errors, isSubmitting },
   } = useForm<InquiryFormData>({
-    resolver: zodResolver(ContactInquirySchema),
+    resolver: zodResolver(ContactFormSchema),
     defaultValues: {
-      fullName: "",
+      full_name: "",
       email: "",
       phone: "",
       message: `Здравейте, интересувам се от имот '${propertyTitle}'. Моля, свържете се с мен за повече информация.`,
-      propertyId: validPropertyId,
     },
     mode: "onSubmit",
   });
@@ -66,13 +65,10 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: values.fullName,
+          full_name: values.full_name,
           email: values.email,
           phone: values.phone?.trim() || undefined,
           message: values.message,
-          propertyId: values.propertyId,
-          subject: `Запитване за имот: ${propertyTitle}`,
-          inquiry_type: "property_interest",
         }),
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
@@ -153,17 +149,17 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             {/* Full Name */}
             <div>
-              <label htmlFor="fullName" className="mb-1 block text-sm font-medium text-gray-700">Име и фамилия</label>
+              <label htmlFor="full_name" className="mb-1 block text-sm font-medium text-gray-700">Име и фамилия</label>
               <input
-                id="fullName"
+                id="full_name"
                 type="text"
-                {...register("fullName")}
+                {...register("full_name")}
                 disabled={isSubmitting}
-                className={`w-full rounded-md border px-4 py-3 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] ${errors.fullName ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full rounded-md border px-4 py-3 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] ${errors.full_name ? "border-red-500" : "border-gray-300"}`}
                 placeholder="Иван Иванов"
-                aria-invalid={errors.fullName ? "true" : "false"}
+                aria-invalid={errors.full_name ? "true" : "false"}
               />
-              {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>}
+              {errors.full_name && <p className="mt-1 text-sm text-red-600">{errors.full_name.message}</p>}
             </div>
 
             {/* Email */}
@@ -211,10 +207,6 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
               {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>}
             </div>
 
-            {/* Hidden property id */}
-            {validPropertyId !== undefined && (
-              <input type="hidden" value={validPropertyId} {...register("propertyId", { valueAsNumber: true })} />
-            )}
 
             {/* Submit */}
             <button
