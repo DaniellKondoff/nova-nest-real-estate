@@ -57,7 +57,7 @@ function SingleSkeleton({ variant }: { variant: "navy" | "white" }) {
 
 export default function TestimonialSkeleton({ count = 3, variant = "white", className }: TestimonialSkeletonProps) {
   return (
-    <div className={cn("grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3", className)}>
+    <div className={cn("grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3", className)}>
       {Array.from({ length: count }).map((_, i) => (
         <SingleSkeleton key={i} variant={variant} />
       ))}

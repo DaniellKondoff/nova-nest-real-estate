@@ -47,7 +47,7 @@ export function TestimonialCarousel({
     const compute = () => {
       if (typeof window === "undefined") return;
       const w = window.innerWidth;
-      if (w < 640) setItemsPerView(1);
+      if (w < 768) setItemsPerView(1);
       else if (w < 1024) setItemsPerView(2);
       else setItemsPerView(3);
     };
@@ -184,8 +184,10 @@ export function TestimonialCarousel({
             >
               <div
                 className={cn(
-                  "grid grid-cols-1 gap-4 md:gap-6",
-                  itemsPerView === 1 ? "" : itemsPerView === 2 ? "sm:grid-cols-2" : "lg:grid-cols-3"
+                  "grid gap-4 md:gap-6",
+                  itemsPerView === 1 ? "grid-cols-1" : 
+                  itemsPerView === 2 ? "grid-cols-1 md:grid-cols-2" : 
+                  "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
                 )}
               >
                 {(pages[pageIndex] || []).length === 0 ? (

@@ -50,7 +50,7 @@ const TestimonialCardComponent = ({ testimonial }: { testimonial: TestimonialDat
       <div className="flex items-start gap-4 mb-4">
         <Avatar className="h-14 w-14 border-2 border-[#d4af37]">
           <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-          <AvatarFallback className="bg-[#1a2642] text-[#d4af37]">
+          <AvatarFallback className="bg-[#1a2642] text-white">
             {testimonial.name.split(" ").map(n => n[0]).join("")}
           </AvatarFallback>
         </Avatar>
@@ -85,72 +85,6 @@ const TestimonialCardComponent = ({ testimonial }: { testimonial: TestimonialDat
   </Card>
 );
 
-const MarqueeTestimonials = ({ testimonials }: { testimonials: TestimonialData[] }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
-  const marqueeRef = React.useRef<HTMLDivElement>(null);
-  const animationRef = React.useRef<number | null>(null);
-  
-  // Duplicate testimonials to ensure seamless loop
-  const duplicatedTestimonials = [...testimonials, ...testimonials];
-  
-  // Don't render if no testimonials
-  if (testimonials.length === 0) {
-    return null;
-  }
-  
-  React.useEffect(() => {
-    if (!marqueeRef.current) return;
-    
-    const element = marqueeRef.current;
-    let startTime: number;
-    let currentPosition = 0;
-    
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      
-      if (!isHovered) {
-        const elapsed = timestamp - startTime;
-        const progress = (elapsed / 30000) % 1; // 30 seconds duration
-        currentPosition = progress * -50; // Move by 50% (half the duplicated content)
-        element.style.transform = `translateX(${currentPosition}%)`;
-      }
-      
-      animationRef.current = requestAnimationFrame(animate);
-    };
-    
-    console.log('Starting marquee animation with', duplicatedTestimonials.length, 'testimonials');
-    animationRef.current = requestAnimationFrame(animate);
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [isHovered, duplicatedTestimonials.length]);
-  
-  return (
-    <div className="relative w-full overflow-hidden py-8">
-      <div 
-        ref={marqueeRef}
-        className="flex gap-6"
-        style={{
-          width: '200%' // Double width to accommodate duplicated content
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {duplicatedTestimonials.map((testimonial, i) => (
-          <div key={`marquee-${i}`} className="flex-shrink-0 w-[320px] sm:w-[360px]">
-            <TestimonialCardComponent testimonial={testimonial} />
-          </div>
-        ))}
-      </div>
-      {/* Gradient overlays for fade effect */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
-    </div>
-  );
-};
 
 const CarouselTestimonials = ({ 
   testimonials, 
@@ -160,24 +94,59 @@ const CarouselTestimonials = ({
   autoplay: boolean;
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerView, setItemsPerView] = useState(1);
+
+  // Calculate items per view based on screen size
+  useEffect(() => {
+    const computeItemsPerView = () => {
+      const width = window.innerWidth;
+      if (width < 768) setItemsPerView(1);
+      else if (width < 1024) setItemsPerView(2);
+      else setItemsPerView(3);
+    };
+
+    computeItemsPerView();
+    window.addEventListener('resize', computeItemsPerView);
+    return () => window.removeEventListener('resize', computeItemsPerView);
+  }, []);
+
+  const totalPages = Math.ceil(testimonials.length / itemsPerView);
+  const maxIndex = Math.max(0, totalPages - 1);
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
   };
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleIndicatorClick = (index: number) => {
+    setCurrentIndex(index);
   };
 
   useEffect(() => {
-    if (autoplay) {
-      const interval = setInterval(handleNext, 5000);
+    // Clamp current index if it exceeds max
+    setCurrentIndex((idx) => Math.min(idx, maxIndex));
+  }, [maxIndex]);
+
+  useEffect(() => {
+    if (autoplay && totalPages > 1) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % totalPages);
+      }, 5000);
       return () => clearInterval(interval);
     }
-  }, [autoplay, currentIndex]);
+  }, [autoplay, totalPages]);
+
+  const getCurrentTestimonials = () => {
+    const start = currentIndex * itemsPerView;
+    const end = start + itemsPerView;
+    return testimonials.slice(start, end);
+  };
 
   return (
-    <div className="relative max-w-4xl mx-auto px-4">
+    <div className="relative max-w-7xl mx-auto px-4">
       <div className="relative min-h-[400px] flex items-center">
         <AnimatePresence mode="wait">
           <motion.div
@@ -188,53 +157,60 @@ const CarouselTestimonials = ({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="w-full"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <TestimonialCardComponent testimonial={testimonials[currentIndex]} />
-              {testimonials[(currentIndex + 1) % testimonials.length] && (
-                <div className="hidden md:block">
-                  <TestimonialCardComponent 
-                    testimonial={testimonials[(currentIndex + 1) % testimonials.length]} 
-                  />
-                </div>
-              )}
+            <div className={cn(
+              "grid gap-6",
+              itemsPerView === 1 ? "grid-cols-1" : 
+              itemsPerView === 2 ? "grid-cols-1 md:grid-cols-2" : 
+              "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            )}>
+              {getCurrentTestimonials().map((testimonial, index) => (
+                <TestimonialCardComponent 
+                  key={`${currentIndex}-${index}`}
+                  testimonial={testimonial} 
+                />
+              ))}
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center justify-center gap-4 mt-8">
-        <Button
-          onClick={handlePrev}
-          variant="secondary"
-          size="sm"
-          className="h-10 w-10 rounded-full border-[#d4af37] hover:bg-[#d4af37] hover:text-[#1a2642]"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex gap-2">
-          {testimonials.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={cn(
-                "h-2 rounded-full transition-all",
-                index === currentIndex 
-                  ? "w-8 bg-[#d4af37]" 
-                  : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-              )}
-              aria-label={`Go to testimonial ${index + 1}`}
-            />
-          ))}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <Button
+            onClick={handlePrev}
+            variant="secondary"
+            size="sm"
+            className="h-10 w-10 rounded-full border-[#d4af37] hover:bg-[#d4af37] hover:text-[#1a2642]"
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => handleIndicatorClick(index)}
+                className={cn(
+                  "h-2 rounded-full transition-all",
+                  index === currentIndex 
+                    ? "w-8 bg-[#d4af37]" 
+                    : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                )}
+                aria-label={`Go to page ${index + 1}`}
+              />
+            ))}
+          </div>
+          <Button
+            onClick={handleNext}
+            variant="secondary"
+            size="sm"
+            className="h-10 w-10 rounded-full border-[#d4af37] hover:bg-[#d4af37] hover:text-[#1a2642]"
+            disabled={currentIndex >= maxIndex}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
-        <Button
-          onClick={handleNext}
-          variant="secondary"
-          size="sm"
-          className="h-10 w-10 rounded-full border-[#d4af37] hover:bg-[#d4af37] hover:text-[#1a2642]"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-      </div>
+      )}
     </div>
   );
 };
@@ -249,7 +225,6 @@ export function TestimonialsSection({
   const [data, setData] = React.useState<TestimonialData[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"marquee" | "carousel">("carousel");
 
   React.useEffect(() => {
     let cancelled = false;
@@ -266,7 +241,7 @@ export function TestimonialsSection({
             role: testimonial.role || "Клиент",
             rating: testimonial.rating,
             quote: testimonial.testimonial,
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.clientName)}&background=d4af37&color=ffffff&size=150`,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.clientName)}&background=1a2642&color=ffffff&size=150`,
             propertyType: "Недвижим имот"
           }));
           setData(transformedData);
@@ -321,62 +296,7 @@ export function TestimonialsSection({
             <p>Все още няма добавени отзиви.</p>
           </div>
         ) : (
-          <>
-            <div className="flex justify-center gap-2 mb-8">
-              <Button
-                variant="secondary"
-                onClick={() => setViewMode("carousel")}
-                className={cn(
-                  "rounded-full transition-all duration-200",
-                  viewMode === "carousel" 
-                    ? "bg-[#1a2642] text-white border-[#1a2642] hover:bg-[#1a2642]/90" 
-                    : "border-[#1a2642] text-[#1a2642] bg-transparent hover:bg-[#d4af37] hover:text-white"
-                )}
-              >
-                Карусел
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setViewMode("marquee")}
-                className={cn(
-                  "rounded-full transition-all duration-200",
-                  viewMode === "marquee" 
-                    ? "bg-[#1a2642] text-white border-[#1a2642] hover:bg-[#1a2642]/90" 
-                    : "border-[#1a2642] text-[#1a2642] bg-transparent hover:bg-[#d4af37] hover:text-white"
-                )}
-              >
-                Маркиз
-              </Button>
-            </div>
-
-            {viewMode === "marquee" ? (
-              <MarqueeTestimonials testimonials={data} />
-            ) : (
-              <CarouselTestimonials testimonials={data} autoplay={autoplay} />
-            )}
-
-            <div className="mt-12 text-center">
-              <div className="inline-flex items-center gap-8 p-6 rounded-xl bg-muted/50 border border-border">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-[#1a2642]">500+</p>
-                  <p className="text-sm text-muted-foreground">Доволни клиенти</p>
-                </div>
-                <div className="h-12 w-px bg-border" />
-                <div className="text-center">
-                  <div className="flex items-center gap-1 justify-center mb-1">
-                    <p className="text-3xl font-bold text-[#1a2642]">4.9</p>
-                    <Star className="h-6 w-6 fill-[#d4af37] text-[#d4af37]" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">Средна оценка</p>
-                </div>
-                <div className="h-12 w-px bg-border" />
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-[#1a2642]">€2M+</p>
-                  <p className="text-sm text-muted-foreground">Продадени имоти</p>
-                </div>
-              </div>
-            </div>
-          </>
+          <CarouselTestimonials testimonials={data} autoplay={autoplay} />
         )}
       </div>
     </Section>
