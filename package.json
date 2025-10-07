@@ -7,7 +7,10 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "setup:env": "node -e \"const fs=require('fs');fs.copyFileSync('env.example','.env.local');console.log('Created .env.local from env.example');\""
+    "setup:env": "node -e \"const fs=require('fs');fs.copyFileSync('env.example','.env.local');console.log('Created .env.local from env.example');\"",
+    "type-check": "tsc --noEmit --incremental false",
+    "ci": "npm run type-check && npm run lint && npm run build",
+    "test:ci": "echo 'Tests will be added in Phase 2'"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",
