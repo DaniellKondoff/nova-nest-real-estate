@@ -45,45 +45,10 @@ const STATIC_PAGES: MetadataRoute.Sitemap = [
 
 /**
  * Property category pages configuration
+ * REMOVED: These pages don't exist as static routes
+ * Property filtering is handled dynamically via /properties page
  */
-const PROPERTY_CATEGORY_PAGES: MetadataRoute.Sitemap = [
-  {
-    url: `${SEO_CONFIG.siteUrl}/apartamenti-stara-zagora`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.85,
-  },
-  {
-    url: `${SEO_CONFIG.siteUrl}/kushi-stara-zagora`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.85,
-  },
-  {
-    url: `${SEO_CONFIG.siteUrl}/ofisi-stara-zagora`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.85,
-  },
-  {
-    url: `${SEO_CONFIG.siteUrl}/garazhi-stara-zagora`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.85,
-  },
-  {
-    url: `${SEO_CONFIG.siteUrl}/parceli-stara-zagora`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.85,
-  },
-  {
-    url: `${SEO_CONFIG.siteUrl}/skladove-stara-zagora`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.85,
-  },
-];
+// const PROPERTY_CATEGORY_PAGES: MetadataRoute.Sitemap = [];
 
 /**
  * Fetches published properties from database
@@ -206,7 +171,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Combine all sitemap entries
     const allPages: MetadataRoute.Sitemap = [
       ...STATIC_PAGES,
-      ...PROPERTY_CATEGORY_PAGES,
       ...propertyPages,
       ...neighborhoodPages,
       ...seoPages,
@@ -215,7 +179,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Log sitemap generation summary for monitoring
     console.log(`Sitemap generated with ${allPages.length} pages:`, {
       static: STATIC_PAGES.length,
-      categories: PROPERTY_CATEGORY_PAGES.length,
       properties: propertyPages.length,
       neighborhoods: neighborhoodPages.length,
       seoPages: seoPages.length,
@@ -224,11 +187,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return allPages;
   } catch (error) {
     console.error('Error generating sitemap:', error);
-    
+
     // Return at least static pages even if dynamic queries fail
-    return [
-      ...STATIC_PAGES,
-      ...PROPERTY_CATEGORY_PAGES,
-    ];
+    return STATIC_PAGES;
   }
 }

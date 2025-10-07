@@ -108,17 +108,17 @@ export function generateOrganizationSchema(): OrganizationSchema {
     '@id': `${SEO_CONFIG.siteUrl}#organization`,
     name: SEO_CONFIG.siteName,
     url: SEO_CONFIG.siteUrl,
-    logo: `${SEO_CONFIG.siteUrl}/images/logo.png`,
-    image: `${SEO_CONFIG.siteUrl}/images/og-default.jpg`,
+    logo: `${SEO_CONFIG.siteUrl}/images/logo.svg`,
+    image: `${SEO_CONFIG.siteUrl}/images/og-default.svg`,
     description: SEO_CONFIG.defaultDescription,
     telephone: SEO_CONFIG.contact.phone,
     email: SEO_CONFIG.contact.email,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'ул. [Your Address]', // Placeholder - update with actual address
+      streetAddress: 'бул. Цар Симеон Велики 123', // TODO: Replace with your actual business address
       addressLocality: SEO_CONFIG.location.city,
       addressRegion: SEO_CONFIG.location.region,
-      postalCode: '6000',
+      postalCode: '6000', // TODO: Replace with your actual postal code
       addressCountry: 'BG'
     },
     geo: {
