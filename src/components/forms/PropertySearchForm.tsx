@@ -8,6 +8,7 @@
  * to the properties results page with query parameters.
  */
 
+
 import React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
