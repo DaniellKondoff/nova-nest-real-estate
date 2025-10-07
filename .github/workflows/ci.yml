@@ -39,15 +39,15 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
                     
           # Email service
-          SMTP_FROM_EMAIL: ${{ secrets.SMTP_FROM_EMAIL }}
+          SMTP_FROM_EMAIL: 'info@novanest.bg'
                     
           # App configuration
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          NEXT_PUBLIC_SITE_NAME: ${{ secrets.NEXT_PUBLIC_SITE_NAME }}
+          NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_SITE_NAME: 'Nova Nest Real Estate'
           
           # Upload configuration
-          MAX_FILE_SIZE: ${{ secrets.MAX_FILE_SIZE }}
-          ALLOWED_FILE_TYPES: ${{ secrets.ALLOWED_FILE_TYPES }}
+          MAX_FILE_SIZE: '5242880'
+          ALLOWED_FILE_TYPES: 'jpg,jpeg,png,webp'
           
       - name: CI Results Summary
         if: always()
