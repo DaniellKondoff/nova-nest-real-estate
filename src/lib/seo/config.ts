@@ -48,9 +48,10 @@ export const SEO_CONFIG: SEOConfig = {
 
 /**
  * Default OpenGraph image configuration
+ * Note: Using SVG placeholder - replace with JPG/PNG for better social media compatibility
  */
 export const DEFAULT_OG_IMAGE = {
-  url: `${SEO_CONFIG.siteUrl}/images/og-default.jpg`,
+  url: `${SEO_CONFIG.siteUrl}/images/og-default.svg`,
   width: 1200,
   height: 630,
   alt: `${SEO_CONFIG.siteName} - Недвижими имоти в Стара Загора`

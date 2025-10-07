@@ -26,8 +26,9 @@ export function generateNeighborhoodMetadata(
   // Generate keywords
   const keywords = generateNeighborhoodKeywords(neighborhood);
   
-  // Generate Open Graph image
-  const ogImage = `${siteUrl}/images/neighborhoods/${neighborhood.slug}-og.jpg`;
+  // Generate Open Graph image - using fallback generic image
+  // TODO: Create neighborhood-specific images if needed in the future
+  const ogImage = `${siteUrl}/images/og-default.svg`;
   
   return {
     title,

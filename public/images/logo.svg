@@ -1,0 +1,28 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#1a2642"/>
+
+  <!-- House icon in gold -->
+  <g transform="translate(256, 256)">
+    <!-- Roof -->
+    <path d="M -120,-80 L 0,-180 L 120,-80 Z" fill="#d4af37" stroke="#d4af37" stroke-width="8" stroke-linejoin="round"/>
+
+    <!-- House body -->
+    <rect x="-100" y="-80" width="200" height="160" fill="#d4af37" stroke="#d4af37" stroke-width="4"/>
+
+    <!-- Door -->
+    <rect x="-30" y="0" width="60" height="80" fill="#1a2642" rx="4"/>
+
+    <!-- Windows -->
+    <rect x="-80" y="-40" width="40" height="40" fill="#1a2642" rx="2"/>
+    <rect x="40" y="-40" width="40" height="40" fill="#1a2642" rx="2"/>
+
+    <!-- Chimney -->
+    <rect x="60" y="-140" width="25" height="60" fill="#d4af37"/>
+  </g>
+
+  <!-- Text - NN monogram -->
+  <text x="256" y="420" font-family="Inter, Arial, sans-serif" font-size="80" font-weight="700" fill="#d4af37" text-anchor="middle" letter-spacing="4">
+    NN
+  </text>
+</svg>
