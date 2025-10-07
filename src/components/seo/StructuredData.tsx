@@ -4,7 +4,7 @@
  */
 
 import { generateOrganizationSchema, generateWebsiteSchema, generateAggregateRatingSchema, generateReviewsSchema } from '@/lib/seo/generate-schema';
-import { getAggregateRating, getApprovedTestimonials } from '@/lib/queries/testimonials';
+import { getAggregateRatingStatic, getApprovedTestimonialsStatic } from '@/lib/queries/testimonials';
 
 /**
  * Organization Schema Component
@@ -13,8 +13,8 @@ import { getAggregateRating, getApprovedTestimonials } from '@/lib/queries/testi
  */
 export async function OrganizationSchema() {
   // Fetch rating and review data
-  const { averageRating, reviewCount } = await getAggregateRating();
-  const testimonials = await getApprovedTestimonials();
+  const { averageRating, reviewCount } = await getAggregateRatingStatic();
+  const testimonials = await getApprovedTestimonialsStatic();
   
   // Generate base organization schema
   const baseSchema = generateOrganizationSchema();

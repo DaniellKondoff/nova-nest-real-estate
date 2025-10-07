@@ -13,10 +13,10 @@ interface Property {
   price_bgn: number | null;
   status: "available" | "under_offer" | "sold" | "rented" | "archived";
   created_at: string;
-  primary_image?: {
+  primary_image: {
     url: string;
-    alt_text_bg?: string;
-  };
+    alt_text_bg: string | null;
+  }[];
 }
 
 interface RecentPropertiesProps {
@@ -192,10 +192,10 @@ export function RecentProperties({ limit = 10 }: RecentPropertiesProps) {
                 <div className="flex items-center">
                   {/* Property Image */}
                   <div className="flex-shrink-0 mr-3">
-                    {property.primary_image?.url ? (
+                    {property.primary_image && property.primary_image.length > 0 ? (
                       <img
-                        src={property.primary_image.url}
-                        alt={property.primary_image.alt_text_bg || property.title_bg}
+                        src={property.primary_image[0].url}
+                        alt={property.primary_image[0].alt_text_bg || property.title_bg}
                         className="w-15 h-15 rounded object-cover"
                         onError={(e) => {
                           // Fallback to icon if image fails to load

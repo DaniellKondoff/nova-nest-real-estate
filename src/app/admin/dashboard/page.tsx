@@ -18,8 +18,8 @@ interface DashboardStats {
   totalViews: number;
   mostViewedProperty: {
     id: number;
-    title: string;
-    view_count: number;
+    title_bg: string;
+    view_count: number | null;
   } | null;
 }
 

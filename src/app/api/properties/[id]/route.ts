@@ -31,9 +31,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       return notFound("Имотът не е намерен.");
     }
 
-    // Fetch category
+    // Fetch category and neighborhood
     const supabase = await getSupabaseClient();
     const categoryId = (property as any)?.category_id as number | undefined;
+    const neighborhoodId = (property as any)?.neighborhood_id as number | undefined;
+    
     let category: Pick<CategoryRow, "id" | "name_bg" | "slug"> | null = null;
     if (typeof categoryId === "number") {
       const { data: cat } = await supabase
@@ -44,6 +46,16 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       category = (cat as any) ?? null;
     }
 
+    let neighborhood: Pick<NeighborhoodRow, "id" | "name_bg" | "slug"> | null = null;
+    if (typeof neighborhoodId === "number") {
+      const { data: neigh } = await supabase
+        .from("neighborhoods")
+        .select("id,name_bg,slug")
+        .eq("id", neighborhoodId)
+        .maybeSingle();
+      neighborhood = (neigh as any) ?? null;
+    }
+
     const body: SuccessResponse<{
       property: PropertyRow;
       neighborhood: Pick<NeighborhoodRow, "id" | "name_bg" | "slug"> | null;
@@ -52,7 +64,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }> = {
       data: {
         property: property as unknown as PropertyRow,
-        neighborhood: (property.neighborhood as any) ?? null,
+        neighborhood,
         category,
         images: (property.images as any) ?? [],
       },

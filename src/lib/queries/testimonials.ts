@@ -4,7 +4,9 @@
  */
 
 import { getServerClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.generated';
+import { env } from '@/lib/env';
 
 // Type for testimonial data
 export interface Testimonial {
@@ -22,7 +24,52 @@ export interface AggregateRating {
 }
 
 /**
- * Fetches all approved testimonials from the database
+ * Creates a static Supabase client for static generation (no cookies)
+ */
+function getStaticClient() {
+  return createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+/**
+ * Fetches all approved testimonials from the database (static version for SSG)
+ * @returns Promise<Testimonial[]> - Array of approved testimonials
+ */
+export async function getApprovedTestimonialsStatic(): Promise<Testimonial[]> {
+  try {
+    const supabase = getStaticClient();
+    
+    const { data, error } = await supabase
+      .from('testimonials')
+      .select('id, rating, client_name, content_bg, created_at')
+      .eq('is_published', true)
+      .not('rating', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching testimonials:', error);
+      return [];
+    }
+
+    // Filter out testimonials without ratings and map to our interface
+    return (data || [])
+      .filter((testimonial): testimonial is NonNullable<typeof testimonial> & { rating: number } => 
+        testimonial.rating !== null && testimonial.rating > 0
+      )
+      .map(testimonial => ({
+        id: testimonial.id,
+        rating: testimonial.rating,
+        client_name: testimonial.client_name,
+        comment_text: testimonial.content_bg,
+        created_at: testimonial.created_at
+      }));
+  } catch (error) {
+    console.error('Error in getApprovedTestimonialsStatic:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetches all approved testimonials from the database (dynamic version with cookies)
  * @returns Promise<Testimonial[]> - Array of approved testimonials
  */
 export async function getApprovedTestimonials(): Promise<Testimonial[]> {
@@ -60,7 +107,38 @@ export async function getApprovedTestimonials(): Promise<Testimonial[]> {
 }
 
 /**
- * Calculates aggregate rating from approved testimonials
+ * Calculates aggregate rating from approved testimonials (static version for SSG)
+ * @returns Promise<AggregateRating> - Object with average rating and review count
+ */
+export async function getAggregateRatingStatic(): Promise<AggregateRating> {
+  try {
+    const testimonials = await getApprovedTestimonialsStatic();
+    
+    if (testimonials.length === 0) {
+      return {
+        averageRating: 0,
+        reviewCount: 0
+      };
+    }
+
+    const totalRating = testimonials.reduce((sum, testimonial) => sum + testimonial.rating, 0);
+    const averageRating = totalRating / testimonials.length;
+    
+    return {
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      reviewCount: testimonials.length
+    };
+  } catch (error) {
+    console.error('Error in getAggregateRatingStatic:', error);
+    return {
+      averageRating: 0,
+      reviewCount: 0
+    };
+  }
+}
+
+/**
+ * Calculates aggregate rating from approved testimonials (dynamic version with cookies)
  * @returns Promise<AggregateRating> - Object with average rating and review count
  */
 export async function getAggregateRating(): Promise<AggregateRating> {

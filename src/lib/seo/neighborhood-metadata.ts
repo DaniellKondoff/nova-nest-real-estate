@@ -34,7 +34,9 @@ export function generateNeighborhoodMetadata(
     title,
     description,
     keywords: keywords.join(", "),
-    canonical: canonicalUrl,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
@@ -56,9 +58,6 @@ export function generateNeighborhoodMetadata(
       title,
       description,
       images: [ogImage],
-    },
-    alternates: {
-      canonical: canonicalUrl,
     },
     robots: {
       index: true,

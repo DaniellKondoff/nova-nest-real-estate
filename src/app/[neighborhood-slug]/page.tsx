@@ -15,8 +15,8 @@ import NeighborhoodHero from "@/components/neighborhoods/NeighborhoodHero";
 import NeighborhoodInfo from "@/components/neighborhoods/NeighborhoodInfo";
 import NeighborhoodMap from "@/components/neighborhoods/NeighborhoodMap";
 import PropertyGrid from "@/components/property/PropertyGrid";
-import { Button } from "@/components/ui/button";
 import { Phone, Mail } from "lucide-react";
+import Link from "next/link";
 
 interface NeighborhoodPageProps {
   params: {
@@ -205,13 +205,13 @@ export default async function NeighborhoodPage({
                   <Phone className="h-5 w-5" />
                   Обадете се сега
                 </a>
-                <a 
+                <Link 
                   href="/contact"
                   className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none border border-white text-white bg-transparent hover:bg-white hover:text-[#1a2642] font-semibold px-8 py-4 text-lg"
                 >
                   <Mail className="h-5 w-5" />
                   Свържете се с нас
-                </a>
+                </Link>
               </div>
             </div>
           </div>
