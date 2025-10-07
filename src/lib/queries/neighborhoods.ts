@@ -109,7 +109,6 @@ export async function getPropertiesByNeighborhood(
     `)
     .eq("neighborhood_id", neighborhoodId)
     .eq("status", "available")
-    .eq("is_active", true)
     .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -147,8 +146,7 @@ export async function getPropertyCountByNeighborhood(neighborhoodId: number): Pr
     .from("properties")
     .select("*", { count: "exact", head: true })
     .eq("neighborhood_id", neighborhoodId)
-    .eq("status", "available")
-    .eq("is_active", true);
+    .eq("status", "available");
 
   if (error) {
     console.error("Error fetching property count by neighborhood:", error);

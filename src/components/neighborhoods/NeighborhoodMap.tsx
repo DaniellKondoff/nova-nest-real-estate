@@ -94,14 +94,14 @@ export default function NeighborhoodMap({
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-medium text-[#1a2642] text-sm line-clamp-2">
-                        {property.property.title}
+                        {property.property.title_bg}
                       </h4>
                       <span className="bg-[#d4af37] text-[#1a2642] px-2 py-1 rounded text-xs font-medium">
-                        {property.property.price.toLocaleString()} €
+                        {property.property.price_eur?.toLocaleString() || 'Цена по договаряне'} €
                       </span>
                     </div>
                     <p className="text-xs text-gray-600">
-                      {property.property.type} • {property.property.location?.address || 'Адрес не е посочен'}
+                      {property.property.operation_type} • {property.property.address_bg || 'Адрес не е посочен'}
                     </p>
                   </div>
                 ))}

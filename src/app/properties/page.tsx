@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { TriangleAlert, X } from "lucide-react";
 import { usePropertySearch } from "@/hooks/usePropertySearch";
 import { usePropertyFeatures } from "@/hooks/usePropertyFeatures";
@@ -13,7 +13,7 @@ import ViewToggle from "@/components/property/ViewToggle";
 import Pagination from "@/components/property/Pagination";
 import type { ViewMode } from "@/types/search";
 
-export default function PropertiesPage(): React.ReactElement {
+function PropertiesPageContent(): React.ReactElement {
   const {
     properties,
     filters,
@@ -155,5 +155,11 @@ export default function PropertiesPage(): React.ReactElement {
   );
 }
 
-
+export default function PropertiesPage(): React.ReactElement {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PropertiesPageContent />
+    </Suspense>
+  );
+}
 

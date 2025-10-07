@@ -1,4 +1,4 @@
-import type { SEOMetaTags, LocalBusiness, PropertySchema } from "@/types/seo";
+// Types for SEO configuration
 import type { Property } from "@/types/property";
 import { appConfig, buildCanonicalUrl } from "@/lib/config";
 
@@ -46,7 +46,7 @@ export const BUSINESS = {
   },
 } as const;
 
-export const DEFAULT_META: Omit<SEOMetaTags, "canonical_url"> & { canonical_url?: string } = {
+export const DEFAULT_META = {
   title: "Имоти в Стара Загора | Nova Nest Real Estate",
   description:
     "Купи или наеми имот в Стара Загора. Апартаменти, къщи и офиси с професионално обслужване от Nova Nest.",
@@ -60,7 +60,7 @@ export const DEFAULT_META: Omit<SEOMetaTags, "canonical_url"> & { canonical_url?
 };
 
 // LocalBusiness structured data template for the Nova Nest office
-export function getLocalBusinessSchema(): LocalBusiness {
+export function getLocalBusinessSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
@@ -79,7 +79,7 @@ export function getLocalBusinessSchema(): LocalBusiness {
 }
 
 // Default meta templates for dynamic pages
-export function generatePropertyMeta(property: Property): SEOMetaTags {
+export function generatePropertyMeta(property: Property) {
   const title = `${property.title} | Имоти Стара Загора | ${appConfig.siteName}`;
   const description = `${property.description.substring(0, 155)}...`;
   const canonical_url = buildCanonicalUrl(`/imot/${property.id}`);
@@ -104,7 +104,7 @@ export function generatePropertyMeta(property: Property): SEOMetaTags {
 export function generateNeighborhoodMeta(
   slug: keyof typeof URLS,
   opts?: { title?: string; description?: string }
-): SEOMetaTags {
+) {
   const path = URLS[slug];
   const canonical_url = buildCanonicalUrl(path);
   const title =
@@ -132,7 +132,7 @@ export function generateNeighborhoodMeta(
 }
 
 // Structured data helpers
-export function getPropertyStructuredData(property: Property): PropertySchema {
+export function getPropertyStructuredData(property: Property) {
   const imageUrls = property.images.map((i) => i.url).slice(0, 10);
   return {
     "@context": "https://schema.org",
@@ -164,8 +164,6 @@ export function getPropertyStructuredData(property: Property): PropertySchema {
   };
 }
 
-export function getStructuredData(type: "business"): LocalBusiness;
-export function getStructuredData(type: "property", property: Property): PropertySchema;
 export function getStructuredData(type: "business" | "property", property?: Property): any {
   if (type === "business") return getLocalBusinessSchema();
   if (type === "property" && property) return getPropertyStructuredData(property);

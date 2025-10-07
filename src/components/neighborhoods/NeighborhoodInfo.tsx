@@ -33,7 +33,7 @@ interface Amenities {
  * Neighborhood information component displaying amenities and local details
  */
 export default function NeighborhoodInfo({ neighborhood }: NeighborhoodInfoProps) {
-  const amenities: Amenities = neighborhood.amenities || {};
+  const amenities: Amenities = (neighborhood.amenities as Amenities) || {};
   const transport = amenities.transport || {};
 
   const getWalkabilityText = (level?: string) => {

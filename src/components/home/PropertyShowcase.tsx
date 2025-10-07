@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { Inter } from "next/font/google";
 import { Home as HomeIcon } from "lucide-react";
 import { motion, type Variants, AnimatePresence } from "framer-motion";
@@ -245,12 +246,12 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
 
         {/* View All Button */}
         <div className="mt-12 flex justify-center">
-          <a
-            href="/imoti"
+          <Link
+            href="/properties"
             className="inline-flex items-center justify-center rounded-lg bg-[#d4af37] px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-[#c49d2f]"
           >
             Вижте всички обяви
-          </a>
+          </Link>
         </div>
       </div>
     </section>
