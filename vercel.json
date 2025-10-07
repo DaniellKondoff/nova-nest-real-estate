@@ -46,20 +46,5 @@
     }
   ],
   "redirects": [
-    {
-      "source": "/apartamenti/centrum",
-      "destination": "/apartamenti-centrum-stara-zagora",
-      "permanent": true
-    },
-    {
-      "source": "/apartamenti/centar",
-      "destination": "/apartamenti-centrum-stara-zagora",
-      "permanent": true
-    },
-    {
-      "source": "/kusti/samara",
-      "destination": "/kushi-samara-stara-zagora",
-      "permanent": true
-    }
   ]
 }
