@@ -4,8 +4,21 @@
  */
 
 import type { MetadataRoute } from 'next';
-import { getServerClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { SEO_CONFIG } from '@/lib/seo/config';
+import { env } from '@/lib/env';
+import type { Database } from '@/types/database.generated';
+
+/**
+ * Create a static Supabase client for sitemap generation
+ * This doesn't use cookies, making it suitable for static generation at build time
+ */
+function getStaticSupabaseClient() {
+  return createClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
 
 /**
  * Static pages configuration with priority and change frequency
@@ -56,7 +69,7 @@ const STATIC_PAGES: MetadataRoute.Sitemap = [
  */
 async function getPropertyPages(): Promise<MetadataRoute.Sitemap> {
   try {
-    const supabase = await getServerClient();
+    const supabase = getStaticSupabaseClient();
     
     const { data: properties, error } = await supabase
       .from('properties')
@@ -91,7 +104,7 @@ async function getPropertyPages(): Promise<MetadataRoute.Sitemap> {
  */
 async function getNeighborhoodPages(): Promise<MetadataRoute.Sitemap> {
   try {
-    const supabase = await getServerClient();
+    const supabase = getStaticSupabaseClient();
     
     const { data: neighborhoods, error } = await supabase
       .from('neighborhoods')
@@ -125,7 +138,7 @@ async function getNeighborhoodPages(): Promise<MetadataRoute.Sitemap> {
  */
 async function getSEOPages(): Promise<MetadataRoute.Sitemap> {
   try {
-    const supabase = await getServerClient();
+    const supabase = getStaticSupabaseClient();
     
     const { data: seoPages, error } = await supabase
       .from('seo_pages')
