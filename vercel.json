@@ -15,6 +15,7 @@
     "autoAlias": false,
     "silent": false
   },
+  "previewCommentsEnabled": true,
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
