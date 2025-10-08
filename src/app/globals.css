@@ -76,21 +76,9 @@ body {
 
 /* Mobile-first text colors for better readability */
 .text-nova-blue-mobile {
-  color: #1a2642;
-}
-
-@media (min-width: 768px) {
-  .text-nova-blue-mobile {
-    color: var(--brand-navy);
-  }
+  color: #1a2642 !important;
 }
 
 .text-nova-gray-dark-mobile {
-  color: #2d3748;
-}
-
-@media (min-width: 768px) {
-  .text-nova-gray-dark-mobile {
-    color: var(--color-muted-foreground);
-  }
+  color: #2d3748 !important;
 }
