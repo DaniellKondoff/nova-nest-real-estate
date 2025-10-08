@@ -36,6 +36,8 @@ const config: Config = {
         lightGray: "#f8f9fa",
         // Additional brand colors
         "nova-gold": "#d4af37",
+        "nova-blue": "#1a2642",
+        "nova-gray-dark": "#2d3748",
       },
 
       fontFamily: {

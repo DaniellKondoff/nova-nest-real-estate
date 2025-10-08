@@ -125,7 +125,8 @@ const ServiceCard = memo(({
       {/* Title with enhanced typography */}
       <h3 
         id={`service-title-${service.id}`}
-        className="text-2xl font-bold text-primary mb-4 leading-tight group-hover:text-gray-800 transition-colors duration-300"
+        className="text-2xl font-bold text-nova-blue mb-4 leading-tight group-hover:text-gray-800 transition-colors duration-300"
+        style={{color: '#1a2642'}}
       >
         {service.title}
       </h3>
@@ -456,16 +457,17 @@ const ServicesSection = ({ id }: { id?: string }) => {
             >
               <Star className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm font-semibold text-gray-800 uppercase tracking-wider">
+            <span className="text-sm font-semibold text-nova-blue uppercase tracking-wider" style={{color: '#1a2642'}}>
               Нашите услуги
             </span>
           </div>
           <h2 
             id="services-heading"
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary mb-6 sm:mb-8 leading-tight tracking-tight"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-nova-blue mb-6 sm:mb-8 leading-tight tracking-tight"
+            style={{color: '#1a2642'}}
           >
             Професионални услуги
-            <span className="block text-gray-800 mt-2">за недвижими имоти</span>
+            <span className="block text-nova-blue mt-2" style={{color: '#1a2642'}}>за недвижими имоти</span>
           </h2>
           <p className="text-xl sm:text-2xl text-charcoal max-w-4xl mx-auto leading-relaxed">
             Предлагаме пълен спектър от услуги в областта на недвижимите имоти с професионален подход и персонализирано обслужване

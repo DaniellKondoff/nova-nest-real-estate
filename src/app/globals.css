@@ -73,3 +73,12 @@ body {
 .animate-gradient-x {
   animation: gradient-x 3s ease infinite;
 }
+
+/* Mobile-first text colors for better readability */
+.text-nova-blue-mobile {
+  color: #1a2642 !important;
+}
+
+.text-nova-gray-dark-mobile {
+  color: #2d3748 !important;
+}

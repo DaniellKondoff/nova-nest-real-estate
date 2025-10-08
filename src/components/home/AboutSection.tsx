@@ -91,8 +91,8 @@ const AboutSection = () => {
       aria-labelledby="about-heading"
       role="region"
     >
-      {/* Background with animated gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-gray-100">
+      {/* Background with animated gradient - darker on mobile for better contrast */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-gray-200 md:from-slate-50 md:to-gray-100">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.05),transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.05),transparent_50%)]"></div>
       </div>
@@ -100,24 +100,25 @@ const AboutSection = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with enhanced animations */}
         <header className={`text-center mb-16 md:mb-20 lg:mb-24 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-nova-blue text-sm font-medium mb-6">
-            <Star className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white md:bg-gradient-to-r md:from-blue-100 md:to-indigo-100 border-2 border-slate-300 md:border-0 text-nova-blue text-sm font-bold md:font-medium mb-6 shadow-sm" style={{color: '#1a2642'}}>
+            <Star className="w-4 h-4" style={{color: '#1a2642'}} />
             Водеща агенция в Стара Загора
           </div>
           
           <h2 
             id="about-heading"
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-nova-blue mb-6 leading-tight"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black md:font-bold text-nova-blue mb-6 leading-tight drop-shadow-sm"
+            style={{color: '#1a2642'}}
           >
             Nova Nest Real Estate
           </h2>
           
-          <p className="text-xl md:text-2xl text-nova-blue/80 mb-8 font-medium">
+          <p className="text-xl md:text-2xl text-nova-blue mb-8 font-bold md:font-medium drop-shadow-sm" style={{color: '#1a2642'}}>
             Вашият доверен партньор за перфектния дом
           </p>
           
           <div className="max-w-4xl mx-auto">
-            <p className="text-lg md:text-xl leading-relaxed text-nova-gray-dark">
+            <p className="text-lg md:text-xl leading-relaxed text-slate-900 md:text-nova-gray-dark font-semibold md:font-normal">
               Ние сме водеща агенция за недвижими имоти в Стара Загора с богат опит и дълбоко познаване на местния пазар. 
               Нашата мисия е да помогнем на хората да намерят перфектното място, което да наричат "дом" - 
               тяхното ново гнездо.
@@ -132,13 +133,13 @@ const AboutSection = () => {
             return (
               <div 
                 key={index}
-                className="text-center p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="text-center p-6 rounded-2xl bg-white border-2 border-slate-300 md:border md:border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 md:bg-white/80 md:backdrop-blur-sm"
               >
-                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 bg-gradient-to-r from-blue-100 to-white">
-                  <Icon className="w-6 h-6 text-nova-blue" />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 bg-blue-100 border-2 border-blue-300 md:border md:bg-gradient-to-r md:from-blue-100 md:to-white">
+                  <Icon className="w-6 h-6" style={{color: '#1a2642'}} />
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-nova-blue mb-1">{stat.value}</div>
-                <div className="text-sm md:text-base text-nova-gray-dark font-medium">{stat.label}</div>
+                <div className="text-2xl md:text-3xl font-black md:font-bold text-nova-blue mb-1" style={{color: '#1a2642'}}>{stat.value}</div>
+                <div className="text-sm md:text-base text-slate-900 md:text-nova-gray-dark font-bold md:font-medium">{stat.label}</div>
               </div>
             );
           })}
@@ -151,7 +152,7 @@ const AboutSection = () => {
             return (
               <Card 
                 key={index} 
-                className={`group relative p-8 text-center bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden`}
+                className={`group relative p-8 text-center bg-white border-2 border-slate-300 md:border-0 md:bg-white/90 md:backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden`}
                 style={{
                   animationDelay: `${index * 100}ms`
                 }}
@@ -163,19 +164,19 @@ const AboutSection = () => {
                 <div className="relative z-10">
                   {/* Enhanced Icon Container */}
                   <div 
-                    className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-slate-300 md:border-0"
                     style={{backgroundColor: '#d4af37'}}
                   >
-                    <Icon className="w-10 h-10 text-nova-blue" />
+                    <Icon className="w-10 h-10" style={{color: '#1a2642'}} />
                   </div>
                   
                   {/* Title */}
-                  <h4 className="text-lg md:text-xl font-bold text-nova-blue mb-4 leading-tight group-hover:text-nova-blue transition-colors duration-300">
+                  <h4 className="text-lg md:text-xl font-black md:font-bold text-nova-blue mb-4 leading-tight group-hover:text-nova-blue transition-colors duration-300" style={{color: '#1a2642'}}>
                     {value.title}
                   </h4>
                   
                   {/* Description */}
-                  <p className="text-nova-gray-dark leading-relaxed group-hover:text-nova-gray-dark transition-colors duration-300">
+                  <p className="text-slate-900 md:text-nova-gray-dark leading-relaxed font-semibold md:font-normal group-hover:text-nova-gray-dark transition-colors duration-300">
                     {value.description}
                   </p>
                 </div>
@@ -191,7 +192,7 @@ const AboutSection = () => {
         {/* Enhanced Bottom CTA */}
         <div className={`text-center transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div 
-            className="relative p-8 md:p-12 rounded-3xl overflow-hidden"
+            className="relative p-8 md:p-12 rounded-3xl overflow-hidden shadow-xl"
             role="complementary"
             aria-labelledby="cta-heading"
           >
@@ -202,19 +203,15 @@ const AboutSection = () => {
             
             {/* Content */}
             <div className="relative z-10 text-white">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white/90 text-sm font-medium mb-6">
-                <Award className="w-4 h-4" />
-                Надежден партньор от 2014 г.
-              </div>
               
               <h3 
                 id="cta-heading"
-                className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 text-white"
+                className="text-2xl md:text-3xl lg:text-4xl font-black md:font-bold mb-6 text-white drop-shadow-md"
               >
                 Защо да изберете Nova Nest?
               </h3>
               
-              <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed mb-8">
+              <p className="text-base md:text-lg lg:text-xl text-white max-w-3xl mx-auto leading-relaxed mb-8 font-semibold md:font-normal drop-shadow-sm md:text-white/90">
                 С над 10 години опит в сферата на недвижимите имоти, ние сме помогнали на стотици семейства 
                 да намерят перфектния дом в Стара Загора. Нашият експертен екип познава всеки квартал и 
                 може да ви предложи най-добрите възможности на пазара.
@@ -224,14 +221,14 @@ const AboutSection = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button 
                   onClick={handleStartSearch}
-                  className="px-8 py-4 bg-gradient-to-r from-nova-blue to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-nova-blue to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
                   aria-label="Започнете търсенето на имоти"
                 >
                   Започнете търсенето
                 </button>
                 <button 
                   onClick={handleContactUs}
-                  className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto px-8 py-4 bg-nova-blue md:bg-white/10 md:backdrop-blur-sm text-white font-black md:font-semibold rounded-xl border-2 border-white md:border-white/20 hover:bg-slate-800 md:hover:bg-white/20 transition-all duration-300 hover:scale-105 shadow-md"
                   aria-label="Свържете се с нас за повече информация"
                 >
                   Свържете се с нас
