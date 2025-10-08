@@ -101,7 +101,7 @@ const AboutSection = () => {
         {/* Header with enhanced animations */}
         <header className={`text-center mb-16 md:mb-20 lg:mb-24 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white md:bg-gradient-to-r md:from-blue-100 md:to-indigo-100 border-2 border-slate-300 md:border-0 text-nova-blue text-sm font-bold md:font-medium mb-6 shadow-sm" style={{color: '#1a2642'}}>
-            <Star className="w-4 h-4" />
+            <Star className="w-4 h-4" style={{color: '#1a2642'}} />
             Водеща агенция в Стара Загора
           </div>
           
@@ -136,7 +136,7 @@ const AboutSection = () => {
                 className="text-center p-6 rounded-2xl bg-white border-2 border-slate-300 md:border md:border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 md:bg-white/80 md:backdrop-blur-sm"
               >
                 <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 bg-blue-100 border-2 border-blue-300 md:border md:bg-gradient-to-r md:from-blue-100 md:to-white">
-                  <Icon className="w-6 h-6 text-nova-blue" />
+                  <Icon className="w-6 h-6" style={{color: '#1a2642'}} />
                 </div>
                 <div className="text-2xl md:text-3xl font-black md:font-bold text-nova-blue mb-1" style={{color: '#1a2642'}}>{stat.value}</div>
                 <div className="text-sm md:text-base text-slate-900 md:text-nova-gray-dark font-bold md:font-medium">{stat.label}</div>
@@ -167,7 +167,7 @@ const AboutSection = () => {
                     className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-slate-300 md:border-0"
                     style={{backgroundColor: '#d4af37'}}
                   >
-                    <Icon className="w-10 h-10 text-nova-blue" />
+                    <Icon className="w-10 h-10" style={{color: '#1a2642'}} />
                   </div>
                   
                   {/* Title */}
@@ -204,7 +204,7 @@ const AboutSection = () => {
             {/* Content */}
             <div className="relative z-10 text-white">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white md:bg-white/10 md:backdrop-blur-sm text-nova-blue md:text-white/90 text-sm font-bold md:font-medium mb-6 border-2 border-slate-200 md:border md:border-white/20 shadow-sm">
-                <Award className="w-4 h-4" />
+                <Award className="w-4 h-4" style={{color: '#1a2642'}} />
                 Надежден партньор от 2014 г.
               </div>
               
