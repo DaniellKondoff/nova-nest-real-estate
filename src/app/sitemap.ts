@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import { SEO_CONFIG } from '@/lib/seo/config';
 import { env } from '@/lib/env';
 import type { Database } from '@/types/database.generated';
+import { getPropertyUrlSlug } from '@/lib/seo/property-slug';
 
 /**
  * Create a static Supabase client for sitemap generation
@@ -65,15 +66,16 @@ const STATIC_PAGES: MetadataRoute.Sitemap = [
 
 /**
  * Fetches published properties from database
- * @returns Array of property sitemap entries
+ * @returns Array of property sitemap entries with SEO-friendly URLs
  */
 async function getPropertyPages(): Promise<MetadataRoute.Sitemap> {
   try {
     const supabase = getStaticSupabaseClient();
     
+    // Fetch properties with slug for SEO-friendly URLs
     const { data: properties, error } = await supabase
       .from('properties')
-      .select('id, updated_at')
+      .select('id, slug, updated_at')
       .eq('status', 'available')
       .order('updated_at', { ascending: false });
 
@@ -86,12 +88,19 @@ async function getPropertyPages(): Promise<MetadataRoute.Sitemap> {
       return [];
     }
 
-    return properties.map((property) => ({
-      url: `${SEO_CONFIG.siteUrl}/properties/${property.id}`,
-      lastModified: property.updated_at ? new Date(property.updated_at) : new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }));
+    return properties.map((property) => {
+      // Generate SEO-friendly URL with slug if available
+      const urlSlug = property.slug 
+        ? getPropertyUrlSlug(property.id, property.slug)
+        : property.id.toString();
+      
+      return {
+        url: `${SEO_CONFIG.siteUrl}/properties/${urlSlug}`,
+        lastModified: property.updated_at ? new Date(property.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      };
+    });
   } catch (error) {
     console.error('Error in getPropertyPages:', error);
     return [];
