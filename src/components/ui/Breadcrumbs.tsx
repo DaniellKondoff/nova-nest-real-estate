@@ -51,6 +51,20 @@ export function Breadcrumbs({
     return null;
   }
 
+  /**
+   * Converts a full URL to a relative path for Next.js Link
+   * e.g., 'https://novanest.bg/properties' -> '/properties'
+   */
+  const getRelativePath = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.pathname;
+    } catch {
+      // If URL parsing fails, assume it's already a relative path
+      return url;
+    }
+  };
+
   return (
     <nav 
       className={`flex items-center gap-2 text-sm text-gray-600 ${className}`}
@@ -59,12 +73,13 @@ export function Breadcrumbs({
       {sortedItems.map((item, index) => {
         const isLast = index === sortedItems.length - 1;
         const isLink = !isLast || showLastAsLink;
+        const href = getRelativePath(item.url);
 
         return (
           <div key={item.position} className="flex items-center gap-2">
             {isLink ? (
               <Link
-                href={item.url}
+                href={href}
                 className="text-[#1a2642] hover:text-[#d4af37] transition-colors duration-200 font-medium"
                 title={item.name}
               >
@@ -106,6 +121,15 @@ export function CompactBreadcrumbs({ items, className = '' }: BreadcrumbsProps) 
     return null;
   }
 
+  const getRelativePath = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.pathname;
+    } catch {
+      return url;
+    }
+  };
+
   return (
     <nav 
       className={`flex items-center gap-1 text-xs text-gray-500 ${className}`}
@@ -113,12 +137,13 @@ export function CompactBreadcrumbs({ items, className = '' }: BreadcrumbsProps) 
     >
       {sortedItems.map((item, index) => {
         const isLast = index === sortedItems.length - 1;
+        const href = getRelativePath(item.url);
 
         return (
           <div key={item.position} className="flex items-center gap-1">
             {!isLast ? (
               <Link
-                href={item.url}
+                href={href}
                 className="text-[#1a2642] hover:text-[#d4af37] transition-colors duration-200"
                 title={item.name}
               >
@@ -156,6 +181,15 @@ export function BreadcrumbsWithHome({ items, className = '' }: BreadcrumbsProps)
     return null;
   }
 
+  const getRelativePath = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.pathname;
+    } catch {
+      return url;
+    }
+  };
+
   return (
     <nav 
       className={`flex items-center gap-2 text-sm text-gray-600 ${className}`}
@@ -164,12 +198,13 @@ export function BreadcrumbsWithHome({ items, className = '' }: BreadcrumbsProps)
       {sortedItems.map((item, index) => {
         const isLast = index === sortedItems.length - 1;
         const isFirst = index === 0;
+        const href = getRelativePath(item.url);
 
         return (
           <div key={item.position} className="flex items-center gap-2">
             {!isLast ? (
               <Link
-                href={item.url}
+                href={href}
                 className="text-[#1a2642] hover:text-[#d4af37] transition-colors duration-200 font-medium flex items-center gap-1"
                 title={item.name}
               >

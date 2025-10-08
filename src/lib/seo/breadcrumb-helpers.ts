@@ -9,7 +9,10 @@ import type { BreadcrumbItem } from './breadcrumb-schema';
 
 /**
  * Generates breadcrumb items for property detail pages
- * Creates navigation path: Home > Properties > Category > Neighborhood > Property
+ * Creates navigation path: Home > Properties > [Neighborhood] > Property
+ * 
+ * Note: Category breadcrumbs link to properties page with category filter
+ * Neighborhood breadcrumbs link to neighborhood landing pages if available
  * 
  * @param property - PropertyWithDetails object containing property information
  * @returns Array of breadcrumb items for property detail page
@@ -20,9 +23,8 @@ import type { BreadcrumbItem } from './breadcrumb-schema';
  * // Returns: [
  * //   { name: 'Начало', url: 'https://novanest.bg', position: 1 },
  * //   { name: 'Имоти', url: 'https://novanest.bg/properties', position: 2 },
- * //   { name: 'Апартаменти', url: 'https://novanest.bg/apartamenti-stara-zagora', position: 3 },
- * //   { name: 'Център', url: 'https://novanest.bg/apartamenti-centrum-stara-zagora', position: 4 },
- * //   { name: 'Property Title', url: 'https://novanest.bg/properties/123', position: 5 }
+ * //   { name: 'Център', url: 'https://novanest.bg/centur', position: 3 },
+ * //   { name: 'Property Title', url: 'https://novanest.bg/properties/123', position: 4 }
  * // ]
  * ```
  */
@@ -38,29 +40,19 @@ export function getPropertyBreadcrumbs(property: PropertyWithDetails): Breadcrum
     position: position++
   });
 
-  // Properties
+  // Properties - always link to the properties page
   breadcrumbs.push({
     name: 'Имоти',
     url: `${SEO_CONFIG.siteUrl}/properties`,
     position: position++
   });
 
-  // Category (if available)
-  if (category?.name_bg) {
-    const categorySlug = generateCategorySlug(category.name_bg);
-    breadcrumbs.push({
-      name: category.name_bg,
-      url: `${SEO_CONFIG.siteUrl}/${categorySlug}`,
-      position: position++
-    });
-  }
-
-  // Neighborhood (if available and different from category)
-  if (neighborhood?.name_bg && category?.name_bg) {
-    const neighborhoodSlug = generateNeighborhoodSlug(category.name_bg, neighborhood.name_bg);
+  // Neighborhood (if available) - link to neighborhood landing page
+  // Neighborhood landing pages exist at /[neighborhood-slug]
+  if (neighborhood?.slug) {
     breadcrumbs.push({
       name: neighborhood.name_bg,
-      url: `${SEO_CONFIG.siteUrl}/${neighborhoodSlug}`,
+      url: `${SEO_CONFIG.siteUrl}/${neighborhood.slug}`,
       position: position++
     });
   }

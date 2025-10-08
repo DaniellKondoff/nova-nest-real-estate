@@ -19,9 +19,9 @@ import { Phone, Mail } from "lucide-react";
 import Link from "next/link";
 
 interface NeighborhoodPageProps {
-  params: {
+  params: Promise<{
     "neighborhood-slug": string;
-  };
+  }>;
 }
 
 /**
@@ -48,7 +48,8 @@ export async function generateMetadata({
   params 
 }: NeighborhoodPageProps): Promise<Metadata> {
   try {
-    const neighborhood = await getNeighborhoodBySlug(params["neighborhood-slug"]);
+    const resolvedParams = await params;
+    const neighborhood = await getNeighborhoodBySlug(resolvedParams["neighborhood-slug"]);
     
     if (!neighborhood) {
       return {
@@ -76,8 +77,11 @@ export default async function NeighborhoodPage({
   params 
 }: NeighborhoodPageProps) {
   try {
+    // Await params before accessing properties (Next.js 15 requirement)
+    const resolvedParams = await params;
+    
     // Fetch neighborhood data
-    const neighborhood = await getNeighborhoodBySlug(params["neighborhood-slug"]);
+    const neighborhood = await getNeighborhoodBySlug(resolvedParams["neighborhood-slug"]);
     
     if (!neighborhood) {
       notFound();
@@ -177,16 +181,7 @@ export default async function NeighborhoodPage({
             </div>
           </div>
         </section>
-        
-        {/* Map Section */}
-        <section className="py-16">
-          <NeighborhoodMap 
-            lat={neighborhood.center_lat ?? undefined}
-            lng={neighborhood.center_lng ?? undefined}
-            properties={properties}
-          />
-        </section>
-        
+                
         {/* CTA Section */}
         <section className="py-16 bg-[#1a2642] text-white">
           <div className="container mx-auto px-4">
