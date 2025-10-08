@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { MapPin, Users, Award, Smartphone, Headphones, TrendingUp, X, Phone, Copy, Check } from "lucide-react";
 import { Heading, Text } from "@/components/ui/typography";
 import { cn } from "@/lib/design-tokens";
+import { site } from "@/config/site";
 
 interface Advantage {
   icon: React.ComponentType<{ className?: string }>;
@@ -77,18 +78,18 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
 
   const handlePhoneClick = () => {
     // Try to initiate phone call
-    window.location.href = 'tel:+359888123456';
+    window.location.href = `tel:${site.contact.phone}`;
     // Show modal as fallback
     setIsPhoneModalOpen(true);
   };
 
   const handleCopyNumber = async () => {
     try {
-      await navigator.clipboard.writeText('+359888123456');
+      await navigator.clipboard.writeText(site.contact.phone);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
-      console.log('Phone number: +359888123456');
+      console.log(`Phone number: ${site.contact.phone}`);
     }
   };
   return (
@@ -233,7 +234,7 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
             <div className="p-6">
               <div className="text-center mb-6">
                 <div className="text-3xl font-bold text-primary mb-2">
-                  +359 888 123 456
+                  {site.contact.phoneDisplay}
                 </div>
                 <p className="text-gray-600">
                   Нашият експерт ще отговори на вашите въпроси
@@ -243,7 +244,7 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
               <div className="space-y-3">
                 <button
                   onClick={() => {
-                    window.location.href = 'tel:+359888123456';
+                    window.location.href = `tel:${site.contact.phone}`;
                     setIsPhoneModalOpen(false);
                   }}
                   className="w-full bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
