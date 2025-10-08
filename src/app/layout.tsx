@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../styles/globals.css";
 import ConditionalWrapper from "@/components/layout/ConditionalWrapper";
 import { generateDefaultMetadata, generateDefaultViewport } from "@/lib/seo/metadata";
@@ -27,6 +28,7 @@ export default async function RootLayout({
         <ConditionalWrapper>
           {children}
         </ConditionalWrapper>
+        <SpeedInsights />
       </body>
     </html>
   );
