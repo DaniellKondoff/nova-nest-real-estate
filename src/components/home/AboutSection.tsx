@@ -100,19 +100,20 @@ const AboutSection = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with enhanced animations */}
         <header className={`text-center mb-16 md:mb-20 lg:mb-24 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white md:bg-gradient-to-r md:from-blue-100 md:to-indigo-100 border-2 border-slate-300 md:border-0 !text-nova-blue text-sm font-bold md:font-medium mb-6 shadow-sm">
-            <Star className="w-4 h-4 !text-nova-blue" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white md:bg-gradient-to-r md:from-blue-100 md:to-indigo-100 border-2 border-slate-300 md:border-0 text-nova-blue text-sm font-bold md:font-medium mb-6 shadow-sm" style={{color: '#1a2642'}}>
+            <Star className="w-4 h-4" style={{color: '#1a2642'}} />
             Водеща агенция в Стара Загора
           </div>
           
           <h2 
             id="about-heading"
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black md:font-bold !text-nova-blue mb-6 leading-tight drop-shadow-sm"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black md:font-bold text-nova-blue mb-6 leading-tight drop-shadow-sm"
+            style={{color: '#1a2642'}}
           >
             Nova Nest Real Estate
           </h2>
           
-          <p className="text-xl md:text-2xl !text-nova-blue mb-8 font-bold md:font-medium drop-shadow-sm">
+          <p className="text-xl md:text-2xl text-nova-blue mb-8 font-bold md:font-medium drop-shadow-sm" style={{color: '#1a2642'}}>
             Вашият доверен партньор за перфектния дом
           </p>
           
@@ -135,9 +136,9 @@ const AboutSection = () => {
                 className="text-center p-6 rounded-2xl bg-white border-2 border-slate-300 md:border md:border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 md:bg-white/80 md:backdrop-blur-sm"
               >
                 <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 bg-blue-100 border-2 border-blue-300 md:border md:bg-gradient-to-r md:from-blue-100 md:to-white">
-                  <Icon className="w-6 h-6 !text-nova-blue" />
+                  <Icon className="w-6 h-6" style={{color: '#1a2642'}} />
                 </div>
-                <div className="text-2xl md:text-3xl font-black md:font-bold !text-nova-blue mb-1">{stat.value}</div>
+                <div className="text-2xl md:text-3xl font-black md:font-bold text-nova-blue mb-1" style={{color: '#1a2642'}}>{stat.value}</div>
                 <div className="text-sm md:text-base text-slate-900 md:text-nova-gray-dark font-bold md:font-medium">{stat.label}</div>
               </div>
             );
@@ -166,11 +167,11 @@ const AboutSection = () => {
                     className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-slate-300 md:border-0"
                     style={{backgroundColor: '#d4af37'}}
                   >
-                    <Icon className="w-10 h-10 !text-nova-blue" />
+                    <Icon className="w-10 h-10" style={{color: '#1a2642'}} />
                   </div>
                   
                   {/* Title */}
-                  <h4 className="text-lg md:text-xl font-black md:font-bold !text-nova-blue mb-4 leading-tight group-hover:text-nova-blue transition-colors duration-300">
+                  <h4 className="text-lg md:text-xl font-black md:font-bold text-nova-blue mb-4 leading-tight group-hover:text-nova-blue transition-colors duration-300" style={{color: '#1a2642'}}>
                     {value.title}
                   </h4>
                   
