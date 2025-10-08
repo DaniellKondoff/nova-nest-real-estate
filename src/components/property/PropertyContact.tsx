@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MessageSquare, Check, TriangleAlert, Home, Phone, Copy, X } from "lucide-react";
 import { ContactFormSchema } from "@/lib/validations";
 import type { z } from "zod";
+import { site } from "@/config/site";
 
 export interface PropertyContactProps {
   propertyId: string;
@@ -46,8 +47,8 @@ export default function PropertyContact({ propertyId, propertyTitle, propertyPri
   const [isPhoneModalOpen, setIsPhoneModalOpen] = React.useState<boolean>(false);
   const [copySuccess, setCopySuccess] = React.useState<boolean>(false);
 
-  const phoneNumber = "+359 888 123 456";
-  const phoneNumberForCall = "+359888123456";
+  const phoneNumber = site.contact.phoneDisplay;
+  const phoneNumberForCall = site.contact.phone;
 
   const handleCopyPhone = async () => {
     try {

@@ -37,7 +37,7 @@ export const SEO_CONFIG: SEOConfig = {
     }
   },
   contact: {
-    phone: '+359888123456',
+    phone: '+359899897776',
     email: 'info@novanest.bg'
   },
   social: {
