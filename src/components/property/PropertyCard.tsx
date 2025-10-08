@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MapPin, Square, BedDouble, Building2 } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Tables } from "@/types/database.generated";
+import { getPropertyUrlSlug } from "@/lib/seo/property-slug";
 
 // New API props
 export interface PropertyCardProps {
@@ -127,7 +128,10 @@ export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCa
   const rooms = p.rooms;
   const floor = p.floor;
 
-  const href = `/properties/${String(p.id)}`;
+  // Generate SEO-friendly URL with slug if available
+  const href = p.slug 
+    ? `/properties/${getPropertyUrlSlug(p.id, p.slug)}`
+    : `/properties/${String(p.id)}`;
 
   return (
     <Link

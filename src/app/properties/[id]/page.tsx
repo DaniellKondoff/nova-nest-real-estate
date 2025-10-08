@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { getServerClient } from "@/lib/supabase/server";
 import type { PropertyWithDetails } from "@/types/property";
@@ -20,6 +20,7 @@ import { PropertyDetailSchema } from "@/components/seo/PropertySchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { getPropertyBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
+import { extractPropertyId, isValidPropertySlug, getPropertyUrlSlug } from "@/lib/seo/property-slug";
 
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
@@ -33,15 +34,34 @@ type ImageRow = Database["public"]["Tables"]["property_images"]["Row"];
 type FeatureRow = Database["public"]["Tables"]["property_features"]["Row"];
 
 /**
- * Validate ID format. The current schema uses numeric IDs.
- * We accept only digits to match the DB, otherwise return 404.
+ * Validate ID format and extract property ID
+ * Supports both formats:
+ * - Old format: "11" (numeric only)
+ * - New format: "11-apartamenti-3-stai-centur" (ID-slug)
+ * 
+ * @param idParam - URL parameter (can be numeric ID or ID-slug format)
+ * @returns Property ID number
+ * @throws Calls notFound() if invalid format
  */
-function validateIdOrNotFound(id: string): number {
-  const isNumeric = /^\d+$/.test(id);
+function validateIdOrNotFound(idParam: string): number {
+  // Try new format first (ID-slug)
+  if (idParam.includes('-')) {
+    if (!isValidPropertySlug(idParam)) {
+      notFound();
+    }
+    const id = extractPropertyId(idParam);
+    if (!id) {
+      notFound();
+    }
+    return id;
+  }
+  
+  // Fallback to old format (numeric only)
+  const isNumeric = /^\d+$/.test(idParam);
   if (!isNumeric) {
     notFound();
   }
-  const idNum = Number(id);
+  const idNum = Number(idParam);
   if (!Number.isFinite(idNum) || idNum <= 0) {
     notFound();
   }
@@ -149,8 +169,8 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 }
 
 export default async function PropertyDetailPage({ params }: PageParams) {
-  const { id } = await params;
-  const idNum = validateIdOrNotFound(id);
+  const { id: idParam } = await params;
+  const idNum = validateIdOrNotFound(idParam);
 
   let details: PropertyWithDetails | null = null;
   try {
@@ -166,6 +186,15 @@ export default async function PropertyDetailPage({ params }: PageParams) {
 
   const { property, neighborhood, category, images, features } = details!;
   const featuresList: FeatureRow[] = features ?? [];
+  
+  // Redirect old URL format to new SEO-friendly format
+  // Only redirect if:
+  // 1. The URL doesn't already have a slug (old numeric-only format)
+  // 2. The property has a slug in the database
+  if (!idParam.includes('-') && property.slug) {
+    const canonicalSlug = getPropertyUrlSlug(idNum, property.slug);
+    redirect(`/properties/${canonicalSlug}`);
+  }
   
   // Generate breadcrumbs for structured data and UI
   const breadcrumbs = getPropertyBreadcrumbs(details);

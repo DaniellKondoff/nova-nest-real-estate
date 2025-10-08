@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { Phone } from "lucide-react";
 import Logo from "@/components/ui/Logo";
+import { site } from "@/config/site";
 
 interface NavLinkItem {
   label: string;
@@ -266,12 +267,12 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
           <div className="hidden lg:flex items-center gap-4">
             {/* Phone number - hidden on lg, visible on xl */}
             <a
-              href="tel:+359XXXXXXXXX"
+              href={`tel:${site.contact.phone}`}
               className="hidden xl:flex items-center gap-2 text-white transition-all duration-200 ease-in-out hover:scale-105 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642] hover:drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]"
               aria-label="Позвънете на нашия телефон"
             >
               <Phone className="w-5 h-5 text-[#d4af37]" aria-hidden="true" />
-              <span className="font-medium text-[15px]">+359 XXX XXX XXX</span>
+              <span className="font-medium text-[15px]">{site.contact.phoneDisplay}</span>
             </a>
 
             {/* CTA Button */}
@@ -364,18 +365,18 @@ const Header: React.FC<HeaderProps> = ({ className, navItems = DEFAULT_NAV_ITEMS
                 variants={contactVariants}
               >
                 <a
-                  href="tel:+359XXXXXXXXX"
+                  href={`tel:${site.contact.phone}`}
                   className="mb-4 inline-flex items-center gap-3 text-white text-lg font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
                   aria-label="Позвънете на нашия телефон"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <Phone className="w-6 h-6 text-[#d4af37]" aria-hidden="true" />
-                  <span>+359 XXX XXX XXX</span>
+                  <span>{site.contact.phoneDisplay}</span>
                 </a>
 
                 <div>
                   <Link
-                    href="/contact"
+                    href="/#contact"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#c49b33] py-4 text-lg font-semibold text-[#1a2642] shadow-lg transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
                     aria-label="Свържете се с нас"

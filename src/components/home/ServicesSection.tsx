@@ -349,7 +349,7 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 className={`h-12 px-4 rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-gray-800/20 ${
                   errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-gray-800'
                 }`}
-                placeholder="+359 888 123 456"
+                placeholder="+359 899 897 776"
               />
               {errors.phone && <p className="text-sm text-red-500 mt-2 flex items-center">
                 <X className="w-4 h-4 mr-1" />

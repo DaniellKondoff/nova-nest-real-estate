@@ -17,11 +17,12 @@ import NeighborhoodMap from "@/components/neighborhoods/NeighborhoodMap";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { Phone, Mail } from "lucide-react";
 import Link from "next/link";
+import { site } from "@/config/site";
 
 interface NeighborhoodPageProps {
-  params: {
+  params: Promise<{
     "neighborhood-slug": string;
-  };
+  }>;
 }
 
 /**
@@ -48,7 +49,8 @@ export async function generateMetadata({
   params 
 }: NeighborhoodPageProps): Promise<Metadata> {
   try {
-    const neighborhood = await getNeighborhoodBySlug(params["neighborhood-slug"]);
+    const resolvedParams = await params;
+    const neighborhood = await getNeighborhoodBySlug(resolvedParams["neighborhood-slug"]);
     
     if (!neighborhood) {
       return {
@@ -76,8 +78,11 @@ export default async function NeighborhoodPage({
   params 
 }: NeighborhoodPageProps) {
   try {
+    // Await params before accessing properties (Next.js 15 requirement)
+    const resolvedParams = await params;
+    
     // Fetch neighborhood data
-    const neighborhood = await getNeighborhoodBySlug(params["neighborhood-slug"]);
+    const neighborhood = await getNeighborhoodBySlug(resolvedParams["neighborhood-slug"]);
     
     if (!neighborhood) {
       notFound();
@@ -157,14 +162,14 @@ export default async function NeighborhoodPage({
                     </p>
                     <div className="space-y-3">
                       <a 
-                        href="tel:+359881234567"
+                        href={`tel:${site.contact.phone}`}
                         className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none w-full bg-[#d4af37] hover:bg-[#b8941f] text-[#1a2642] py-3 px-6 text-base"
                       >
                         <Phone className="h-4 w-4" />
                         Обадете се
                       </a>
                       <a 
-                        href="mailto:info@novanest.bg"
+                        href={`mailto:${site.contact.email}`}
                         className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none w-full border border-[#1a2642] text-[#1a2642] bg-transparent hover:bg-[#1a2642] hover:text-white py-3 px-6 text-base"
                       >
                         <Mail className="h-4 w-4" />
@@ -177,16 +182,7 @@ export default async function NeighborhoodPage({
             </div>
           </div>
         </section>
-        
-        {/* Map Section */}
-        <section className="py-16">
-          <NeighborhoodMap 
-            lat={neighborhood.center_lat ?? undefined}
-            lng={neighborhood.center_lng ?? undefined}
-            properties={properties}
-          />
-        </section>
-        
+                
         {/* CTA Section */}
         <section className="py-16 bg-[#1a2642] text-white">
           <div className="container mx-auto px-4">
@@ -199,14 +195,14 @@ export default async function NeighborhoodPage({
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 
-                  href="tel:+359881234567"
+                  href={`tel:${site.contact.phone}`}
                   className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none bg-[#d4af37] hover:bg-[#b8941f] text-[#1a2642] font-semibold px-8 py-4 text-lg"
                 >
                   <Phone className="h-5 w-5" />
                   Обадете се сега
                 </a>
                 <Link 
-                  href="/contact"
+                  href="/#contact"
                   className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none border border-white text-white bg-transparent hover:bg-white hover:text-[#1a2642] font-semibold px-8 py-4 text-lg"
                 >
                   <Mail className="h-5 w-5" />

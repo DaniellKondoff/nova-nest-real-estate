@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Facebook, Instagram, Linkedin, Phone, Mail, MapPin, Clock, ChevronUp, MessageCircle, Home, Building2, Star, Users } from "lucide-react";
+import { site } from "@/config/site";
 
 /**
  * Footer – Nova Nest Real Estate
@@ -118,23 +119,20 @@ export default function Footer() {
                 <MapPin className="w-5 h-5 text-[#d4af37] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-white/90 text-sm">
-                    ул. Цар Симеон Велики 123<br />
-                    Стара Загора 6000
+                    Стара Загора
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
                 <div className="text-sm">
-                  <p className="text-white/90">+359 42 123 456</p>
-                  <p className="text-white/80">+359 888 123 456</p>
+                  <p className="text-white/80">{site.contact.phoneDisplay}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
                 <div className="text-sm">
-                  <p className="text-white/90">info@novanest.bg</p>
-                  <p className="text-white/80">office@novanest.bg</p>
+                  <p className="text-white/90">novanestrealestatebg@gmail.com</p>
                 </div>
               </div>
             </div>

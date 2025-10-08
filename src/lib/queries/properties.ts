@@ -80,6 +80,7 @@ export async function searchProperties(
   
   try {
     // Try the RPC function first (without feature filtering)
+    // @ts-expect-error - RPC function not in generated types yet
     const { data, error } = await supabase.rpc("search_properties_combined", {
       search_term: searchTerm || undefined,
       language_code: "bg",
