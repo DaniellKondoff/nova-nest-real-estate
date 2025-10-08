@@ -203,10 +203,6 @@ const AboutSection = () => {
             
             {/* Content */}
             <div className="relative z-10 text-white">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white md:bg-white/10 md:backdrop-blur-sm text-nova-blue md:text-white/90 text-sm font-bold md:font-medium mb-6 border-2 border-slate-200 md:border md:border-white/20 shadow-sm">
-                <Award className="w-4 h-4" style={{color: '#1a2642'}} />
-                Надежден партньор от 2014 г.
-              </div>
               
               <h3 
                 id="cta-heading"
