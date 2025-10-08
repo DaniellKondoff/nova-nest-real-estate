@@ -115,6 +115,7 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
             size="h1"
             weight="semibold"
             className="text-4xl md:text-5xl font-bold text-primary mb-6"
+            style={{color: '#1a2642'}}
           >
             Защо да изберете Nova Nest?
           </Heading>
@@ -144,10 +145,12 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
                 
                 <div className="relative">
                   <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ease-out">
-                     <Icon className="w-7 h-7 text-primary" />
+                     <div style={{color: '#1a2642'}}>
+                       <Icon className="w-7 h-7" />
+                     </div>
                   </div>
                   <div className="mb-3">
-                    <h3 className="text-xl font-bold text-primary mb-1">{advantage.title}</h3>
+                    <h3 className="text-xl font-bold text-primary mb-1" style={{color: '#1a2642'}}>{advantage.title}</h3>
                     <div className="text-sm font-medium text-yellow-600">{advantage.stat}</div>
                   </div>
                   <p className="text-gray-700 leading-relaxed">{advantage.description}</p>
@@ -165,7 +168,7 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
           className="mt-16 text-center"
         >
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-yellow-200">
-             <h3 className="text-2xl font-bold text-primary mb-4">
+             <h3 className="text-2xl font-bold text-primary mb-4" style={{color: '#1a2642'}}>
               Готови да започнем заедно?
             </h3>
             <p className="text-gray-700 mb-6 max-w-xl mx-auto">
@@ -233,7 +236,7 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
             {/* Content */}
             <div className="p-6">
               <div className="text-center mb-6">
-                <div className="text-3xl font-bold text-primary mb-2">
+                <div className="text-3xl font-bold text-primary mb-2" style={{color: '#1a2642'}}>
                   {site.contact.phoneDisplay}
                 </div>
                 <p className="text-gray-600">
