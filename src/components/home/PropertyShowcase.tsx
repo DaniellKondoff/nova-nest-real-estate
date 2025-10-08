@@ -48,12 +48,13 @@ export default function PropertyShowcase(props: PropertyShowcaseProps): React.Re
     try {
       const supabase = getBrowserClient();
       const operationType = activeFilter === "all" ? undefined : (activeFilter === "sale" ? "sale" : "rent");
+      // @ts-ignore - RPC function not in generated types yet
       const { data: featured, error: rpcError } = await supabase.rpc("get_featured_properties", {
         limit_count: 6,
-        operation_type_filter: operationType as any,
+        operation_type_filter: operationType,
       });
       if (rpcError) throw rpcError;
-      const ids = (featured ?? []).map((p: any) => p.id);
+      const ids = ((featured ?? []) as any[]).map((p: any) => p.id);
       if (!ids.length) {
         setProperties([]);
         return;
