@@ -37,7 +37,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from("testimonials")
-      .select("*, property:properties(*)")
+      .select("*")
       .eq("id", id)
       .maybeSingle();
     if (error) throw new DatabaseError("Неуспешно зареждане на отзив.");

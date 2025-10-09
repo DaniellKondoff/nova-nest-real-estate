@@ -34,15 +34,18 @@ export default function EditTestimonialPage() {
   useEffect(() => {
     const fetchTestimonial = async () => {
       try {
-        const response = await fetch(`/api/admin/testimonials/${id}`);
+        const response = await fetch(`/api/admin/testimonials/${id}`, {
+          credentials: "include",
+        });
         
         if (!response.ok) {
           throw new Error("Отзивът не е намерен");
         }
 
-        const data = await response.json();
-        console.log("Fetched testimonial data:", data);
-        setTestimonial(data);
+        const result = await response.json();
+        console.log("Fetched testimonial response:", result);
+        // API wraps response in { data: ... } envelope
+        setTestimonial(result.data);
       } catch (err) {
         console.error("Error fetching testimonial:", err);
         setError(err instanceof Error ? err.message : "Грешка при зареждане на отзив");
@@ -64,6 +67,7 @@ export default function EditTestimonialPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 

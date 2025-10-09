@@ -56,7 +56,6 @@ const TestimonialCardComponent = ({ testimonial }: { testimonial: TestimonialDat
         </Avatar>
         <div className="flex-1">
           <h4 className="font-semibold text-foreground text-lg">{testimonial.name}</h4>
-          <p className="text-sm text-muted-foreground">{testimonial.role}</p>
           {testimonial.location && (
             <div className="flex items-center gap-1 mt-1">
               <MapPin className="h-3 w-3 text-[#d4af37]" />
