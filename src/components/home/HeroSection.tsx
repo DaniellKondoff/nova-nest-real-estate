@@ -143,8 +143,8 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
                   <div className="text-sm text-white/80">Успешни сделки</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#d4af37] mb-2">5+</div>
-                  <div className="text-sm text-white/80">Години опит</div>
+                  <div className="text-2xl font-bold text-[#d4af37] mb-2">24/7</div>
+                  <div className="text-sm text-white/80">Съдействие на клиентите</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[#d4af37] mb-2">100%</div>
