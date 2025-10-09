@@ -191,7 +191,7 @@ export default function ContactCTASection({
                       <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#d4af37]/20 ring-1 ring-[#d4af37]/30">
                         <CheckCircle className="h-3 w-3 text-[#d4af37]" aria-hidden="true" />
                       </div>
-                      <span className="font-medium">Сертифицирани експерти</span>
+                      <span className="font-medium">Индивидуално отношение към всеки клиент</span>
                     </div>
                   </div>
                   <div className="group rounded-xl border border-white/15 bg-white/5 p-4 text-white transition-all duration-200 hover:bg-white/10 hover:border-white/25">
@@ -199,38 +199,12 @@ export default function ContactCTASection({
                       <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#d4af37]/20 ring-1 ring-[#d4af37]/30">
                         <CheckCircle className="h-3 w-3 text-[#d4af37]" aria-hidden="true" />
                       </div>
-                      <span className="font-medium">Над 10 години опит</span>
+                      <span className="font-medium">Опит, който личи във всеки детайл</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Business Hours */}
-              <div className="rounded-2xl bg-white/5 backdrop-blur-sm p-6 ring-1 ring-white/10">
-                <h3 className="text-white text-xl font-semibold leading-tight mb-6 flex items-center gap-2">
-                  <div className="h-1 w-8 bg-[#d4af37] rounded-full" />
-                  Работно време
-                </h3>
-                <div className="flex items-start gap-4 text-white">
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#d4af37]/20 ring-1 ring-[#d4af37]/30">
-                    <Clock className="h-5 w-5 text-[#d4af37]" aria-hidden="true" />
-                  </span>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#d4af37]" />
-                      <p className="text-white/90 font-medium">Понеделник - Петък: {site.contact.businessHours.weekdays}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#d4af37]" />
-                      <p className="text-white/90 font-medium">Събота: {site.contact.businessHours.saturday}</p>
-                    </div>
-                    <div className="flex items-center gap-2 mt-3">
-                      <div className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                      <p className="text-white/70 text-sm">Неделя: {site.contact.businessHours.sunday}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
