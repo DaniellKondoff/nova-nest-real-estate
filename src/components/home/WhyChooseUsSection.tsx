@@ -151,7 +151,6 @@ export default function WhyChooseUsSection({ className, ...rest }: WhyChooseUsSe
                   </div>
                   <div className="mb-3">
                     <h3 className="text-xl font-bold text-primary mb-1" style={{color: '#1a2642'}}>{advantage.title}</h3>
-                    <div className="text-sm font-medium text-yellow-600">{advantage.stat}</div>
                   </div>
                   <p className="text-gray-700 leading-relaxed">{advantage.description}</p>
                 </div>
