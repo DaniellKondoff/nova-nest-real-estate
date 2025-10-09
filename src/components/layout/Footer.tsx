@@ -146,12 +146,12 @@ export default function Footer() {
             © {currentYear} Nova Nest Real Estate. Всички права запазени.
           </div>
           <div className="flex gap-6 text-sm">
-            <Link href="/privacy" className="text-white/80 hover:text-[#d4af37] transition-colors duration-200">
+            <span className="text-white/80">
               Политика за поверителност
-            </Link>
-            <Link href="/terms" className="text-white/80 hover:text-[#d4af37] transition-colors duration-200">
+            </span>
+            <span className="text-white/80">
               Условия за ползване
-            </Link>
+            </span>
           </div>
         </div>
       </div>

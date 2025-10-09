@@ -78,8 +78,8 @@ const AboutSection = () => {
   ];
 
   const stats = [
-    { icon: Star, value: "500+", label: "Доволни клиенти", color: "text-nova-blue" },
-    { icon: Award, value: "10+", label: "Години опит", color: "text-nova-blue" },
+    { icon: Star, value: "Десетки", label: "доволни клиенти", color: "text-nova-blue" },
+    { icon: Award, value: "100%", label: "Качество", color: "text-nova-blue" },
     { icon: TrendingUp, value: "95%", label: "Успешни сделки", color: "text-nova-blue" },
     { icon: Heart, value: "24/7", label: "Поддръжка", color: "text-nova-blue" }
   ];
