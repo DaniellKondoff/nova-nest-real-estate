@@ -225,7 +225,7 @@ export default function PropertySearchForm(): React.ReactElement {
         <div className="flex items-center gap-3 mb-6">
           <Search className="h-6 w-6 text-[#d4af37]" />
           <h3 className="text-xl font-bold text-gray-800">
-            Бърза търсене
+            Бързо търсене
           </h3>
         </div>
         <div className="text-center py-8">
@@ -251,7 +251,7 @@ export default function PropertySearchForm(): React.ReactElement {
       <div className="flex items-center gap-3 mb-6">
         <Search className="h-6 w-6 text-[#d4af37]" />
         <h3 className="text-xl font-bold text-gray-800">
-          Бърза търсене
+          Бързо търсене
         </h3>
       </div>
       
