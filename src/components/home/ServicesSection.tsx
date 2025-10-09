@@ -9,7 +9,7 @@ import {
   ShoppingCart, 
   KeyRound, 
   Building2, 
-  Calculator, 
+  TrendingUp, 
   FileText,
   ArrowRight,
   CheckCircle,
@@ -56,12 +56,12 @@ const SERVICES_DATA = [
     ariaLabel: "Услуги за наемане на недвижими имоти"
     },
     {
-    id: "property-valuation",
-      icon: Calculator,
-      title: "Оценка на имоти",
-      description: "Професионална оценка на пазарната стойност на недвижими имоти",
-    features: ["Пазарен анализ", "Детайлен доклад", "Консултация с експерт"],
-    ariaLabel: "Услуги за оценка на недвижими имоти"
+    id: "market-consulting",
+      icon: TrendingUp,
+      title: "Консултации и пазарен анализ",
+      description: "Споделяме експертни съвети и пазарни тенденции, за да вземете информирано решение.",
+    features: ["Пазарни тенденции", "Анализ на цените", "Експертни препоръки"],
+    ariaLabel: "Услуги за консултации и пазарен анализ на недвижими имоти"
     },
     {
     id: "legal-support",
@@ -376,7 +376,7 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 <option value="purchase">Покупка на имот</option>
                 <option value="rental">Отдаване под наем</option>
                 <option value="leasing">Наемане на имот</option>
-                <option value="valuation">Оценка на имот</option>
+                <option value="consulting">Консултации и пазарен анализ</option>
                 <option value="legal">Правна подкрепа</option>
               </select>
               {errors.propertyType && <p className="text-sm text-red-500 mt-2 flex items-center">
