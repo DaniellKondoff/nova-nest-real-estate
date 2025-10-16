@@ -64,7 +64,7 @@ export function generateMetadata(pageData: PageMetadata): Metadata {
       },
     },
     verification: {
-      google: 'google-site-verification-placeholder',
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     },
     category: 'real estate',
     classification: 'Business',
@@ -218,7 +218,7 @@ export function generateDefaultMetadata(): Metadata {
     },
     manifest: '/manifest.json',
     verification: {
-      google: 'google-site-verification-placeholder',
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     },
     category: 'real estate',
     classification: 'Business',
