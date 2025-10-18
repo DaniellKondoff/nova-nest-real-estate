@@ -41,14 +41,25 @@ function PropertiesPageContent(): React.ReactElement {
   const activeChips = React.useMemo(() => {
     const chips: Array<{ key: keyof typeof filters; label: string }> = [];
     if (filters.operationType) chips.push({ key: "operationType", label: filters.operationType === "rent" ? "Наем" : "Продажба" });
-    if (typeof filters.categoryId === "number") chips.push({ key: "categoryId", label: `Категория #${filters.categoryId}` });
-    if (typeof filters.neighborhoodId === "number") chips.push({ key: "neighborhoodId", label: `Квартал #${filters.neighborhoodId}` });
+    
+    // Look up category name from categories data
+    if (typeof filters.categoryId === "number") {
+      const category = categories.find(c => c.id === filters.categoryId);
+      chips.push({ key: "categoryId", label: category?.name_bg || `Категория #${filters.categoryId}` });
+    }
+    
+    // Look up neighborhood name from neighborhoods data
+    if (typeof filters.neighborhoodId === "number") {
+      const neighborhood = neighborhoods.find(n => n.id === filters.neighborhoodId);
+      chips.push({ key: "neighborhoodId", label: neighborhood?.name_bg || `Квартал #${filters.neighborhoodId}` });
+    }
+    
     if (typeof filters.minPriceEur === "number") chips.push({ key: "minPriceEur", label: `Мин. цена €${filters.minPriceEur}` });
     if (typeof filters.maxPriceEur === "number") chips.push({ key: "maxPriceEur", label: `Макс. цена €${filters.maxPriceEur}` });
     if (typeof filters.minArea === "number") chips.push({ key: "minArea", label: `Мин. площ ${filters.minArea} m²` });
     if (typeof filters.maxArea === "number") chips.push({ key: "maxArea", label: `Макс. площ ${filters.maxArea} m²` });
     return chips;
-  }, [filters]);
+  }, [filters, categories, neighborhoods]);
 
   const appliedCount = activeChips.length;
 
