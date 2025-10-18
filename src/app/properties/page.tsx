@@ -12,6 +12,7 @@ import PropertySort from "@/components/property/PropertySort";
 import ViewToggle from "@/components/property/ViewToggle";
 import Pagination from "@/components/property/Pagination";
 import type { ViewMode } from "@/types/search";
+import BeautifulLoader from "@/magic/components/BeautifulLoader";
 
 function PropertiesPageContent(): React.ReactElement {
   const {
@@ -136,6 +137,13 @@ function PropertiesPageContent(): React.ReactElement {
             </div>
           </div>
 
+          {/* Loading spinner (visible during client-side loading) */}
+          {loading && (
+            <div className="mb-8">
+              <BeautifulLoader label="Зареждане на имоти..." />
+            </div>
+          )}
+
           {/* Properties Grid */}
           <PropertyGrid properties={properties} loading={loading} viewMode={viewMode} />
 
@@ -157,7 +165,7 @@ function PropertiesPageContent(): React.ReactElement {
 
 export default function PropertiesPage(): React.ReactElement {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<BeautifulLoader fullscreen label="Зареждане на имоти..." />}>
       <PropertiesPageContent />
     </Suspense>
   );
