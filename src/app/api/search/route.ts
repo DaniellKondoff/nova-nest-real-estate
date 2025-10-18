@@ -65,16 +65,16 @@ export async function GET(req: NextRequest) {
     if ((results?.length ?? 0) === 0 && isLikelyEnglish(parsed.q)) {
       try {
         const supabase = await getSupabaseClient();
-        const { data, error } = await supabase.rpc("search_properties_combined", {
-          search_term: parsed.q || undefined,
-          language_code: "en",
-          category_id: filters.categoryId,
-          neighborhood_id: filters.neighborhoodId,
-          operation_type: filters.operationType,
-          min_price: filters.minPrice,
-          max_price: filters.maxPrice,
-          min_area: filters.minArea,
-          max_area: filters.maxArea,
+        const { data, error } = await supabase.rpc("search_properties_v2", {
+          p_search_term: parsed.q || undefined,
+          p_language_code: "en",
+          p_category_id: filters.categoryId,
+          p_neighborhood_id: filters.neighborhoodId,
+          p_operation_type: filters.operationType,
+          p_min_price: filters.minPrice,
+          p_max_price: filters.maxPrice,
+          p_min_area: filters.minArea,
+          p_max_area: filters.maxArea,
         });
         if (error) {
           console.warn("English RPC search failed, using fallback:", error);
