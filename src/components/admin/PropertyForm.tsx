@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,28 +17,29 @@ type PropertyFeature = Tables<"property_features">;
 // Use a constant for current year to avoid hydration issues
 const CURRENT_YEAR = 2025;
 
-// Extended schema for form with additional fields
+// Property form schema - allows NaN values for optional number fields
 const PropertyFormSchema = z.object({
   title_bg: z.string().min(3, "Въведете заглавие.").max(200, "Максимум 200 символа"),
   title_en: z.string().max(200, "Максимум 200 символа").optional().nullable(),
   description_bg: z.string().min(20, "Минимум 20 символа").max(5000, "Максимум 5000 символа"),
   description_en: z.string().max(5000, "Максимум 5000 символа").optional().nullable(),
   address_bg: z.string().min(3, "Въведете адрес"),
-  price_eur: z.number().min(1, "Цената трябва да е поне 1 EUR"),
-  price_bgn: z.number().min(0).optional().nullable(),
+  price_eur: z.union([z.number().min(1, "Цената трябва да е поне 1 EUR"), z.nan()]),
+  price_bgn: z.union([z.number().min(0), z.nan()]).optional().nullable(),
   operation_type: z.enum(["sale", "rent"]),
   status: z.enum(["available", "under_offer", "sold", "rented", "archived"]),
-  category_id: z.number().int().positive({ message: "Изберете тип имот" }),
-  neighborhood_id: z.number().int().positive({ message: "Изберете квартал" }),
-  area_sqm: z.number().min(0).optional().nullable(),
-  rooms: z.number().int().min(1).max(20).optional().nullable(),
-  bedrooms: z.number().int().min(0).max(10).optional().nullable(),
-  bathrooms: z.number().int().min(0).max(10).optional().nullable(),
-  floor: z.number().int().min(-5).max(100).optional().nullable(),
-  total_floors: z.number().int().min(1).max(100).optional().nullable(),
-  year_built: z.number().int().min(1800).max(CURRENT_YEAR).optional().nullable(),
-  latitude: z.number().optional().nullable(),
-  longitude: z.number().optional().nullable(),
+  category_id: z.union([z.number().int().positive({ message: "Изберете тип имот" }), z.nan()]),
+  neighborhood_id: z.union([z.number().int().positive({ message: "Изберете квартал" }), z.nan()]),
+  area_sqm: z.union([z.number().min(0), z.nan()]).optional().nullable(),
+  // For Plot category, validation is handled by custom validate functions in register
+  rooms: z.union([z.number().int(), z.nan()]).optional().nullable(),
+  bedrooms: z.union([z.number().int(), z.nan()]).optional().nullable(),
+  bathrooms: z.union([z.number().int(), z.nan()]).optional().nullable(),
+  floor: z.union([z.number().int(), z.nan()]).optional().nullable(),
+  total_floors: z.union([z.number().int(), z.nan()]).optional().nullable(),
+  year_built: z.union([z.number().int(), z.nan()]).optional().nullable(),
+  latitude: z.union([z.number(), z.nan()]).optional().nullable(),
+  longitude: z.union([z.number(), z.nan()]).optional().nullable(),
   features: z.array(z.number()).optional(),
 });
 
@@ -76,8 +77,12 @@ export default function PropertyForm({
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors },
+    trigger,
+    clearErrors,
   } = useForm<PropertyFormData>({
+    mode: "onChange",
     resolver: zodResolver(PropertyFormSchema),
     defaultValues: initialData ? {
       title_bg: initialData.property.title_bg,
@@ -108,7 +113,39 @@ export default function PropertyForm({
     },
   });
 
+  // Watch category_id to determine if it's a plot category
+  const watchedCategoryId = watch("category_id");
+  
+  // Check if the selected category is "Парцел" (Plot)
+  const isPlotCategory = useMemo(() => {
+    if (!watchedCategoryId || !categories.length) return false;
+    const selectedCategory = categories.find(cat => cat.id === watchedCategoryId);
+    return selectedCategory?.name_bg === "Парцел" || selectedCategory?.name_bg === "Парцели";
+  }, [watchedCategoryId, categories]);
+
+  // Re-validate form when category changes
+  useEffect(() => {
+    if (watchedCategoryId) {
+      const fieldsToValidate = ['rooms', 'bedrooms', 'bathrooms', 'floor', 'total_floors', 'year_built'];
+      
+      if (isPlotCategory) {
+        // For Plot category, clear any existing errors for these fields
+        fieldsToValidate.forEach(field => {
+          clearErrors(field as keyof PropertyFormData);
+        });
+      } else {
+        // For other categories, trigger validation
+        fieldsToValidate.forEach(field => {
+          trigger(field as keyof PropertyFormData);
+        });
+      }
+    }
+  }, [isPlotCategory, trigger, watchedCategoryId, clearErrors]);
+
   const handleFormSubmit = async (data: PropertyFormData) => {
+    // Custom validation for Plot category - this is handled by the dynamic schema
+    // The form will automatically use the correct validation rules based on isPlotCategory
+
     // Validate images (need at least one - existing or new)
     if (images.length === 0 && existingImages.length === 0) {
       setImageError("Моля, добавете поне една снимка");
@@ -412,182 +449,6 @@ export default function PropertyForm({
         </div>
       </div>
 
-      {/* Property Details Section */}
-      <div className="bg-white p-8 rounded-lg border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">
-          Детайли за имота
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Area (m²) */}
-          <div>
-            <label
-              htmlFor="area_sqm"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Площ (м²)
-            </label>
-            <input
-              id="area_sqm"
-              type="number"
-              step="0.01"
-              {...register("area_sqm", { valueAsNumber: true })}
-              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
-              placeholder="85"
-            />
-            {errors.area_sqm && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.area_sqm.message}
-              </p>
-            )}
-          </div>
-
-          {/* Rooms */}
-          <div>
-            <label
-              htmlFor="rooms"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Брой стаи
-            </label>
-            <input
-              id="rooms"
-              type="number"
-              min="1"
-              max="20"
-              {...register("rooms", { valueAsNumber: true })}
-              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
-              placeholder="3"
-            />
-            {errors.rooms && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.rooms.message}
-              </p>
-            )}
-          </div>
-
-          {/* Bedrooms */}
-          <div>
-            <label
-              htmlFor="bedrooms"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Спални
-            </label>
-            <input
-              id="bedrooms"
-              type="number"
-              min="0"
-              max="10"
-              {...register("bedrooms", { valueAsNumber: true })}
-              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
-              placeholder="2"
-            />
-            {errors.bedrooms && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.bedrooms.message}
-              </p>
-            )}
-          </div>
-
-          {/* Bathrooms */}
-          <div>
-            <label
-              htmlFor="bathrooms"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Бани
-            </label>
-            <input
-              id="bathrooms"
-              type="number"
-              min="0"
-              max="10"
-              {...register("bathrooms", { valueAsNumber: true })}
-              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
-              placeholder="1"
-            />
-            {errors.bathrooms && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.bathrooms.message}
-              </p>
-            )}
-          </div>
-
-          {/* Floor */}
-          <div>
-            <label
-              htmlFor="floor"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Етаж
-            </label>
-            <input
-              id="floor"
-              type="number"
-              min="-5"
-              max="100"
-              {...register("floor", { valueAsNumber: true })}
-              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
-              placeholder="3"
-            />
-            {errors.floor && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.floor.message}
-              </p>
-            )}
-          </div>
-
-          {/* Total Floors */}
-          <div>
-            <label
-              htmlFor="total_floors"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Общо етажи
-            </label>
-            <input
-              id="total_floors"
-              type="number"
-              min="1"
-              max="100"
-              {...register("total_floors", { valueAsNumber: true })}
-              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
-              placeholder="6"
-            />
-            {errors.total_floors && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.total_floors.message}
-              </p>
-            )}
-          </div>
-
-          {/* Year Built */}
-          <div>
-            <label
-              htmlFor="year_built"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Година на строителство
-            </label>
-            <input
-              id="year_built"
-              type="number"
-              min="1800"
-              max={CURRENT_YEAR}
-              {...register("year_built", { valueAsNumber: true })}
-              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
-              placeholder="2010"
-            />
-            {errors.year_built && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.year_built.message}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Location and Category Section */}
       <div className="bg-white p-8 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">
@@ -651,6 +512,242 @@ export default function PropertyForm({
             {errors.neighborhood_id && (
               <p className="mt-1 text-sm text-red-600">
                 {errors.neighborhood_id.message}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Property Details Section */}
+      <div className="bg-white p-8 rounded-lg border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+          Детайли за имота
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Area (m²) */}
+          <div>
+            <label
+              htmlFor="area_sqm"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Площ (м²)
+            </label>
+            <input
+              id="area_sqm"
+              type="number"
+              step="0.01"
+              {...register("area_sqm", { valueAsNumber: true })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              placeholder="85"
+            />
+            {errors.area_sqm && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.area_sqm.message}
+              </p>
+            )}
+          </div>
+
+          {/* Rooms */}
+          <div>
+            <label
+              htmlFor="rooms"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Брой стаи {isPlotCategory && <span className="text-gray-500 text-xs">(незадължително за парцел)</span>}
+            </label>
+            <input
+              id="rooms"
+              type="number"
+              min="1"
+              max="20"
+              {...register("rooms", { 
+                valueAsNumber: true,
+                validate: (value) => {
+                  if (isPlotCategory) return true; // No validation for plots
+                  if (value === null || value === undefined || isNaN(value)) return true; // Allow empty values
+                  if (value < 1 || value > 20) {
+                    return "Брой стаи трябва да е между 1 и 20";
+                  }
+                  return true;
+                }
+              })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              placeholder="3"
+            />
+            {errors.rooms && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.rooms.message}
+              </p>
+            )}
+          </div>
+
+          {/* Bedrooms */}
+          <div>
+            <label
+              htmlFor="bedrooms"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Спални {isPlotCategory && <span className="text-gray-500 text-xs">(незадължително за парцел)</span>}
+            </label>
+            <input
+              id="bedrooms"
+              type="number"
+              min="0"
+              max="10"
+              {...register("bedrooms", { 
+                valueAsNumber: true,
+                validate: (value) => {
+                  if (isPlotCategory) return true; // No validation for plots
+                  if (value === null || value === undefined || isNaN(value)) return true; // Allow empty values
+                  if (value < 0 || value > 10) {
+                    return "Брой спални трябва да е между 0 и 10";
+                  }
+                  return true;
+                }
+              })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              placeholder="2"
+            />
+            {errors.bedrooms && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.bedrooms.message}
+              </p>
+            )}
+          </div>
+
+          {/* Bathrooms */}
+          <div>
+            <label
+              htmlFor="bathrooms"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Бани {isPlotCategory && <span className="text-gray-500 text-xs">(незадължително за парцел)</span>}
+            </label>
+            <input
+              id="bathrooms"
+              type="number"
+              min="0"
+              max="10"
+              {...register("bathrooms", { 
+                valueAsNumber: true,
+                validate: (value) => {
+                  if (isPlotCategory) return true; // No validation for plots
+                  if (value === null || value === undefined || isNaN(value)) return true; // Allow empty values
+                  if (value < 0 || value > 10) {
+                    return "Брой бани трябва да е между 0 и 10";
+                  }
+                  return true;
+                }
+              })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              placeholder="1"
+            />
+            {errors.bathrooms && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.bathrooms.message}
+              </p>
+            )}
+          </div>
+
+          {/* Floor */}
+          <div>
+            <label
+              htmlFor="floor"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Етаж {isPlotCategory && <span className="text-gray-500 text-xs">(незадължително за парцел)</span>}
+            </label>
+            <input
+              id="floor"
+              type="number"
+              min="-5"
+              max="100"
+              {...register("floor", { 
+                valueAsNumber: true,
+                validate: (value) => {
+                  if (isPlotCategory) return true; // No validation for plots
+                  if (value === null || value === undefined || isNaN(value)) return true; // Allow empty values
+                  if (value < -5 || value > 100) {
+                    return "Етажът трябва да е между -5 и 100";
+                  }
+                  return true;
+                }
+              })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              placeholder="3"
+            />
+            {errors.floor && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.floor.message}
+              </p>
+            )}
+          </div>
+
+          {/* Total Floors */}
+          <div>
+            <label
+              htmlFor="total_floors"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Общо етажи {isPlotCategory && <span className="text-gray-500 text-xs">(незадължително за парцел)</span>}
+            </label>
+            <input
+              id="total_floors"
+              type="number"
+              min="1"
+              max="100"
+              {...register("total_floors", { 
+                valueAsNumber: true,
+                validate: (value) => {
+                  if (isPlotCategory) return true; // No validation for plots
+                  if (value === null || value === undefined || isNaN(value)) return true; // Allow empty values
+                  if (value < 1 || value > 100) {
+                    return "Общо етажи трябва да е между 1 и 100";
+                  }
+                  return true;
+                }
+              })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              placeholder="6"
+            />
+            {errors.total_floors && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.total_floors.message}
+              </p>
+            )}
+          </div>
+
+          {/* Year Built */}
+          <div>
+            <label
+              htmlFor="year_built"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Година на строителство {isPlotCategory && <span className="text-gray-500 text-xs">(незадължително за парцел)</span>}
+            </label>
+            <input
+              id="year_built"
+              type="number"
+              min="1800"
+              max={CURRENT_YEAR}
+              {...register("year_built", { 
+                valueAsNumber: true,
+                validate: (value) => {
+                  if (isPlotCategory) return true; // No validation for plots
+                  if (value === null || value === undefined || isNaN(value)) return true; // Allow empty values
+                  if (value < 1800 || value > CURRENT_YEAR) {
+                    return `Година на строителство трябва да е между 1800 и ${CURRENT_YEAR}`;
+                  }
+                  return true;
+                }
+              })}
+              className="block w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-[#D4AF37] focus:border-[#D4AF37] text-sm"
+              placeholder="2010"
+            />
+            {errors.year_built && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.year_built.message}
               </p>
             )}
           </div>

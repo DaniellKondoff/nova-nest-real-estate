@@ -81,16 +81,16 @@ export async function searchProperties(
   try {
     // Try the RPC function first (without feature filtering)
     // @ts-expect-error - RPC function not in generated types yet
-    const { data, error } = await supabase.rpc("search_properties_combined", {
-      search_term: searchTerm || undefined,
-      language_code: "bg",
-      category_id: filters.categoryId,
-      neighborhood_id: filters.neighborhoodId,
-      operation_type: filters.operationType as string | undefined,
-      min_price: filters.minPrice,
-      max_price: filters.maxPrice,
-      min_area: filters.minArea,
-      max_area: filters.maxArea,
+    const { data, error } = await supabase.rpc("search_properties_v2", {
+      p_search_term: searchTerm || undefined,
+      p_language_code: "bg",
+      p_category_id: filters.categoryId,
+      p_neighborhood_id: filters.neighborhoodId,
+      p_operation_type: filters.operationType as string | undefined,
+      p_min_price: filters.minPrice,
+      p_max_price: filters.maxPrice,
+      p_min_area: filters.minArea,
+      p_max_area: filters.maxArea,
     });
 
     if (error) {

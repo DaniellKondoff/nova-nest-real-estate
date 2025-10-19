@@ -51,10 +51,10 @@ export default function HorizontalPropertyFilters({
       operationType: initialFilters?.operationType ?? undefined,
       categoryId: initialFilters?.categoryId,
       neighborhoodId: initialFilters?.neighborhoodId,
-      minPrice: initialFilters?.minPriceEur ?? 150,
-      maxPrice: initialFilters?.maxPriceEur ?? 120000,
-      minArea: initialFilters?.minArea ?? 20,
-      maxArea: initialFilters?.maxArea ?? 300,
+      minPrice: initialFilters?.minPriceEur ?? undefined,
+      maxPrice: initialFilters?.maxPriceEur ?? undefined,
+      minArea: initialFilters?.minArea ?? undefined,
+      maxArea: initialFilters?.maxArea ?? undefined,
     },
   });
 
@@ -64,17 +64,21 @@ export default function HorizontalPropertyFilters({
       operationType: initialFilters?.operationType ?? undefined,
       categoryId: initialFilters?.categoryId,
       neighborhoodId: initialFilters?.neighborhoodId,
-      minPrice: initialFilters?.minPriceEur ?? 150,
-      maxPrice: initialFilters?.maxPriceEur ?? 120000,
-      minArea: initialFilters?.minArea ?? 20,
-      maxArea: initialFilters?.maxArea ?? 300,
+      minPrice: initialFilters?.minPriceEur ?? undefined,
+      maxPrice: initialFilters?.maxPriceEur ?? undefined,
+      minArea: initialFilters?.minArea ?? undefined,
+      maxArea: initialFilters?.maxArea ?? undefined,
     });
     
-    if (initialFilters?.minPriceEur && initialFilters?.maxPriceEur) {
+    if (initialFilters?.minPriceEur !== undefined && initialFilters?.maxPriceEur !== undefined) {
       setPriceRange([initialFilters.minPriceEur, initialFilters.maxPriceEur]);
+    } else {
+      setPriceRange([150, 120000]);
     }
-    if (initialFilters?.minArea && initialFilters?.maxArea) {
+    if (initialFilters?.minArea !== undefined && initialFilters?.maxArea !== undefined) {
       setAreaRange([initialFilters.minArea, initialFilters.maxArea]);
+    } else {
+      setAreaRange([20, 300]);
     }
   }, [form, initialFilters]);
 
@@ -94,10 +98,10 @@ export default function HorizontalPropertyFilters({
       operationType: values.operationType as PropertySearchFilters["operationType"],
       categoryId: values.categoryId,
       neighborhoodId: values.neighborhoodId,
-      minPriceEur: values.minPrice,
-      maxPriceEur: values.maxPrice,
-      minArea: values.minArea,
-      maxArea: values.maxArea,
+      minPriceEur: values.minPrice !== undefined ? values.minPrice : undefined,
+      maxPriceEur: values.maxPrice !== undefined ? values.maxPrice : undefined,
+      minArea: values.minArea !== undefined ? values.minArea : undefined,
+      maxArea: values.maxArea !== undefined ? values.maxArea : undefined,
       featureIds: selectedFeatures.length > 0 ? selectedFeatures : undefined,
     };
     onFilterChange(applied);
@@ -108,10 +112,10 @@ export default function HorizontalPropertyFilters({
       operationType: undefined,
       categoryId: undefined,
       neighborhoodId: undefined,
-      minPrice: 150,
-      maxPrice: 120000,
-      minArea: 20,
-      maxArea: 300,
+      minPrice: undefined,
+      maxPrice: undefined,
+      minArea: undefined,
+      maxArea: undefined,
     });
     setPriceRange([150, 120000]);
     setAreaRange([20, 300]);

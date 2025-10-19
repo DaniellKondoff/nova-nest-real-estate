@@ -25,6 +25,8 @@ npm run dev          # Start dev server with Turbopack (port 3000)
 npm run build        # Production build with Turbopack
 npm run start        # Start production server
 npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript type checking without emitting files
+npm run ci           # Run type-check, lint, and build (for CI/CD pipelines)
 ```
 
 ### Environment Setup
@@ -72,6 +74,8 @@ Required environment variables in `.env.local`:
 **Server-side queries** (`src/lib/queries/`):
 - `properties.ts` - Property listing queries (server-side)
 - `features.ts` - Property features and categories
+- `categories.ts` - Property categories
+- `neighborhoods.ts` - Neighborhood data
 - `testimonials.ts` - Testimonials with ratings (server RSC)
 
 **Client-side queries**:
@@ -81,6 +85,7 @@ Required environment variables in `.env.local`:
 **Custom Hooks** (`src/hooks/`):
 - `usePropertySearch.ts` - Search with debouncing, filters, pagination
 - `usePropertyCategories.ts` - Category and feature data
+- `usePropertyFeatures.ts` - Property features data
 - `useNeighborhoods.ts` - Neighborhood data
 - `useAuth.ts` - Authentication state
 - `usePropertyViewTracking.ts` - Property view analytics
@@ -102,16 +107,33 @@ export async function GET(
 **Public API routes**:
 - `/api/properties` - Property listings with search/filters
 - `/api/properties/[id]` - Single property details
+- `/api/properties/[id]/view` - Track property views
+- `/api/properties/[id]/images` - Property image management
 - `/api/properties/nearby` - Nearby properties
+- `/api/properties/search` - Property search endpoint
 - `/api/search` - Global search
 - `/api/categories` - Property categories
+- `/api/neighborhoods` - Neighborhood listings
+- `/api/inquiries` - Submit property inquiries
+- `/api/images/[id]` - Image operations
+- `/api/images/[id]/primary` - Set primary image
 - `/api/health` - Health check endpoint
 
 **Admin API routes** (`/api/admin/*`):
 - `/api/admin/properties` - CRUD for properties
+- `/api/admin/properties/[id]` - Single property operations
+- `/api/admin/properties/[id]/images` - Admin image management
+- `/api/admin/properties/bulk-delete` - Bulk delete properties
 - `/api/admin/testimonials` - CRUD for testimonials
+- `/api/admin/testimonials/[id]` - Single testimonial operations
 - `/api/admin/inquiries` - Inquiry management
+- `/api/admin/inquiries/[id]` - Single inquiry operations
 - `/api/admin/neighborhoods` - Neighborhood management
+- `/api/admin/neighborhoods/[id]` - Single neighborhood operations
+- `/api/admin/categories` - Category management
+- `/api/admin/categories/[id]` - Single category operations
+- `/api/admin/features` - Feature management
+- `/api/admin/features/[id]` - Single feature operations
 - `/api/admin/dashboard` - Dashboard stats
 
 ### 5. SEO Implementation
@@ -206,6 +228,7 @@ Dynamic neighborhood pages with SEO optimization:
 1. **Async Dynamic APIs**: All dynamic APIs (`cookies()`, `headers()`, `params`) must be awaited
 2. **Server Components by Default**: Components are RSC unless marked with `'use client'`
 3. **Turbopack**: Used for both dev and build (configured in `next.config.ts`)
+4. **Trailing Slashes**: Enabled in `next.config.ts` - all URLs end with `/` for SEO consistency
 
 ### File Naming Conventions
 
