@@ -473,3 +473,4 @@ These migrations preserve the complete database schema for the Nova Nest Real Es
 **Happy Migrating! 🚀**
 
 
+

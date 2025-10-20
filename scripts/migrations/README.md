@@ -349,3 +349,4 @@ When modifying migrations:
 These migration scripts are part of Nova Nest Real Estate project.
 
 
+
