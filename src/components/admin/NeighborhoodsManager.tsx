@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
+import { generateSlugFromBulgarian } from "@/lib/utils";
 
 interface Neighborhood {
   id: number;
@@ -77,23 +78,13 @@ export default function NeighborhoodsManager() {
     loadNeighborhoods();
   }, []);
 
-  // Auto-generate slug from Bulgarian name
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9а-я\s]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/--+/g, "-")
-      .trim();
-  };
-
   const handleInputChange = (field: keyof NeighborhoodFormData, value: string) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
       // Auto-generate slug when Bulgarian name changes
       if (field === "name_bg") {
-        updated.slug = generateSlug(value);
+        updated.slug = generateSlugFromBulgarian(value);
       }
       
       return updated;
