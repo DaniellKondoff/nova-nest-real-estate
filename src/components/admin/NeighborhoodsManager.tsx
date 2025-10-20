@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
-import { generateSlugFromBulgarian } from "@/lib/utils";
+import { generateSlug } from "@/lib/utils";
 
 interface Neighborhood {
   id: number;
@@ -82,9 +82,9 @@ export default function NeighborhoodsManager() {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
-      // Auto-generate slug when Bulgarian name changes
-      if (field === "name_bg") {
-        updated.slug = generateSlugFromBulgarian(value);
+      // Auto-generate slug when English name changes
+      if (field === "name_en") {
+        updated.slug = generateSlug(value);
       }
       
       return updated;
@@ -103,6 +103,12 @@ export default function NeighborhoodsManager() {
       newErrors.name_bg = "Българското име е задължително";
     } else if (formData.name_bg.length > 100) {
       newErrors.name_bg = "Българското име не може да бъде повече от 100 символа";
+    }
+    
+    if (!formData.name_en.trim()) {
+      newErrors.name_en = "Английското име е задължително";
+    } else if (formData.name_en.length > 100) {
+      newErrors.name_en = "Английското име не може да бъде повече от 100 символа";
     }
     
     if (!formData.slug.trim()) {
@@ -153,7 +159,7 @@ export default function NeighborhoodsManager() {
       // Prepare data for API
       const apiData: any = {
         name_bg: formData.name_bg,
-        name_en: formData.name_en || undefined,
+        name_en: formData.name_en, // Required field
         slug: formData.slug,
         description: formData.description || undefined,
         seo_title: formData.seo_title || undefined,
@@ -300,13 +306,17 @@ export default function NeighborhoodsManager() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Име (английски)
+                  Име (английски) *
                 </label>
                 <Input
                   value={formData.name_en}
                   onChange={(e) => handleInputChange("name_en", e.target.value)}
                   placeholder="Например: Center"
+                  className={errors.name_en ? "border-red-500" : ""}
                 />
+                {errors.name_en && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name_en}</p>
+                )}
               </div>
               
               <div>
