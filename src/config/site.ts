@@ -11,7 +11,7 @@ export const site = {
     phone: "+359899897776", // Replace with actual phone number
     phoneDisplay: "+359 899 897 776", // Display format
     email: "novanestrealestatebg@gmail.com",
-    address: "Стара Загора",
+    address: "Стара Загора, Дом на Строителя ул. Св. Княз Борис 93, ет. 11",
     businessHours: {
       weekdays: "9:00 - 18:00",
       saturday: "10:00 - 15:00",

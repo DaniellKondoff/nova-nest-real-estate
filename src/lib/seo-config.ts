@@ -31,7 +31,7 @@ export const BUSINESS = {
   phone: "+359 88 123 4567",
   email: "info@novanest.bg",
   address: {
-    streetAddress: "бул. Цар Симеон Велики 100",
+    streetAddress: "Дом на Строителя ул. Св. Княз Борис 93, ет. 11",
     addressLocality: "Stara Zagora",
     postalCode: "6000",
     addressCountry: "BG",

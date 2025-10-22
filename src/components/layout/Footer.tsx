@@ -119,7 +119,7 @@ export default function Footer() {
                 <MapPin className="w-5 h-5 text-[#d4af37] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-white/90 text-sm">
-                    Стара Загора
+                    Стара Загора, Дом на Строителя ул. Св. Княз Борис 93, ет. 11
                   </p>
                 </div>
               </div>

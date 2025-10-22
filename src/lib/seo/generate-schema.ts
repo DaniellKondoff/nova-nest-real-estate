@@ -115,10 +115,10 @@ export function generateOrganizationSchema(): OrganizationSchema {
     email: SEO_CONFIG.contact.email,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'бул. Цар Симеон Велики 123', // TODO: Replace with your actual business address
+      streetAddress: 'Дом на Строителя ул. Св. Княз Борис 93, ет. 11',
       addressLocality: SEO_CONFIG.location.city,
       addressRegion: SEO_CONFIG.location.region,
-      postalCode: '6000', // TODO: Replace with your actual postal code
+      postalCode: '6000',
       addressCountry: 'BG'
     },
     geo: {
