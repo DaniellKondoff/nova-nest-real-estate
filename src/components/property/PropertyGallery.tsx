@@ -119,7 +119,7 @@ export default function PropertyGallery({ images, propertyTitle, priority = fals
           fill
           quality={85}
           priority={priority}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+          sizes="100vw"
           style={{ objectFit: "cover" }}
           onLoadingComplete={() => setMainLoaded(true)}
           className="cursor-pointer"
