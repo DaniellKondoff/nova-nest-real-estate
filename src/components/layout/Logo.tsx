@@ -28,6 +28,7 @@ const Logo: React.FC<LogoProps> = ({
       width={width}
       height={height}
       priority={priority}
+      unoptimized // Small logo doesn't benefit from optimization
       className={className}
     />
   );

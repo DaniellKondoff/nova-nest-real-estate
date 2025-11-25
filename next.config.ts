@@ -67,14 +67,19 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   trailingSlash: true,
   images: {
-    formats: ["image/avif", "image/webp"],
+    // Use WebP only to reduce transformations by 50% (AVIF removed)
+    formats: ["image/webp"],
+    // Cache optimized images for 31 days to reduce transformations and cache writes
+    minimumCacheTTL: 2678400, // 31 days in seconds
+    // Define device sizes matching Tailwind breakpoints to prevent unnecessary variants
+    deviceSizes: [640, 768, 1024, 1280, 1920],
+    // Define image sizes for responsive images
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       SUPABASE_HOST
         ? { protocol: "https", hostname: SUPABASE_HOST, pathname: "/storage/v1/object/**" }
         : undefined,
       { protocol: "https", hostname: PROPERTY_IMAGES_HOST, pathname: "/**" },
-      // Allow example.com for development/demo image sources
-      { protocol: "https", hostname: "example.com", pathname: "/**" },
       { protocol: "https", hostname: "maps.gstatic.com", pathname: "/**" },
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
       // Allow Unsplash for testimonial avatars
