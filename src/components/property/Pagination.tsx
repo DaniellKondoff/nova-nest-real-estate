@@ -91,6 +91,16 @@ export function formatResultsText(start: number, end: number, total: number): st
 export default function Pagination(props: PaginationProps): React.ReactElement | null {
   const { currentPage, totalPages, totalResults, onPageChange, loading = false } = props;
 
+  // Track which page button was clicked for loading spinner
+  const [loadingPage, setLoadingPage] = React.useState<number | null>(null);
+
+  // Reset loadingPage when loading completes
+  React.useEffect(() => {
+    if (!loading) {
+      setLoadingPage(null);
+    }
+  }, [loading]);
+
   // Edge case: hide component entirely if no pages and no results
   if (totalPages === 0 && totalResults === 0) return null;
 
@@ -105,6 +115,7 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
     if (loading) return;
     if (!Number.isFinite(page) || page < 1 || page > Math.max(1, totalPages)) return;
     if (page === safePage) return;
+    setLoadingPage(page);
     onPageChange(page);
   }
 
@@ -131,9 +142,15 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
             className={[
               "rounded-md border border-gray-300 px-4 py-2 text-sm text-[#1a2642]",
               isFirst || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50",
+              loadingPage === safePage - 1 ? "bg-gray-100" : "",
             ].join(" ")}
           >
-            <span className="inline-flex items-center gap-2"><ChevronLeft className="h-4 w-4" /> Предишна</span>
+            <span className="inline-flex items-center gap-2">
+              {loadingPage === safePage - 1 && (
+                <div className="h-3 w-3 rounded-full border-2 border-[#1a2642]/20 border-t-[#d4af37] animate-spin" />
+              )}
+              <ChevronLeft className="h-4 w-4" /> Предишна
+            </span>
           </button>
 
           {/* Pages */}
@@ -161,9 +178,17 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
                     isActive
                       ? "bg-[#d4af37] text-white font-semibold"
                       : "bg-white border border-gray-300 text-[#1a2642] hover:bg-gray-50",
+                    loadingPage === pageNum ? "ring-2 ring-[#d4af37]/50" : "",
                   ].join(" ")}
                 >
-                  {pageNum}
+                  {loadingPage === pageNum ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      {pageNum}
+                    </div>
+                  ) : (
+                    pageNum
+                  )}
                 </button>
               );
             })}
@@ -178,9 +203,15 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
             className={[
               "rounded-md border border-gray-300 px-4 py-2 text-sm text-[#1a2642]",
               isLast || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50",
+              loadingPage === safePage + 1 ? "bg-gray-100" : "",
             ].join(" ")}
           >
-            <span className="inline-flex items-center gap-2">Следваща <ChevronRight className="h-4 w-4" /></span>
+            <span className="inline-flex items-center gap-2">
+              Следваща <ChevronRight className="h-4 w-4" />
+              {loadingPage === safePage + 1 && (
+                <div className="h-3 w-3 rounded-full border-2 border-[#1a2642]/20 border-t-[#d4af37] animate-spin" />
+              )}
+            </span>
           </button>
         </div>
 
@@ -195,13 +226,20 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
             onClick={() => goTo(safePage - 1)}
             disabled={isFirst || loading}
             className={[
-              "rounded-md border border-gray-300 px-3 py-2 text-sm text-[#1a2642]",
+              "rounded-md border border-gray-300 px-3 py-2 text-sm text-[#1a2642] flex items-center justify-center",
               isFirst || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50",
             ].join(" ")}
           >
-            <ChevronLeft className="h-4 w-4" />
+            {loadingPage === safePage - 1 ? (
+              <div className="h-4 w-4 rounded-full border-2 border-[#1a2642]/20 border-t-[#d4af37] animate-spin" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </button>
-          <div className="text-sm text-[#1a2642]">
+          <div className="text-sm text-[#1a2642] flex items-center gap-2">
+            {loading && (
+              <div className="h-3 w-3 rounded-full border-2 border-[#1a2642]/20 border-t-[#d4af37] animate-spin" />
+            )}
             Страница {safePage} от {Math.max(1, totalPages)}
           </div>
           <button
@@ -210,11 +248,15 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
             onClick={() => goTo(safePage + 1)}
             disabled={isLast || loading}
             className={[
-              "rounded-md border border-gray-300 px-3 py-2 text-sm text-[#1a2642]",
+              "rounded-md border border-gray-300 px-3 py-2 text-sm text-[#1a2642] flex items-center justify-center",
               isLast || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50",
             ].join(" ")}
           >
-            <ChevronRight className="h-4 w-4" />
+            {loadingPage === safePage + 1 ? (
+              <div className="h-4 w-4 rounded-full border-2 border-[#1a2642]/20 border-t-[#d4af37] animate-spin" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
           </button>
         </div>
       </nav>

@@ -37,6 +37,34 @@ function PropertiesPageContent(): React.ReactElement {
   const { neighborhoods, loading: neighborhoodsLoading } = useNeighborhoods();
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
 
+  // Track if we've loaded data at least once
+  const [hasLoadedOnce, setHasLoadedOnce] = React.useState(false);
+
+  // Detect initial load: no properties yet and haven't loaded once
+  const isInitialLoad = properties.length === 0 && !hasLoadedOnce && !error;
+
+  // Two-phase loading: quick (0-300ms) vs slow (300ms+) for better UX
+  const [loadingPhase, setLoadingPhase] = React.useState<'idle' | 'quick' | 'slow'>('idle');
+
+  React.useEffect(() => {
+    if (loading || isInitialLoad) {
+      setLoadingPhase('quick');
+      const timer = setTimeout(() => {
+        setLoadingPhase('slow');
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingPhase('idle');
+    }
+  }, [loading, isInitialLoad]);
+
+  // Mark as loaded once we have properties or an error
+  React.useEffect(() => {
+    if ((properties.length > 0 || error) && !hasLoadedOnce) {
+      setHasLoadedOnce(true);
+    }
+  }, [properties.length, error, hasLoadedOnce]);
+
   // Active filter chips (show only non-empty)
   const activeChips = React.useMemo(() => {
     const chips: Array<{ key: keyof typeof filters; label: string }> = [];
@@ -73,6 +101,9 @@ function PropertiesPageContent(): React.ReactElement {
         neighborhoods={neighborhoods}
         features={features}
         totalResults={totalResults}
+        categoriesLoading={categoriesLoading}
+        neighborhoodsLoading={neighborhoodsLoading}
+        featuresLoading={featuresLoading}
       />
 
       {/* Results Section */}
@@ -143,20 +174,33 @@ function PropertiesPageContent(): React.ReactElement {
               {totalResults > 0 ? `Намерени ${totalResults} имота` : "Няма намерени имоти"}
             </div>
             <div className="flex items-center gap-3">
-              <PropertySort currentSort={sortBy} onSortChange={setSortBy} />
+              <PropertySort currentSort={sortBy} onSortChange={setSortBy} loading={loading} />
               <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
             </div>
           </div>
 
-          {/* Loading spinner (visible during client-side loading) */}
-          {loading && (
+          {/* Loading indicators - two-phase system for better UX */}
+          {loadingPhase === 'quick' && (
+            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-[#d4af37]/20">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded-full border-2 border-[#1a2642]/10 border-t-[#d4af37] animate-spin" />
+                <span className="text-sm text-[#1a2642]/70">Търсене...</span>
+              </div>
+            </div>
+          )}
+
+          {loadingPhase === 'slow' && (
             <div className="mb-8">
               <BeautifulLoader label="Зареждане на имоти..." />
             </div>
           )}
 
           {/* Properties Grid */}
-          <PropertyGrid properties={properties} loading={loading} viewMode={viewMode} />
+          <PropertyGrid
+            properties={properties}
+            loading={loadingPhase === 'slow'}
+            viewMode={viewMode}
+          />
 
           {/* Pagination */}
           <div className="mt-10">

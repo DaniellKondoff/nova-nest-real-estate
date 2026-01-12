@@ -7,6 +7,8 @@ import type { SortOption } from "@/types/search";
 export interface PropertySortProps {
   currentSort: SortOption;
   onSortChange: (sort: SortOption) => void;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
 const SORT_LABELS: Record<SortOption, string> = {
@@ -18,20 +20,35 @@ const SORT_LABELS: Record<SortOption, string> = {
   area_desc: "Площ: Голяма към малка",
 };
 
-export default function PropertySort({ currentSort, onSortChange }: PropertySortProps): React.ReactElement {
+export default function PropertySort({ currentSort, onSortChange, loading = false, disabled = false }: PropertySortProps): React.ReactElement {
   return (
     <div className="flex items-center gap-2">
       <label htmlFor="property-sort" className="text-sm font-medium text-[#1a2642]">
         Сортирай по:
       </label>
       <div className="relative">
-        <ArrowUpDown className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1a2642] opacity-70" />
+        {/* Loading spinner overlay */}
+        {loading && (
+          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 z-10">
+            <div className="h-4 w-4 rounded-full border-2 border-[#1a2642]/20 border-t-[#d4af37] animate-spin" />
+          </div>
+        )}
+
+        <ArrowUpDown className={[
+          "pointer-events-none absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[#1a2642] opacity-70",
+          loading ? "left-8" : "left-3"
+        ].join(" ")} />
         <select
           id="property-sort"
           aria-label="Сортиране на имоти"
-          className="appearance-none rounded-md border border-gray-300 bg-white pl-9 pr-8 py-2 text-sm text-[#1a2642] focus:outline-none focus:ring-2 focus:ring-[#d4af37] hover:border-[#d4af37] transition-colors"
+          disabled={disabled || loading}
+          className={[
+            "appearance-none rounded-md border border-gray-300 bg-white py-2 text-sm text-[#1a2642] focus:outline-none focus:ring-2 focus:ring-[#d4af37] hover:border-[#d4af37] transition-colors",
+            loading ? "pl-12 pr-8 opacity-70 cursor-wait" : "pl-9 pr-8",
+            disabled ? "opacity-50 cursor-not-allowed" : ""
+          ].join(" ")}
           value={currentSort}
-          onChange={(e) => onSortChange(e.target.value as SortOption)}
+          onChange={(e) => !loading && onSortChange(e.target.value as SortOption)}
         >
           {(Object.keys(SORT_LABELS) as SortOption[]).map((key) => (
             <option key={key} value={key}>

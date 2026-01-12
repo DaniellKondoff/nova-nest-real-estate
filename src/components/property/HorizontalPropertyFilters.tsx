@@ -27,15 +27,21 @@ export interface HorizontalPropertyFiltersProps {
   neighborhoods: Neighborhood[];
   features?: PropertyFeature[];
   totalResults?: number;
+  categoriesLoading?: boolean;
+  neighborhoodsLoading?: boolean;
+  featuresLoading?: boolean;
 }
 
-export default function HorizontalPropertyFilters({ 
-  initialFilters, 
-  onFilterChange, 
-  categories, 
+export default function HorizontalPropertyFilters({
+  initialFilters,
+  onFilterChange,
+  categories,
   neighborhoods,
   features = [],
-  totalResults = 0 
+  totalResults = 0,
+  categoriesLoading = false,
+  neighborhoodsLoading = false,
+  featuresLoading = false
 }: HorizontalPropertyFiltersProps): React.ReactElement {
   // Based on actual database data: min €150, max €116,319
   const [priceRange, setPriceRange] = React.useState<[number, number]>([150, 120000]);
@@ -177,10 +183,11 @@ export default function HorizontalPropertyFilters({
                   Тип имот
                 </label>
                 <Select
-                  options={categoryOptions}
+                  options={categoriesLoading ? [{ value: '', label: 'Зареждане...' }] : categoryOptions}
                   value={categoryId?.toString() || ""}
                   onChange={(value) => form.setValue("categoryId", value ? Number(value) : undefined)}
-                  placeholder="Избери тип"
+                  placeholder={categoriesLoading ? "Зареждане..." : "Избери тип"}
+                  disabled={categoriesLoading}
                 />
               </div>
 
@@ -207,10 +214,11 @@ export default function HorizontalPropertyFilters({
                   Район
                 </label>
                 <Select
-                  options={neighborhoodOptions}
+                  options={neighborhoodsLoading ? [{ value: '', label: 'Зареждане...' }] : neighborhoodOptions}
                   value={neighborhoodId?.toString() || ""}
                   onChange={(value) => form.setValue("neighborhoodId", value ? Number(value) : undefined)}
-                  placeholder="Избери район"
+                  placeholder={neighborhoodsLoading ? "Зареждане..." : "Избери район"}
+                  disabled={neighborhoodsLoading}
                 />
               </div>
             </div>
@@ -360,16 +368,28 @@ export default function HorizontalPropertyFilters({
                 <label className="block text-sm font-medium text-[#1a2642] mb-2">
                   Характеристики
                 </label>
-                <div className="space-y-4 text-sm">
-                  {(() => {
-                    // Group features by category
-                    const groupedFeatures = features.reduce((acc, feature) => {
-                      if (!acc[feature.category]) {
-                        acc[feature.category] = [];
-                      }
-                      acc[feature.category].push(feature);
-                      return acc;
-                    }, {} as Record<string, typeof features>);
+                {featuresLoading ? (
+                  <div className="space-y-2 p-4 bg-gray-50 rounded-md border border-gray-200">
+                    <div className="flex items-center gap-2 text-sm text-[#1a2642]/60">
+                      <div className="h-4 w-4 rounded-full border-2 border-[#1a2642]/10 border-t-[#d4af37] animate-spin" />
+                      <span>Зареждане на характеристики...</span>
+                    </div>
+                  </div>
+                ) : features.length === 0 ? (
+                  <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-md">
+                    Няма налични характеристики
+                  </div>
+                ) : (
+                  <div className="space-y-4 text-sm">
+                    {(() => {
+                      // Group features by category
+                      const groupedFeatures = features.reduce((acc, feature) => {
+                        if (!acc[feature.category]) {
+                          acc[feature.category] = [];
+                        }
+                        acc[feature.category].push(feature);
+                        return acc;
+                      }, {} as Record<string, typeof features>);
 
                     // Category labels in Bulgarian with custom order
                     const categoryLabels = {
@@ -415,7 +435,8 @@ export default function HorizontalPropertyFilters({
                       );
                     }).filter(Boolean);
                   })()}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
