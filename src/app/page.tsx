@@ -1,53 +1,63 @@
-import type { Metadata } from "next";
+import { generateMetadata as buildMetadata } from "@/lib/seo/metadata";
+import { FAQSchema } from "@/components/seo/StructuredData";
+import { SEO_CONFIG } from "@/lib/seo/config";
 import HeroSection from "@/components/home/HeroSection";
 import AboutSection from "@/components/home/AboutSection";
-import ServicesSection from "@/components/home/ServicesSection";
-import PropertyShowcase from "@/components/home/PropertyShowcase";
+import ServicesSection, { SERVICES_DATA } from "@/components/home/ServicesSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
-import WhyChooseUsSection from "@/components/home/WhyChooseUsSection";
+import WhyChooseUsSection, { advantages } from "@/components/home/WhyChooseUsSection";
 import ContactCTASection from "@/components/home/ContactCTASection";
 
-export const metadata: Metadata = {
-  title: "Имоти Стара Загора - Вашето Ново Гнездо | Nova Nest Real Estate",
+export const metadata = buildMetadata({
+  title: "Имоти в Стара Загора",
   description:
-    "Открийте най-добрите имоти в Стара Загора. Апартаменти, къщи и офиси за продажба и под наем с професионално обслужване от водещата агенция за недвижими имоти.",
+    "Открийте най-добрите имоти в Стара Загора — апартаменти, къщи, офиси за продажба и под наем. Персонализирано обслужване от Nova Nest Real Estate.",
+  path: "/",
   keywords: [
-    "Nova Nest Real Estate",
-    "Nova Nest",
-    "Nova Nest Real Estate Стара Загора",
-    "Nova Nest Real Estate Стара Загора",
-    "Nova Nest Стара Загора",
-    "Nova Nest Real Estate Стара Загора",
-    "Nova Nest Real Estate Стара Загора",
-    "Nova Nest Стара Загора",
-    "Nova Nest Real Estate Стара Загора",
     "имоти Стара Загора",
-    "недвижими имоти Стара Загора",
-    "апартаменти Стара Загора",
-    "къщи Стара Загора",
+    "апартаменти за продажба Стара Загора",
+    "къщи под наем Стара Загора",
+    "агенция недвижими имоти Стара Загора",
+    "Nova Nest Real Estate",
     "офиси Стара Загора",
-    "продажба имоти",
-    "наем имоти",
-    "агенция за недвижими имоти",
-    "квартали Стара Загора",
-    "център Стара Загора",
-    "нова нест",
-    "нова нест real estate",
-    "нова нест Стара Загора",
-    ""
+    "недвижими имоти Стара Загора",
   ],
-  openGraph: {
-    title: "Nova Nest Real Estate - Имоти в Стара Загора",   
-    description:
-      "Открийте най-добрите имоти в Стара Загора. Апартаменти, къщи и офиси за продажба и под наем с професионално обслужване.",
-    type: "website",
-    locale: "bg_BG",
+});
+
+const offerCatalogSchema = {
+  "@context": "https://schema.org",
+  "@type": "OfferCatalog",
+  name: "Услуги за недвижими имоти - Nova Nest Real Estate",
+  provider: {
+    "@id": `${SEO_CONFIG.siteUrl}#organization`,
   },
+  itemListElement: SERVICES_DATA.map((service, index) => ({
+    "@type": "Offer",
+    position: index + 1,
+    itemOffered: {
+      "@type": "Service",
+      name: service.title,
+      description: service.description,
+      provider: {
+        "@id": `${SEO_CONFIG.siteUrl}#organization`,
+      },
+    },
+  })),
 };
+
+const faqItems = advantages.map((a) => ({
+  question: `Защо да изберете Nova Nest — ${a.title}?`,
+  answer: a.description,
+}));
 
 export default function Home(): React.ReactElement {
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(offerCatalogSchema, null, 0) }}
+      />
+      <FAQSchema faqs={faqItems} />
       <HeroSection id="home" />
       <AboutSection />
       <ServicesSection id="services" />

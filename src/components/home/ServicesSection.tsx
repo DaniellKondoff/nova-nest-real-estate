@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { ServicesCTAButton } from "./ServicesCTAButton";
 
-const SERVICES_DATA = [
+export const SERVICES_DATA = [
   {
     id: "property-sales",
     icon: ShoppingCart,
