@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * HeroSection component
  *
@@ -10,11 +8,12 @@
  * Accessibility: Uses semantic HTML and includes an aria-label on the main section.
  */
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, ArrowRight, Star, MapPin, Users } from "lucide-react";
 import PropertySearchForm from "@/components/forms/PropertySearchForm";
+import { HeroScrollButton } from "@/components/home/HeroScrollButton";
 
 export interface HeroSectionProps {
   id?: string;
@@ -24,12 +23,6 @@ export interface HeroSectionProps {
  * Renders the hero section with background image and two-column layout.
  */
 export default function HeroSection({ id }: HeroSectionProps): React.ReactElement {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
   return (
     <section
       id={id}
@@ -48,13 +41,13 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
             sizes="100vw"
           />
         </div>
-        
+
         {/* Enhanced gradient overlay with multiple layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a2642]/85 via-[#2c3e50]/75 to-[#1a2642]/90" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-        
+
         {/* Subtle pattern overlay */}
-        <div 
+        <div
           className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
@@ -81,7 +74,7 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
         <div className="flex min-h-[85vh] lg:min-h-[90vh] xl:min-h-[95vh] items-center py-12 sm:py-16 lg:py-20 xl:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 w-full items-center">
             {/* Left Column - Content */}
-            <div className={`text-center lg:text-left transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="text-center lg:text-left animate-hero-fade-in">
               {/* Trust indicators */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 mb-8 text-white/80">
                 <div className="flex items-center gap-2">
@@ -120,20 +113,8 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
                   <span className="relative z-10">Търси имоти сега</span>
                   <ArrowRight className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
-                
-                <button
-                  onClick={() => {
-                    const contactSection = document.getElementById('contact');
-                    if (contactSection) {
-                      contactSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                  className="group inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 px-6 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:bg-white/20 hover:shadow-xl hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
-                  aria-label="Свържи се с нас"
-                >
-                  <span>Свържи се с нас</span>
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </button>
+
+                <HeroScrollButton />
               </div>
 
               {/* Stats Section */}
@@ -154,7 +135,7 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
             </div>
 
             {/* Right Column - Enhanced Search Form */}
-            <div className={`flex justify-center lg:justify-end transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="flex justify-center lg:justify-end animate-hero-fade-in-delayed">
               <div className="w-full max-w-lg">
                 <div className="relative">
                   {/* Glow effect behind form */}
@@ -181,5 +162,3 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
     </section>
   );
 }
-
-
