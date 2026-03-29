@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getAllPropertyCategories } from "@/lib/queries/categories";
+import { getCachedPropertyCategories } from "@/lib/queries/categories";
 import { formatErrorMessage, ValidationError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import { ok, fail } from "@/lib/api";
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const raw = Object.fromEntries(url.searchParams.entries());
     const parsed = await QuerySchema.parseAsync(raw);
 
-    let categories = await getAllPropertyCategories();
+    let categories = await getCachedPropertyCategories();
     if (typeof parsed.is_active === "boolean") {
       categories = categories.filter((c: any) => c.is_active === parsed.is_active);
     }

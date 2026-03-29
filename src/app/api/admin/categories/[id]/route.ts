@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const CategoryUpdateSchema = z.object({
@@ -122,6 +123,7 @@ export async function PUT(
       );
     }
 
+    revalidateTag("categories");
     return NextResponse.json({ category });
   } catch (error) {
     console.error("Error updating category:", error);
@@ -225,6 +227,7 @@ export async function DELETE(
       );
     }
 
+    revalidateTag("categories");
     return NextResponse.json({ message: "Категорията е изтрита успешно" });
   } catch (error) {
     console.error("Error deleting category:", error);

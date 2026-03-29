@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const NeighborhoodUpdateSchema = z.object({
@@ -143,6 +144,7 @@ export async function PUT(
       );
     }
 
+    revalidateTag("neighborhoods");
     return NextResponse.json({ neighborhood });
   } catch (error) {
     console.error("Error updating neighborhood:", error);
@@ -246,6 +248,7 @@ export async function DELETE(
       );
     }
 
+    revalidateTag("neighborhoods");
     return NextResponse.json({ message: "Кварталът е изтрит успешно" });
   } catch (error) {
     console.error("Error deleting neighborhood:", error);
