@@ -34,7 +34,7 @@ export default function HeroSection({ id }: HeroSectionProps): React.ReactElemen
         <div className="absolute inset-0 scale-110 transform-gpu">
           <Image
             src="/images/hero-building.jpg"
-            alt="Beautiful building in Stara Zagora"
+            alt="Жилищна сграда в Стара Загора - Nova Nest Real Estate"
             fill
             className="object-cover transition-transform duration-[20s] ease-out hover:scale-105"
             priority

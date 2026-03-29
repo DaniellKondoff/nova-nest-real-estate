@@ -135,9 +135,9 @@ const AboutSection = () => {
                     </div>
 
                     {/* Title */}
-                    <h4 className="text-lg md:text-xl font-black md:font-bold text-nova-blue mb-4 leading-tight group-hover:text-nova-blue transition-colors duration-300" style={{color: '#1a2642'}}>
+                    <h3 className="text-lg md:text-xl font-black md:font-bold text-nova-blue mb-4 leading-tight group-hover:text-nova-blue transition-colors duration-300" style={{color: '#1a2642'}}>
                       {value.title}
-                    </h4>
+                    </h3>
 
                     {/* Description */}
                     <p className="text-slate-900 md:text-nova-gray-dark leading-relaxed font-semibold md:font-normal group-hover:text-nova-gray-dark transition-colors duration-300">
@@ -160,7 +160,7 @@ const AboutSection = () => {
             <div
               className="relative p-8 md:p-12 rounded-3xl overflow-hidden shadow-xl"
               role="complementary"
-              aria-labelledby="cta-heading"
+              aria-labelledby="about-cta-heading"
             >
               {/* Background */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800"></div>
@@ -170,7 +170,7 @@ const AboutSection = () => {
               {/* Content */}
               <div className="relative z-10 text-white">
                 <h3
-                  id="cta-heading"
+                  id="about-cta-heading"
                   className="text-2xl md:text-3xl lg:text-4xl font-black md:font-bold mb-6 text-white drop-shadow-md"
                 >
                   Защо да изберете Nova Nest?

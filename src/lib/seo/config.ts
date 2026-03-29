@@ -69,7 +69,7 @@ export const DEFAULT_TWITTER_CARD = {
 /**
  * Theme color for the application
  */
-export const THEME_COLOR = '#1e40af';
+export const THEME_COLOR = '#1a2642';
 
 /**
  * Viewport configuration

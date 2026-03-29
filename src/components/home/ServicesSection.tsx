@@ -199,14 +199,14 @@ const ServicesSection = ({ id }: { id?: string }) => {
             className="relative p-8 rounded-2xl shadow-lg overflow-hidden max-w-4xl mx-auto"
             style={{backgroundColor: '#d4af37'}}
             role="complementary"
-            aria-labelledby="cta-heading"
+            aria-labelledby="services-cta-heading"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
             <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
 
             <div className="relative z-10">
               <h3
-                id="cta-heading"
+                id="services-cta-heading"
                 className="text-2xl font-bold text-white mb-4 leading-tight"
               >
                 Не намирате това, което търсите?
