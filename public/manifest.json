@@ -25,9 +25,9 @@
   "categories": ["business", "real-estate"],
   "screenshots": [
     {
-      "src": "/images/og-default.jpg",
+      "src": "/images/og-default.svg",
       "sizes": "1200x630",
-      "type": "image/jpeg",
+      "type": "image/svg+xml",
       "form_factor": "wide"
     }
   ]

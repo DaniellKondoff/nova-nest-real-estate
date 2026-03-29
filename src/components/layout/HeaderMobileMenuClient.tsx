@@ -1,0 +1,222 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import Link from "next/link";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { Phone } from "lucide-react";
+import { site } from "@/config/site";
+
+interface NavLinkItem {
+  label: string;
+  href: string;
+}
+
+/**
+ * Mobile hamburger button + full-screen overlay menu.
+ * The overlay is rendered via a React portal (appended to document.body)
+ * so it can be a sibling of <header> without requiring a client wrapper.
+ */
+export default function HeaderMobileMenuClient({ navItems }: { navItems: NavLinkItem[] }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => setMounted(true), []);
+
+  // Lock body scroll while menu is open
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "unset";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMobileMenuOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen]);
+
+  const isActive = (href: string): boolean =>
+    href === "/" ? pathname === "/" : (pathname?.startsWith(href) ?? false);
+
+  // Animation timing constants
+  const linkStagger = prefersReducedMotion ? 0 : 0.08;
+  const linkDelayChildren = prefersReducedMotion ? 0 : 0.1;
+  const linkDuration = prefersReducedMotion ? 0 : 0.4;
+  const linksTotal = linkDelayChildren + linkStagger * Math.max(navItems.length - 1, 0) + linkDuration;
+  const dividerDelay = prefersReducedMotion ? 0 : linksTotal + 0.5;
+  const contactDelay = prefersReducedMotion ? 0 : dividerDelay + 0.6;
+
+  const overlayVariants = {
+    hidden: { opacity: 0, scale: prefersReducedMotion ? 1 : 0.95, y: prefersReducedMotion ? 0 : -20 },
+    visible: {
+      opacity: 1, scale: 1, y: 0,
+      transition: prefersReducedMotion ? { duration: 0 } : { duration: 0.3 },
+    },
+    exit: {
+      opacity: 0, scale: prefersReducedMotion ? 1 : 0.95, y: prefersReducedMotion ? 0 : -20,
+      transition: prefersReducedMotion ? { duration: 0 } : { duration: 0.2 },
+    },
+  } as const;
+
+  const linksContainerVariants = {
+    hidden: {},
+    visible: {
+      transition: prefersReducedMotion
+        ? { staggerChildren: 0, delayChildren: 0 }
+        : { staggerChildren: linkStagger, delayChildren: linkDelayChildren },
+    },
+  } as const;
+
+  const linkItemVariants = {
+    hidden: { opacity: 0, x: prefersReducedMotion ? 0 : -30 },
+    visible: {
+      opacity: 1, x: 0,
+      transition: prefersReducedMotion ? { duration: 0 } : { duration: linkDuration },
+    },
+  } as const;
+
+  const dividerVariants = {
+    hidden: { opacity: 0, scaleX: prefersReducedMotion ? 1 : 0 },
+    visible: {
+      opacity: 1, scaleX: 1,
+      transition: prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: dividerDelay },
+    },
+  } as const;
+
+  const contactVariants = {
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
+    visible: {
+      opacity: 1, y: 0,
+      transition: prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: contactDelay },
+    },
+  } as const;
+
+  return (
+    <>
+      {/* Hamburger button – renders in place inside the header flex row */}
+      <div className="flex items-center lg:hidden">
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          aria-label={isMobileMenuOpen ? "Затвори меню" : "Отвори меню"}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-menu"
+          className="h-12 w-12 p-2 rounded-lg bg-transparent hover:bg-[#d4af37]/10 transition-all duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+        >
+          <span className="relative flex h-full w-full flex-col items-center justify-center gap-[5px]" aria-hidden="true">
+            <span className={`block h-0.5 w-6 rounded-full bg-white transition-all duration-300 ease-in-out ${isMobileMenuOpen ? "translate-y-[7px] rotate-45" : "translate-y-0 rotate-0"}`} />
+            <span className={`block h-0.5 w-6 rounded-full bg-white transition-all duration-300 ease-in-out ${isMobileMenuOpen ? "opacity-0 scale-x-0" : "opacity-100 scale-x-100"}`} />
+            <span className={`block h-0.5 w-6 rounded-full bg-white transition-all duration-300 ease-in-out ${isMobileMenuOpen ? "-translate-y-[7px] -rotate-45" : "translate-y-0 rotate-0"}`} />
+          </span>
+        </button>
+      </div>
+
+      {/* Mobile overlay – appended to document.body via portal */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <motion.div
+                id="mobile-menu"
+                role="dialog"
+                aria-modal="true"
+                key="mobile-menu"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={overlayVariants}
+                className={[
+                  "fixed inset-0 z-40 lg:hidden overflow-auto",
+                  "bg-[#1a2642]/[0.98] backdrop-blur-[8px]",
+                  "origin-top will-change-transform will-change-opacity transform-gpu",
+                ].join(" ")}
+              >
+                <div className="mx-auto h-full max-w-[400px] px-6 pt-8 flex flex-col justify-between">
+                  {/* Navigation links */}
+                  <nav aria-label="Mobile navigation" className="mt-20">
+                    <motion.ul
+                      variants={linksContainerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="flex flex-col gap-2"
+                    >
+                      {navItems.map((item) => {
+                        const active = isActive(item.href);
+                        const baseLink =
+                          "block w-full text-2xl font-semibold rounded-xl px-5 py-4 text-white border-l-4 border-transparent transition-all duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]";
+                        const hoverLink = "hover:bg-[#d4af37]/10 hover:translate-x-2 hover:scale-[1.02]";
+                        const activeLink = active ? "bg-[#d4af37]/15 text-[#d4af37] border-[#d4af37]" : "";
+                        return (
+                          <motion.li
+                            key={item.href}
+                            variants={linkItemVariants}
+                            className="will-change-transform will-change-opacity transform-gpu"
+                          >
+                            <Link
+                              href={item.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={[baseLink, hoverLink, activeLink].join(" ")}
+                              aria-current={active ? "page" : undefined}
+                            >
+                              {item.label}
+                            </Link>
+                          </motion.li>
+                        );
+                      })}
+                    </motion.ul>
+                  </nav>
+
+                  {/* Divider */}
+                  <motion.hr
+                    className="my-8 w-full border-t border-[#d4af37]/20 origin-center"
+                    initial="hidden"
+                    animate="visible"
+                    variants={dividerVariants}
+                    style={{ transformOrigin: "center" }}
+                  />
+
+                  {/* Contact info & CTA */}
+                  <motion.div
+                    className="pb-8 will-change-transform will-change-opacity transform-gpu"
+                    initial="hidden"
+                    animate="visible"
+                    variants={contactVariants}
+                  >
+                    <a
+                      href={`tel:${site.contact.phone}`}
+                      className="mb-4 inline-flex items-center gap-3 text-white text-lg font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+                      aria-label="Позвънете на нашия телефон"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Phone className="w-6 h-6 text-[#d4af37]" aria-hidden="true" />
+                      <span>{site.contact.phoneDisplay}</span>
+                    </a>
+                    <div>
+                      <Link
+                        href="/#contact"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#c49b33] py-4 text-lg font-semibold text-[#1a2642] shadow-lg transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+                        aria-label="Свържете се с нас"
+                      >
+                        Свържете се
+                      </Link>
+                    </div>
+                  </motion.div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
+    </>
+  );
+}

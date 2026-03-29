@@ -5,11 +5,11 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { generateNeighborhoodStructuredData } from "@/lib/seo/neighborhood-metadata";
 import { getNeighborhoodBreadcrumbs } from "@/lib/seo/neighborhood-breadcrumbs";
 import { generateNeighborhoodMetadata } from "@/lib/seo/neighborhood-metadata";
-import { 
-  getAllNeighborhoods, 
-  getNeighborhoodBySlug, 
+import {
+  getCachedNeighborhoods,
+  getNeighborhoodBySlug,
   getPropertiesByNeighborhood,
-  getPropertyCountByNeighborhood 
+  getPropertyCountByNeighborhood
 } from "@/lib/queries/neighborhoods";
 import NeighborhoodHero from "@/components/neighborhoods/NeighborhoodHero";
 import NeighborhoodInfo from "@/components/neighborhoods/NeighborhoodInfo";
@@ -31,7 +31,7 @@ interface NeighborhoodPageProps {
  */
 export async function generateStaticParams() {
   try {
-    const neighborhoods = await getAllNeighborhoods();
+    const neighborhoods = await getCachedNeighborhoods();
     
     return neighborhoods.map((neighborhood) => ({
       "neighborhood-slug": neighborhood.slug,

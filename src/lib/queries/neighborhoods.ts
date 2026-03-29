@@ -1,6 +1,9 @@
 import { getBrowserClient } from "@/lib/supabase/client";
-import type { Tables } from "@/types/database.generated";
+import type { Tables, Database } from "@/types/database.generated";
 import type { PropertyWithDetails } from "@/types/property";
+import { unstable_cache } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
+import { env } from "@/lib/env";
 
 type NeighborhoodsRow = Tables<'neighborhoods'>;
 
@@ -155,3 +158,34 @@ export async function getPropertyCountByNeighborhood(neighborhoodId: number): Pr
 
   return count || 0;
 }
+
+function getNeighborhoodsStaticClient() {
+  return createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+export const getCachedNeighborhoods = unstable_cache(
+  async (): Promise<Neighborhood[]> => {
+    const supabase = getNeighborhoodsStaticClient();
+    const { data, error } = await supabase
+      .from("neighborhoods")
+      .select(`
+        id,
+        name_bg,
+        name_en,
+        slug,
+        description,
+        center_lat,
+        center_lng,
+        amenities,
+        transport_info,
+        seo_title,
+        seo_description,
+        seo_keywords
+      `)
+      .order("name_bg", { ascending: true });
+    if (error) throw error;
+    return data || [];
+  },
+  ["all-neighborhoods"],
+  { tags: ["neighborhoods"] }
+);

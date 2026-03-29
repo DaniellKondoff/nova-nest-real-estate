@@ -23,7 +23,8 @@ export function generateMetadata(pageData: PageMetadata): Metadata {
   } = pageData;
 
   const fullTitle = `${title} | ${SEO_CONFIG.siteName}`;
-  const fullUrl = `${SEO_CONFIG.siteUrl}${path}`;
+  const normalizedPath = path.endsWith('/') ? path : `${path}/`;
+  const fullUrl = `${SEO_CONFIG.siteUrl}${normalizedPath}`;
   const fullDescription = description || SEO_CONFIG.defaultDescription;
   const allKeywords = [...SEO_CONFIG.primaryKeywords, ...keywords];
   const ogImage = image || DEFAULT_OG_IMAGE.url;
@@ -60,6 +61,7 @@ export function generateMetadata(pageData: PageMetadata): Metadata {
     alternates: {
       canonical: fullUrl,
       languages: {
+        'x-default': fullUrl,
         'bg-BG': fullUrl,
       },
     },

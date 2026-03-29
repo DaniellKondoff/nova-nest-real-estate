@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const CategorySchema = z.object({
@@ -148,6 +149,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    revalidateTag("categories");
     return NextResponse.json({ category }, { status: 201 });
   } catch (error) {
     console.error("Error creating category:", error);

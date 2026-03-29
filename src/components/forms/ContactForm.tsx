@@ -8,14 +8,12 @@ import { cn } from "@/lib/design-tokens";
 import { ContactFormSchema, type ContactFormData } from "@/lib/validations";
 
 export interface ContactFormProps {
-  onSubmit: (data: ContactFormData) => Promise<void>;
   onSuccess?: () => void;
   onError?: (error: string) => void;
   className?: string;
 }
 
 export default function ContactForm({
-  onSubmit,
   onSuccess,
   onError,
   className,
