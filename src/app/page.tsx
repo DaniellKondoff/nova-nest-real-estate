@@ -53,7 +53,6 @@ export default function Home(): React.ReactElement {
       <ServicesSection id="services" />
       <WhyChooseUsSection />
       <TestimonialsSection />
-
       <ContactCTASection id="contact" />
     </main>
   );
