@@ -1,9 +1,7 @@
-"use client";
-
 import * as React from "react";
 import { cn } from "@/lib/design-tokens";
 import { Heading, Text } from "@/components/ui/typography";
-import { Phone, Mail, MapPin, Clock, ArrowRight, CheckCircle, Star } from "lucide-react";
+import { Phone, Mail, MapPin, CheckCircle, Star } from "lucide-react";
 import ContactForm from "@/components/forms/ContactForm";
 import { site } from "@/config/site";
 
@@ -27,19 +25,6 @@ export default function ContactCTASection({
   id,
 }: ContactCTASectionProps): React.ReactElement {
   const verticalPadding = compactMode ? "py-16 md:py-20" : "py-24 md:py-32";
-
-  // Generate mailto with pre-filled subject and body
-  const mailtoUrl = `mailto:${site.contact.email}?subject=${encodeURIComponent('Запитване за недвижими имоти - Nova Nest')}&body=${encodeURIComponent('Здравейте,\n\nИнтересувам се от вашите услуги за недвижими имоти.\n\nМоля, свържете се с мен за повече информация.\n\nБлагодаря!')}`;
-
-  // Debug logging
-  React.useEffect(() => {
-    console.log('ContactCTASection loaded with:', {
-      phone: site.contact.phone,
-      phoneDisplay: site.contact.phoneDisplay,
-      email: site.contact.email,
-      mailtoUrl: mailtoUrl
-    });
-  }, []);
 
   return (
     <section
@@ -107,12 +92,7 @@ export default function ContactCTASection({
                     <div className="h-full w-full rounded-2xl bg-white/95" />
                   </div>
                   <div className="relative">
-                    <ContactForm
-                      onSubmit={async (data) => {
-                        // eslint-disable-next-line no-console
-                        console.log("CTA submit:", data);
-                      }}
-                    />
+                    <ContactForm />
                   </div>
                 </div>
               </div>
