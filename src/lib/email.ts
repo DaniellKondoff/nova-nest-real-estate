@@ -15,8 +15,7 @@ export async function sendInquiryNotification(data: InquiryEmailData): Promise<v
 
   await resend.emails.send({
     from: process.env.SMTP_FROM_EMAIL ?? 'info@novanest.bg',
-    //to: 'novanestrealestatebg@gmail.com',
-    to: 'danielkondov91@gmail.com',
+    to: 'novanestrealestatebg@gmail.com',
     subject: `Ново запитване #${inquiryId} от ${full_name}`,
     html: `
       <h2>Ново запитване от контактната форма</h2>
