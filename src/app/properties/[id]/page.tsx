@@ -21,6 +21,7 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { getPropertyBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { extractPropertyId, isValidPropertySlug, getPropertyUrlSlug } from "@/lib/seo/property-slug";
+import RelatedProperties from "@/components/property/RelatedProperties";
 
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
@@ -278,6 +279,15 @@ export default async function PropertyDetailPage({ params }: PageParams) {
             </div>
           </div>
         </div>
+
+        {/* Related Properties - full width below the grid */}
+        {typeof property.category_id === "number" && typeof property.neighborhood_id === "number" && (
+          <RelatedProperties
+            currentPropertyId={property.id}
+            categoryId={property.category_id}
+            neighborhoodId={property.neighborhood_id}
+          />
+        )}
       </div>
     </div>
   );
