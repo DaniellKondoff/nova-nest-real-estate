@@ -92,6 +92,7 @@ export default function MobileFilterDrawer({
         <HorizontalPropertyFilters
           {...filterProps}
           onFilterChange={handleFilterChange}
+          inDrawer
         />
       </div>
     </>

@@ -30,6 +30,8 @@ export interface HorizontalPropertyFiltersProps {
   categoriesLoading?: boolean;
   neighborhoodsLoading?: boolean;
   featuresLoading?: boolean;
+  /** When true, removes the `hidden md:block` wrapper so it renders inside a drawer */
+  inDrawer?: boolean;
 }
 
 export default function HorizontalPropertyFilters({
@@ -41,7 +43,8 @@ export default function HorizontalPropertyFilters({
   totalResults = 0,
   categoriesLoading = false,
   neighborhoodsLoading = false,
-  featuresLoading = false
+  featuresLoading = false,
+  inDrawer = false,
 }: HorizontalPropertyFiltersProps): React.ReactElement {
   // Based on actual database data: min €150, max €116,319
   const [priceRange, setPriceRange] = React.useState<[number, number]>([150, 120000]);
@@ -135,7 +138,7 @@ export default function HorizontalPropertyFilters({
   const neighborhoodId = form.watch("neighborhoodId");
 
   return (
-    <section className="hidden md:block py-8 bg-gradient-to-br from-gray-50 to-white">
+    <section className={inDrawer ? "py-4 bg-white" : "hidden md:block py-8 bg-gradient-to-br from-gray-50 to-white"}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1a2642] mb-4">
