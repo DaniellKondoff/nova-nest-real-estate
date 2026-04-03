@@ -27,7 +27,7 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
             {isNew && <span className="inline-flex items-center rounded-full bg-[#1a2642] px-4 py-2 text-white text-sm font-semibold">НОВО</span>}
           </div>
           
-          <h1 className="text-[#1a2642] font-bold leading-tight text-2xl md:text-3xl lg:text-4xl mb-3">{p.title_bg}</h1>
+          <h1 className="text-[#1a2642] font-bold leading-tight text-xl md:text-3xl lg:text-4xl mb-3 break-words">{p.title_bg}</h1>
         </div>
         
         {/* Logo positioned in top-right for brand visibility */}
@@ -50,13 +50,13 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
         </div>
       )}
       
-      <div className="flex items-center gap-2 text-gray-600 text-base md:text-lg mb-4">
-        <MapPin className="h-5 w-5 text-[#1a2642]" aria-hidden />
-        <span>{neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}</span>
+      <div className="flex items-center gap-2 text-gray-600 text-base md:text-lg mb-4 min-w-0">
+        <MapPin className="h-5 w-5 text-[#1a2642] flex-shrink-0" aria-hidden />
+        <span className="min-w-0 truncate" title={neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}>{neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}</span>
       </div>
-      
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div className="text-[#1a2642] font-bold text-3xl md:text-4xl lg:text-5xl">{price}</div>
+
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div className="text-[#1a2642] font-bold text-2xl md:text-4xl lg:text-5xl">{price}</div>
         <ShareButton title={p.title_bg} />
       </div>
     </header>

@@ -23,7 +23,7 @@ interface DetailItemProps {
 
 function DetailItem({ label, value, icon: Icon }: DetailItemProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 p-6 hover:shadow-md transition-shadow duration-200">
+    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 p-4 sm:p-6 hover:shadow-md transition-shadow duration-200">
       <div className="flex items-center gap-4">
         <div className="p-3 bg-[#d4af37]/10 rounded-lg">
           <Icon className="h-6 w-6 text-[#d4af37]" aria-hidden />

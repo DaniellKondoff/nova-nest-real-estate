@@ -171,19 +171,19 @@ export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCa
         {/* Details row */}
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
           {hasArea ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Square className="w-4 h-4" aria-hidden />
               <span>{p.area_sqm} m²</span>
             </div>
           ) : null}
           {typeof rooms === "number" && rooms > 0 ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <BedDouble className="w-4 h-4" aria-hidden />
               <span>{rooms} стаи</span>
             </div>
           ) : null}
           {typeof floor === "number" && floor > 0 ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Building2 className="w-4 h-4" aria-hidden />
               <span>Етаж {floor}</span>
             </div>
@@ -191,7 +191,7 @@ export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCa
         </div>
 
         {/* Neighborhood */}
-        <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
+        <div className="mt-2 flex items-center gap-1.5 text-sm text-gray-600">
           <MapPin className="w-4 h-4" aria-hidden />
           <span>{neighborhoodName ? `Квартал ${neighborhoodName}` : "Стара Загора"}</span>
         </div>

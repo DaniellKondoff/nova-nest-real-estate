@@ -82,9 +82,9 @@ export default function MobileFilterDrawer({
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Затвори филтри"
-            className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
+            className="rounded-full p-3 text-gray-500 hover:bg-gray-100"
           >
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6" />
           </button>
         </div>
 

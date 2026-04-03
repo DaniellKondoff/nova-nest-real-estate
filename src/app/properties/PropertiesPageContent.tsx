@@ -173,7 +173,7 @@ export default function PropertiesPageContent(): React.ReactElement {
           )}
 
           {/* Mobile control bar: filter drawer + sort + view toggle */}
-          <div className="md:hidden mb-4 flex items-center gap-2">
+          <div className="md:hidden mb-4 flex items-center gap-3">
             <MobileFilterDrawer
               initialFilters={filters}
               onFilterChange={setFilters}

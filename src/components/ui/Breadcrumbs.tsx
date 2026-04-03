@@ -66,8 +66,8 @@ export function Breadcrumbs({
   };
 
   return (
-    <nav 
-      className={`flex items-center gap-2 text-sm text-gray-600 ${className}`}
+    <nav
+      className={`flex items-center gap-2 text-sm text-gray-600 min-w-0 overflow-hidden ${className}`}
       aria-label="Breadcrumb navigation"
     >
       {sortedItems.map((item, index) => {
@@ -76,7 +76,7 @@ export function Breadcrumbs({
         const href = getRelativePath(item.url);
 
         return (
-          <div key={item.position} className="flex items-center gap-2">
+          <div key={item.position} className={`flex items-center gap-2${isLast ? " min-w-0" : " flex-shrink-0"}`}>
             {isLink ? (
               <Link
                 href={href}
