@@ -22,7 +22,7 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
   const { properties, loading = false, viewMode = "grid" } = props;
 
   const gridClasses = viewMode === "grid"
-    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
     : "flex flex-col divide-y divide-gray-200";
 
   // No mapping needed – PropertyCard consumes PropertyWithDetails directly
@@ -37,7 +37,7 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
           className="w-full overflow-hidden bg-white py-4"
         >
           <div className="animate-pulse flex gap-4">
-            <div className="w-48 h-36 flex-shrink-0 rounded-lg bg-gray-200" />
+            <div className="w-32 sm:w-40 md:w-48 h-36 flex-shrink-0 rounded-lg bg-gray-200" />
             <div className="flex-1 space-y-3 py-1">
               <div className="h-5 w-1/3 rounded bg-gray-200" />
               <div className="h-4 w-2/3 rounded bg-gray-200" />
@@ -54,7 +54,7 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
         key={key}
         role="status"
         aria-label="Зареждане на имот"
-        className="h-96 w-full overflow-hidden rounded-lg border border-gray-200 bg-white"
+        className="h-80 sm:h-96 w-full overflow-hidden rounded-lg border border-gray-200 bg-white"
       >
         <div className="animate-pulse h-full">
           <div className="w-full aspect-[4/3] bg-gray-200" />

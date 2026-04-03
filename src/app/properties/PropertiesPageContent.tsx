@@ -7,6 +7,7 @@ import { usePropertyFeatures } from "@/hooks/usePropertyFeatures";
 import { usePropertyCategories } from "@/hooks/usePropertyCategories";
 import { useNeighborhoods } from "@/hooks/useNeighborhoods";
 import HorizontalPropertyFilters from "@/components/property/HorizontalPropertyFilters";
+import MobileFilterDrawer from "@/components/property/MobileFilterDrawer";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import PropertySort from "@/components/property/PropertySort";
 import ViewToggle from "@/components/property/ViewToggle";
@@ -114,7 +115,7 @@ export default function PropertiesPageContent(): React.ReactElement {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-semibold text-[#1a2642]">Имоти в Стара Загора</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-[#1a2642]">Имоти в Стара Загора</h1>
             <p className="mt-2 text-gray-600">Разгледайте актуални оферти за продажба и наем</p>
           </div>
 
@@ -127,7 +128,7 @@ export default function PropertiesPageContent(): React.ReactElement {
                   <button
                     type="button"
                     aria-label="Премахни филтър"
-                    className="ml-1 rounded-full p-1 hover:bg-gray-200"
+                    className="ml-1 rounded-full p-2 hover:bg-gray-200"
                     onClick={() => updateFilter(chip.key, undefined)}
                   >
                     <X className="h-3.5 w-3.5" />
@@ -154,7 +155,7 @@ export default function PropertiesPageContent(): React.ReactElement {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="rounded-lg bg-[#d4af37] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#c09d2f]"
+                  className="rounded-lg bg-[#d4af37] px-3 py-2.5 text-sm font-medium text-white hover:bg-[#c09d2f]"
                   onClick={() => refetch()}
                 >
                   Опитай отново
@@ -171,8 +172,27 @@ export default function PropertiesPageContent(): React.ReactElement {
             </div>
           )}
 
-          {/* Control bar: results + sort + view */}
-          <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Mobile control bar: filter drawer + sort + view toggle */}
+          <div className="md:hidden mb-4 flex items-center gap-2">
+            <MobileFilterDrawer
+              initialFilters={filters}
+              onFilterChange={setFilters}
+              categories={categories}
+              neighborhoods={neighborhoods}
+              features={features}
+              totalResults={totalResults}
+              categoriesLoading={categoriesLoading}
+              neighborhoodsLoading={neighborhoodsLoading}
+              featuresLoading={featuresLoading}
+              activeFilterCount={appliedCount}
+            />
+            <div className="flex-1" />
+            <PropertySort currentSort={sortBy} onSortChange={setSortBy} loading={loading} />
+            <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
+          </div>
+
+          {/* Desktop control bar: results + sort + view */}
+          <div className="hidden md:flex mb-6 flex-row items-center justify-between gap-3">
             <div className="text-gray-600 text-sm" aria-live="polite" aria-atomic="true">
               {loading
                 ? "Търсене..."
@@ -184,6 +204,10 @@ export default function PropertiesPageContent(): React.ReactElement {
               <PropertySort currentSort={sortBy} onSortChange={setSortBy} loading={loading} />
               <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
             </div>
+          </div>
+          {/* Mobile results count */}
+          <div className="md:hidden mb-4 text-gray-600 text-sm" aria-live="polite" aria-atomic="true">
+            {loading ? "Търсене..." : totalResults > 0 ? `Намерени ${totalResults} имота` : "Няма намерени имоти"}
           </div>
 
           {/* Quick loading indicator (0-300ms) */}

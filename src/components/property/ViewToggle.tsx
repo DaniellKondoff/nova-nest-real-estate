@@ -44,7 +44,7 @@ export default function ViewToggle({ currentView, onViewChange }: ViewToggleProp
         aria-pressed={isGrid}
         onClick={() => set("grid")}
         className={[
-          "p-2",
+          "p-2.5",
           isGrid ? "bg-[#d4af37] text-white" : "bg-white text-[#1a2642] hover:bg-gray-50",
         ].join(" ")}
         title="Изглед решетка"
@@ -57,7 +57,7 @@ export default function ViewToggle({ currentView, onViewChange }: ViewToggleProp
         aria-pressed={isList}
         onClick={() => set("list")}
         className={[
-          "p-2 border-l border-gray-300",
+          "p-2.5 border-l border-gray-300",
           isList ? "bg-[#d4af37] text-white" : "bg-white text-[#1a2642] hover:bg-gray-50",
         ].join(" ")}
         title="Изглед списък"

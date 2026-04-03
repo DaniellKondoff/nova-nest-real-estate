@@ -226,7 +226,7 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
             onClick={() => goTo(safePage - 1)}
             disabled={isFirst || loading}
             className={[
-              "rounded-md border border-gray-300 px-3 py-2 text-sm text-[#1a2642] flex items-center justify-center",
+              "rounded-md border border-gray-300 px-3 py-2.5 text-sm text-[#1a2642] flex items-center justify-center",
               isFirst || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50",
             ].join(" ")}
           >
@@ -248,7 +248,7 @@ export default function Pagination(props: PaginationProps): React.ReactElement |
             onClick={() => goTo(safePage + 1)}
             disabled={isLast || loading}
             className={[
-              "rounded-md border border-gray-300 px-3 py-2 text-sm text-[#1a2642] flex items-center justify-center",
+              "rounded-md border border-gray-300 px-3 py-2.5 text-sm text-[#1a2642] flex items-center justify-center",
               isLast || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50",
             ].join(" ")}
           >

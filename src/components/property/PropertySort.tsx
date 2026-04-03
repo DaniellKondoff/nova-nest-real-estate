@@ -23,7 +23,7 @@ const SORT_LABELS: Record<SortOption, string> = {
 export default function PropertySort({ currentSort, onSortChange, loading = false, disabled = false }: PropertySortProps): React.ReactElement {
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor="property-sort" className="text-sm font-medium text-[#1a2642]">
+      <label htmlFor="property-sort" className="hidden sm:inline text-sm font-medium text-[#1a2642]">
         Сортирай по:
       </label>
       <div className="relative">
@@ -43,7 +43,7 @@ export default function PropertySort({ currentSort, onSortChange, loading = fals
           aria-label="Сортиране на имоти"
           disabled={disabled || loading}
           className={[
-            "appearance-none rounded-md border border-gray-300 bg-white py-2 text-sm text-[#1a2642] focus:outline-none focus:ring-2 focus:ring-[#d4af37] hover:border-[#d4af37] transition-colors",
+            "appearance-none rounded-md border border-gray-300 bg-white py-2.5 sm:py-2 text-sm text-[#1a2642] focus:outline-none focus:ring-2 focus:ring-[#d4af37] hover:border-[#d4af37] transition-colors",
             loading ? "pl-12 pr-8 opacity-70 cursor-wait" : "pl-9 pr-8",
             disabled ? "opacity-50 cursor-not-allowed" : ""
           ].join(" ")}
