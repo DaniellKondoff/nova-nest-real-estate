@@ -15,6 +15,13 @@ export interface PropertyGalleryProps {
 // Extend incoming image type with optional created_at for sorting fallback when available
 type GalleryImage = PropertyImageType;
 
+// Lightweight 1×1 grey blurDataURL used as placeholder while images load
+const BLUR_DATA_URL =
+  "data:image/svg+xml;base64," +
+  btoa(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect width="1" height="1" fill="#e5e7eb"/></svg>'
+  );
+
 export default function PropertyGallery({ images, propertyTitle, priority = false }: PropertyGalleryProps): React.ReactElement {
   // Normalize and sort images: primary first, then by display_order, then by created_at
   const sortedImages: GalleryImage[] = React.useMemo(() => {
@@ -110,15 +117,14 @@ export default function PropertyGallery({ images, propertyTitle, priority = fals
     <div className="w-full">
       {/* Main image */}
       <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden bg-gray-100">
-        {!mainLoaded && (
-          <div className="absolute inset-0 animate-pulse bg-gray-200" />
-        )}
         <Image
           src={mainSrc}
           alt={mainAlt}
           fill
           quality={85}
           priority={priority}
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
           sizes="100vw"
           style={{ objectFit: "cover" }}
           onLoadingComplete={() => setMainLoaded(true)}
@@ -163,6 +169,8 @@ export default function PropertyGallery({ images, propertyTitle, priority = fals
                   fill
                   sizes="96px"
                   quality={70}
+                  placeholder="blur"
+                  blurDataURL={BLUR_DATA_URL}
                   className="object-cover transition-opacity duration-300 hover:opacity-80"
                   loading="lazy"
                 />
