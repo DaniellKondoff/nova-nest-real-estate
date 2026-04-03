@@ -28,15 +28,36 @@ export default function PropertyGrid(props: PropertyGridProps): React.ReactEleme
   // No mapping needed – PropertyCard consumes PropertyWithDetails directly
 
   function renderSkeletonCard(key: React.Key): React.ReactElement {
+    if (viewMode === "list") {
+      return (
+        <div
+          key={key}
+          role="status"
+          aria-label="Зареждане на имот"
+          className="w-full overflow-hidden bg-white py-4"
+        >
+          <div className="animate-pulse flex gap-4">
+            <div className="w-48 h-36 flex-shrink-0 rounded-lg bg-gray-200" />
+            <div className="flex-1 space-y-3 py-1">
+              <div className="h-5 w-1/3 rounded bg-gray-200" />
+              <div className="h-4 w-2/3 rounded bg-gray-200" />
+              <div className="h-4 w-1/2 rounded bg-gray-200" />
+              <div className="h-4 w-1/4 rounded bg-gray-200" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div
         key={key}
         role="status"
         aria-label="Зареждане на имот"
-        className={viewMode === "grid" ? "h-96 w-full overflow-hidden rounded-lg border border-gray-200 bg-white" : "w-full overflow-hidden bg-white"}
+        className="h-96 w-full overflow-hidden rounded-lg border border-gray-200 bg-white"
       >
         <div className="animate-pulse h-full">
-          <div className={viewMode === "grid" ? "w-full aspect-[4/3] bg-gray-200" : "w-[200px] aspect-[4/3] bg-gray-200"} />
+          <div className="w-full aspect-[4/3] bg-gray-200" />
           <div className="p-6 space-y-3">
             <div className="h-6 w-1/3 rounded bg-gray-200" />
             <div className="h-4 w-2/3 rounded bg-gray-200" />
