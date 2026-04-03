@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabase/server";
 import { AdminPropertySchema } from "@/lib/validations";
 
@@ -115,6 +116,9 @@ export async function PUT(
       }
     }
 
+    // Purge the ISR cache for this property page
+    revalidatePath(`/properties/${propertyId}`);
+
     return NextResponse.json({ property }, { status: 200 });
   } catch (error) {
     console.error("Error updating property:", error);
@@ -205,6 +209,9 @@ export async function DELETE(
     // 2. Delete from storage bucket
     // 3. Delete from property_images table
     // 4. Delete from properties table
+
+    // Purge the ISR cache for this property page
+    revalidatePath(`/properties/${propertyId}`);
 
     return NextResponse.json(
       { message: "Имотът е архивиран успешно" },

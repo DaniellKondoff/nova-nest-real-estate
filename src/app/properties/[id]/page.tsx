@@ -24,8 +24,8 @@ import RelatedProperties from "@/components/property/RelatedProperties";
 import MobileContactBar from "@/components/property/MobileContactBar";
 import { site } from "@/config/site";
 
-// Route segment config: force dynamic so we always SSR by id
-export const dynamic = "force-dynamic";
+// Cache each property page for 1 hour; admin mutations call revalidatePath to purge immediately
+export const revalidate = 3600;
 
 type PageParams = { params: Promise<{ id: string }> };
 
