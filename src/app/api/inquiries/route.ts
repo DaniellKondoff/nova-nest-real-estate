@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Database } from "@/types/database.generated";
 import { ContactFormSchema } from "@/lib/validations";
 import { env, getServerEnv } from "@/lib/env";
+import { sendInquiryNotification } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,7 +33,6 @@ export async function POST(req: NextRequest) {
       })
       .select("id")
       .single();
-
     if (error) {
       // Server-side log for debugging, but return friendly message to client
       console.error("Inquiries insert error:", error);
@@ -41,6 +41,17 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Fire-and-forget — don't await or block the response
+    sendInquiryNotification({
+      full_name: data.full_name,
+      email: data.email,
+      phone: data.phone,
+      message: data.message,
+      inquiryId: inserted.id,
+    }).catch((err) => {
+      console.error('[Email] Failed to send inquiry notification:', err);
+    });
 
     return NextResponse.json(
       { success: true, message: "Вашето запитване беше изпратено успешно!", inquiryId: inserted?.id },
