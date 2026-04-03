@@ -1,6 +1,6 @@
 import React from "react";
 import type { PropertyWithDetails } from "@/types/property";
-import { Square, BedDouble, Bed, Bath, Building2, Calendar, Home as HomeIcon, MapPin, Layers, Building, Eye } from "lucide-react";
+import { Square, BedDouble, Bed, Bath, Building2, Calendar, MapPin, Layers, Building, Eye, Tag, Navigation } from "lucide-react";
 import { formatArea, formatFloor, formatYear } from "./utils";
 
 function formatViewCount(count: number | null): string {
@@ -67,6 +67,7 @@ export default function PropertyDetails({ property }: PropertyDetailsProps): Rea
   
   // Location
   if (n?.name_bg) items.push({ label: "Квартал", value: n.name_bg, icon: MapPin });
+  if (p.address_bg) items.push({ label: "Адрес", value: p.address_bg, icon: Navigation });
 
   // View count - show if available
   if (typeof p.view_count === "number") {
