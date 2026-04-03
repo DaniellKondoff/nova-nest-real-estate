@@ -6,7 +6,6 @@ import { ChevronRight } from "lucide-react";
 import { getServerClient } from "@/lib/supabase/server";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Database } from "@/types/database.generated";
-import type { PropertyWithRelations } from "@/lib/queries/properties";
 import { generatePropertyMetadata, generatePropertyNotFoundMetadata } from "@/lib/seo/property-metadata";
 import PropertyGallery from "@/components/property/PropertyGallery";
 import PropertyHeader from "@/components/property/PropertyHeader";
@@ -21,9 +20,12 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { getPropertyBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { extractPropertyId, isValidPropertySlug, getPropertyUrlSlug } from "@/lib/seo/property-slug";
+import RelatedProperties from "@/components/property/RelatedProperties";
+import MobileContactBar from "@/components/property/MobileContactBar";
+import { site } from "@/config/site";
 
-// Route segment config: force dynamic so we always SSR by id
-export const dynamic = "force-dynamic";
+// Cache each property page for 1 hour; admin mutations call revalidatePath to purge immediately
+export const revalidate = 3600;
 
 type PageParams = { params: Promise<{ id: string }> };
 
@@ -68,20 +70,23 @@ function validateIdOrNotFound(idParam: string): number {
   return idNum;
 }
 
-async function getPropertyByIdServer(id: number): Promise<PropertyWithRelations | null> {
+async function fetchPropertyDetails(idNum: number): Promise<PropertyWithDetails | null> {
   const supabase = await getServerClient();
-  
+
+  // Single query: property + neighborhood + category + images + features
   const { data, error } = await supabase
     .from("properties")
     .select(`
       *,
+      neighborhood:neighborhoods(*),
+      category:property_categories(*),
       images:property_images(*),
       features:property_property_features(
         feature_id,
         property_features(*)
       )
     `)
-    .eq("id", id)
+    .eq("id", idNum)
     .single();
 
   if (error) {
@@ -91,60 +96,19 @@ async function getPropertyByIdServer(id: number): Promise<PropertyWithRelations 
 
   if (!data) return null;
 
-  // Transform features data to match expected format
-  const transformedFeatures = data.features?.map((pf: any) => pf.property_features).filter(Boolean) || [];
+  const features: FeatureRow[] = (data.features as any[])
+    ?.map((pf: any) => pf.property_features)
+    .filter(Boolean) ?? [];
 
-  // Return flat property with images and features attached
+  const images: ImageRow[] = (data.images as ImageRow[]) ?? [];
+
   return {
-    ...data,
-    images: data.images || [],
-    features: transformedFeatures,
-  } as PropertyWithRelations;
-}
-
-async function fetchPropertyDetails(idNum: number): Promise<PropertyWithDetails | null> {
-  // Base property with neighborhood and images
-  const base: PropertyWithRelations | null = await getPropertyByIdServer(idNum);
-  if (!base) return null;
-
-  const supabase = await getServerClient();
-
-  // Neighborhood (fetch full row for strict typing)
-  let neighborhood: NeighborhoodRow | null = null;
-  if (typeof base.neighborhood_id === "number") {
-    const { data: n } = await supabase
-      .from("neighborhoods")
-      .select("*")
-      .eq("id", base.neighborhood_id)
-      .maybeSingle();
-    neighborhood = (n as NeighborhoodRow) ?? null;
-  }
-
-  // Category (fetch full row for strict typing)
-  let category: CategoryRow | null = null;
-  if (typeof base.category_id === "number") {
-    const { data: cat } = await supabase
-      .from("property_categories")
-      .select("*")
-      .eq("id", base.category_id)
-      .maybeSingle();
-    category = (cat as CategoryRow) ?? null;
-  }
-
-  // Features are already fetched in getPropertyByIdServer
-  const features: FeatureRow[] = base.features || [];
-
-  const images: ImageRow[] = (base.images ?? []) as ImageRow[];
-
-  const details: PropertyWithDetails = {
-    property: base as unknown as PropertyRow,
-    neighborhood,
-    category,
+    property: data as unknown as PropertyRow,
+    neighborhood: (data.neighborhood as NeighborhoodRow) ?? null,
+    category: (data.category as CategoryRow) ?? null,
     images,
     features,
   };
-
-  return details;
 }
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
@@ -200,7 +164,10 @@ export default async function PropertyDetailPage({ params }: PageParams) {
   const breadcrumbs = getPropertyBreadcrumbs(details);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 xl:pb-0">
+      {/* Mobile sticky contact bar - hidden on xl where sidebar is visible */}
+      <MobileContactBar phoneNumber={site.contact.phone} phoneDisplay={site.contact.phoneDisplay} />
+
       {/* Structured Data for Rich Search Results */}
       <PropertyDetailSchema property={details} />
       <BreadcrumbSchema items={breadcrumbs} />
@@ -269,7 +236,7 @@ export default async function PropertyDetailPage({ params }: PageParams) {
 
           {/* Right Column - Contact Form */}
           <div className="xl:col-span-4">
-            <div className="sticky top-8">
+            <div id="contact-sidebar" className="sticky top-8">
               <PropertyContact 
                 propertyId={String(property.id)} 
                 propertyTitle={property.title_bg} 
@@ -278,6 +245,15 @@ export default async function PropertyDetailPage({ params }: PageParams) {
             </div>
           </div>
         </div>
+
+        {/* Related Properties - full width below the grid */}
+        {typeof property.category_id === "number" && typeof property.neighborhood_id === "number" && (
+          <RelatedProperties
+            currentPropertyId={property.id}
+            categoryId={property.category_id}
+            neighborhoodId={property.neighborhood_id}
+          />
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 import type { PropertyWithDetails } from "@/types/property";
-import { Square, BedDouble, Bed, Bath, Building2, Calendar, Home as HomeIcon, MapPin, Layers, Building, Eye } from "lucide-react";
+import { Square, BedDouble, Bed, Bath, Building2, Calendar, MapPin, Layers, Building, Eye, Tag, Navigation } from "lucide-react";
 import { formatArea, formatFloor, formatYear } from "./utils";
 
 function formatViewCount(count: number | null): string {
@@ -23,7 +23,7 @@ interface DetailItemProps {
 
 function DetailItem({ label, value, icon: Icon }: DetailItemProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 p-6 hover:shadow-md transition-shadow duration-200">
+    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 p-4 sm:p-6 hover:shadow-md transition-shadow duration-200">
       <div className="flex items-center gap-4">
         <div className="p-3 bg-[#d4af37]/10 rounded-lg">
           <Icon className="h-6 w-6 text-[#d4af37]" aria-hidden />
@@ -67,6 +67,7 @@ export default function PropertyDetails({ property }: PropertyDetailsProps): Rea
   
   // Location
   if (n?.name_bg) items.push({ label: "Квартал", value: n.name_bg, icon: MapPin });
+  if (p.address_bg) items.push({ label: "Адрес", value: p.address_bg, icon: Navigation });
 
   // View count - show if available
   if (typeof p.view_count === "number") {

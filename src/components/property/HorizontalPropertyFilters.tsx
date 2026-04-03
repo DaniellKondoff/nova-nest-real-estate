@@ -30,6 +30,8 @@ export interface HorizontalPropertyFiltersProps {
   categoriesLoading?: boolean;
   neighborhoodsLoading?: boolean;
   featuresLoading?: boolean;
+  /** When true, removes the `hidden md:block` wrapper so it renders inside a drawer */
+  inDrawer?: boolean;
 }
 
 export default function HorizontalPropertyFilters({
@@ -41,7 +43,8 @@ export default function HorizontalPropertyFilters({
   totalResults = 0,
   categoriesLoading = false,
   neighborhoodsLoading = false,
-  featuresLoading = false
+  featuresLoading = false,
+  inDrawer = false,
 }: HorizontalPropertyFiltersProps): React.ReactElement {
   // Based on actual database data: min €150, max €116,319
   const [priceRange, setPriceRange] = React.useState<[number, number]>([150, 120000]);
@@ -135,7 +138,7 @@ export default function HorizontalPropertyFilters({
   const neighborhoodId = form.watch("neighborhoodId");
 
   return (
-    <section className="py-8 bg-gradient-to-br from-gray-50 to-white">
+    <section className={inDrawer ? "py-4 bg-white" : "hidden md:block py-8 bg-gradient-to-br from-gray-50 to-white"}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1a2642] mb-4">
@@ -146,7 +149,7 @@ export default function HorizontalPropertyFilters({
           </p>
         </div>
 
-        <Card className="p-6 shadow-lg bg-white/95 backdrop-blur-sm">
+        <Card className="p-4 sm:p-6 shadow-lg bg-white/95 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-gradient-to-r from-[#d4af37] to-[#b8960e] rounded-lg">
               <Filter className="w-5 h-5 text-white" />
@@ -245,7 +248,7 @@ export default function HorizontalPropertyFilters({
                         setPriceRange(newRange);
                         form.setValue("minPrice", value);
                       }}
-                      className="h-10"
+                      className="h-11"
                       min={150}
                       max={120000}
                     />
@@ -262,7 +265,7 @@ export default function HorizontalPropertyFilters({
                         setPriceRange(newRange);
                         form.setValue("maxPrice", value);
                       }}
-                      className="h-10"
+                      className="h-11"
                       min={150}
                       max={120000}
                     />
@@ -288,7 +291,7 @@ export default function HorizontalPropertyFilters({
                         setAreaRange(newRange);
                         form.setValue("minArea", value);
                       }}
-                      className="h-10"
+                      className="h-11"
                       min={20}
                       max={300}
                     />
@@ -305,7 +308,7 @@ export default function HorizontalPropertyFilters({
                         setAreaRange(newRange);
                         form.setValue("maxArea", value);
                       }}
-                      className="h-10"
+                      className="h-11"
                       min={20}
                       max={300}
                     />
@@ -330,7 +333,7 @@ export default function HorizontalPropertyFilters({
                         const newRange: [number, number] = [value, floorRange[1]];
                         setFloorRange(newRange);
                       }}
-                      className="h-10"
+                      className="h-11"
                       min={0}
                       max={10}
                     />
@@ -346,7 +349,7 @@ export default function HorizontalPropertyFilters({
                         const newRange: [number, number] = [floorRange[0], value];
                         setFloorRange(newRange);
                       }}
-                      className="h-10"
+                      className="h-11"
                       min={0}
                       max={10}
                     />
@@ -412,7 +415,7 @@ export default function HorizontalPropertyFilters({
                           <h5 className="text-xs font-semibold text-[#1a2642] uppercase tracking-wide border-b border-[#1a2642]/10 pb-1">
                             {categoryLabels[category as keyof typeof categoryLabels] || category}
                           </h5>
-                          <div className="space-y-1 pl-2 max-h-24 overflow-y-auto border border-gray-100 rounded-md p-2 bg-gray-50/50">
+                          <div className="space-y-1 pl-2 max-h-32 sm:max-h-24 overflow-y-auto border border-gray-100 rounded-md p-2 bg-gray-50/50">
                             {categoryFeatures.map((feature) => (
                               <label key={feature.id} className="flex items-center gap-2">
                                 <input 

@@ -161,29 +161,29 @@ export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCa
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Price */}
-        <div className="mt-4 mb-2 text-2xl font-semibold text-[#1a2642]">{formatPriceEUR(price)}</div>
+        <div className="mt-4 mb-2 text-xl sm:text-2xl font-semibold text-[#1a2642]">{formatPriceEUR(price)}</div>
 
         {/* Title */}
-        <h3 className="mb-3 line-clamp-2 text-lg font-medium text-[#2d3748]">{p.title_bg}</h3>
+        <h3 className="mb-3 line-clamp-2 text-base sm:text-lg font-medium text-[#2d3748]">{p.title_bg}</h3>
 
         {/* Details row */}
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
           {hasArea ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Square className="w-4 h-4" aria-hidden />
               <span>{p.area_sqm} m²</span>
             </div>
           ) : null}
           {typeof rooms === "number" && rooms > 0 ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <BedDouble className="w-4 h-4" aria-hidden />
               <span>{rooms} стаи</span>
             </div>
           ) : null}
           {typeof floor === "number" && floor > 0 ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Building2 className="w-4 h-4" aria-hidden />
               <span>Етаж {floor}</span>
             </div>
@@ -191,7 +191,7 @@ export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCa
         </div>
 
         {/* Neighborhood */}
-        <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
+        <div className="mt-2 flex items-center gap-1.5 text-sm text-gray-600">
           <MapPin className="w-4 h-4" aria-hidden />
           <span>{neighborhoodName ? `Квартал ${neighborhoodName}` : "Стара Загора"}</span>
         </div>
