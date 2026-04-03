@@ -6,7 +6,6 @@ import { ChevronRight } from "lucide-react";
 import { getServerClient } from "@/lib/supabase/server";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Database } from "@/types/database.generated";
-import type { PropertyWithRelations } from "@/lib/queries/properties";
 import { generatePropertyMetadata, generatePropertyNotFoundMetadata } from "@/lib/seo/property-metadata";
 import PropertyGallery from "@/components/property/PropertyGallery";
 import PropertyHeader from "@/components/property/PropertyHeader";
@@ -71,20 +70,23 @@ function validateIdOrNotFound(idParam: string): number {
   return idNum;
 }
 
-async function getPropertyByIdServer(id: number): Promise<PropertyWithRelations | null> {
+async function fetchPropertyDetails(idNum: number): Promise<PropertyWithDetails | null> {
   const supabase = await getServerClient();
-  
+
+  // Single query: property + neighborhood + category + images + features
   const { data, error } = await supabase
     .from("properties")
     .select(`
       *,
+      neighborhood:neighborhoods(*),
+      category:property_categories(*),
       images:property_images(*),
       features:property_property_features(
         feature_id,
         property_features(*)
       )
     `)
-    .eq("id", id)
+    .eq("id", idNum)
     .single();
 
   if (error) {
@@ -94,60 +96,19 @@ async function getPropertyByIdServer(id: number): Promise<PropertyWithRelations 
 
   if (!data) return null;
 
-  // Transform features data to match expected format
-  const transformedFeatures = data.features?.map((pf: any) => pf.property_features).filter(Boolean) || [];
+  const features: FeatureRow[] = (data.features as any[])
+    ?.map((pf: any) => pf.property_features)
+    .filter(Boolean) ?? [];
 
-  // Return flat property with images and features attached
+  const images: ImageRow[] = (data.images as ImageRow[]) ?? [];
+
   return {
-    ...data,
-    images: data.images || [],
-    features: transformedFeatures,
-  } as PropertyWithRelations;
-}
-
-async function fetchPropertyDetails(idNum: number): Promise<PropertyWithDetails | null> {
-  // Base property with neighborhood and images
-  const base: PropertyWithRelations | null = await getPropertyByIdServer(idNum);
-  if (!base) return null;
-
-  const supabase = await getServerClient();
-
-  // Neighborhood (fetch full row for strict typing)
-  let neighborhood: NeighborhoodRow | null = null;
-  if (typeof base.neighborhood_id === "number") {
-    const { data: n } = await supabase
-      .from("neighborhoods")
-      .select("*")
-      .eq("id", base.neighborhood_id)
-      .maybeSingle();
-    neighborhood = (n as NeighborhoodRow) ?? null;
-  }
-
-  // Category (fetch full row for strict typing)
-  let category: CategoryRow | null = null;
-  if (typeof base.category_id === "number") {
-    const { data: cat } = await supabase
-      .from("property_categories")
-      .select("*")
-      .eq("id", base.category_id)
-      .maybeSingle();
-    category = (cat as CategoryRow) ?? null;
-  }
-
-  // Features are already fetched in getPropertyByIdServer
-  const features: FeatureRow[] = base.features || [];
-
-  const images: ImageRow[] = (base.images ?? []) as ImageRow[];
-
-  const details: PropertyWithDetails = {
-    property: base as unknown as PropertyRow,
-    neighborhood,
-    category,
+    property: data as unknown as PropertyRow,
+    neighborhood: (data.neighborhood as NeighborhoodRow) ?? null,
+    category: (data.category as CategoryRow) ?? null,
     images,
     features,
   };
-
-  return details;
 }
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
