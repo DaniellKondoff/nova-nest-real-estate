@@ -22,6 +22,8 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { getPropertyBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { extractPropertyId, isValidPropertySlug, getPropertyUrlSlug } from "@/lib/seo/property-slug";
 import RelatedProperties from "@/components/property/RelatedProperties";
+import MobileContactBar from "@/components/property/MobileContactBar";
+import { site } from "@/config/site";
 
 // Route segment config: force dynamic so we always SSR by id
 export const dynamic = "force-dynamic";
@@ -201,7 +203,10 @@ export default async function PropertyDetailPage({ params }: PageParams) {
   const breadcrumbs = getPropertyBreadcrumbs(details);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 xl:pb-0">
+      {/* Mobile sticky contact bar - hidden on xl where sidebar is visible */}
+      <MobileContactBar phoneNumber={site.contact.phone} phoneDisplay={site.contact.phoneDisplay} />
+
       {/* Structured Data for Rich Search Results */}
       <PropertyDetailSchema property={details} />
       <BreadcrumbSchema items={breadcrumbs} />
@@ -270,7 +275,7 @@ export default async function PropertyDetailPage({ params }: PageParams) {
 
           {/* Right Column - Contact Form */}
           <div className="xl:col-span-4">
-            <div className="sticky top-8">
+            <div id="contact-sidebar" className="sticky top-8">
               <PropertyContact 
                 propertyId={String(property.id)} 
                 propertyTitle={property.title_bg} 
