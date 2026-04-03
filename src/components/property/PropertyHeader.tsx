@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 import { formatPrice, isNewProperty } from "./utils";
 import Logo from "@/components/layout/Logo";
+import ShareButton from "@/components/property/ShareButton";
 
 export interface PropertyHeaderProps {
   property: PropertyWithDetails;
@@ -54,7 +55,10 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
         <span>{neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}</span>
       </div>
       
-      <div className="text-[#1a2642] font-bold text-3xl md:text-4xl lg:text-5xl">{price}</div>
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div className="text-[#1a2642] font-bold text-3xl md:text-4xl lg:text-5xl">{price}</div>
+        <ShareButton title={p.title_bg} />
+      </div>
     </header>
   );
 }
