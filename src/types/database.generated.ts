@@ -122,6 +122,50 @@ export type Database = {
           },
         ]
       }
+      neighborhood_embeddings: {
+        Row: {
+          id: number
+          neighborhood_id: number
+          embedding: string | null
+          embedding_model: string
+          embedding_version: number
+          content_hash: string | null
+          source_language: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          neighborhood_id: number
+          embedding?: string | null
+          embedding_model?: string
+          embedding_version?: number
+          content_hash?: string | null
+          source_language?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          neighborhood_id?: number
+          embedding?: string | null
+          embedding_model?: string
+          embedding_version?: number
+          content_hash?: string | null
+          source_language?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neighborhood_embeddings_neighborhood_id_fkey"
+            columns: ["neighborhood_id"]
+            isOneToOne: true
+            referencedRelation: "neighborhoods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neighborhoods: {
         Row: {
           amenities: Json | null
@@ -367,6 +411,50 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      property_embeddings: {
+        Row: {
+          id: number
+          property_id: number
+          embedding: string | null
+          embedding_model: string
+          embedding_version: number
+          content_hash: string | null
+          source_language: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          property_id: number
+          embedding?: string | null
+          embedding_model?: string
+          embedding_version?: number
+          content_hash?: string | null
+          source_language?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          property_id?: number
+          embedding?: string | null
+          embedding_model?: string
+          embedding_version?: number
+          content_hash?: string | null
+          source_language?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_embeddings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_images: {
         Row: {
