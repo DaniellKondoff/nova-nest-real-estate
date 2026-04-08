@@ -36,7 +36,7 @@ function renderAssistantContent(content: string, isStreaming?: boolean) {
       <>
         <p className="whitespace-pre-wrap break-words">{textOnly || content}</p>
         {phoneFooter && (
-          <p className="whitespace-pre-wrap break-words mt-2 text-[0.8125rem] sm:text-xs text-primary/70">{phoneFooter}</p>
+          <p className="whitespace-pre-wrap break-words mt-2 text-[0.8125rem] sm:text-xs text-primary/85 font-medium">{phoneFooter}</p>
         )}
         {isStreaming && (
           <span className="inline-block w-1.5 h-4 bg-accent/60 ml-0.5 animate-pulse rounded-sm align-middle" />
@@ -56,7 +56,7 @@ function renderAssistantContent(content: string, isStreaming?: boolean) {
         ))}
       </div>
       {phoneFooter && (
-        <p className="whitespace-pre-wrap break-words text-[0.8125rem] sm:text-xs text-primary/70">{phoneFooter}</p>
+        <p className="whitespace-pre-wrap break-words text-[0.8125rem] sm:text-xs text-primary/85 font-medium">{phoneFooter}</p>
       )}
       {isStreaming && (
         <span className="inline-block w-1.5 h-4 bg-accent/60 ml-0.5 animate-pulse rounded-sm align-middle" />
@@ -80,8 +80,8 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         className={cn(
           "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[0.9375rem] sm:text-sm leading-relaxed",
           isUser
-            ? "bg-gradient-to-br from-accent to-[#c49b33] text-[#1a2642] rounded-tr-sm shadow-gold font-medium"
-            : "bg-white text-primary rounded-tl-sm shadow-subtle border border-primary/8"
+            ? "bg-gradient-to-br from-accent to-[#c49b33] text-[#1a2642] rounded-tr-sm shadow-gold font-semibold"
+            : "bg-[#f4f6fb] text-primary font-medium rounded-tl-sm shadow-subtle border border-primary/10"
         )}
       >
         {isUser ? (
