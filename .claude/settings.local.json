@@ -5,7 +5,8 @@
       "Bash(dir:*)",
       "Bash(npm run type-check:*)",
       "mcp__claude_ai_Supabase__list_projects",
-      "Bash(grep -r \"CREATE OR REPLACE FUNCTION\" /d/MyCode/NovaNest/nova-nest-real-estate/scripts/migrations/*.sql)"
+      "Bash(grep -r \"CREATE OR REPLACE FUNCTION\" /d/MyCode/NovaNest/nova-nest-real-estate/scripts/migrations/*.sql)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

@@ -28,6 +28,7 @@ const serverEnvSchema = z.object({
     .optional(),
   GOOGLE_MY_BUSINESS_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
 });
 
 export type PublicEnv = z.infer<typeof clientEnvSchema>;
@@ -74,6 +75,7 @@ export function getServerEnv(): ServerEnv {
     SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL,
     GOOGLE_MY_BUSINESS_API_KEY: process.env.GOOGLE_MY_BUSINESS_API_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   };
   const parsed = serverEnvSchema.safeParse(raw as Record<string, unknown>);
   if (!parsed.success) {
@@ -89,6 +91,7 @@ export function getServerEnv(): ServerEnv {
     SMTP_FROM_EMAIL: parsed.data.SMTP_FROM_EMAIL,
     GOOGLE_MY_BUSINESS_API_KEY: parsed.data.GOOGLE_MY_BUSINESS_API_KEY,
     OPENAI_API_KEY: parsed.data.OPENAI_API_KEY,
+    ANTHROPIC_API_KEY: parsed.data.ANTHROPIC_API_KEY,
   };
 }
 
