@@ -270,7 +270,7 @@ export function ChatWidget() {
 
             {/* Input row */}
             <div className="flex-shrink-0 px-3 pt-2 border-t border-primary/8" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}>
-              <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-primary/15 focus-within:border-accent/50 focus-within:shadow-gold transition-all duration-200">
+              <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-[#1a2642]/20 focus-within:border-[#d4af37] focus-within:shadow-gold transition-all duration-200">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -291,8 +291,8 @@ export function ChatWidget() {
                   className={cn(
                     "flex-shrink-0 w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all",
                     input.trim() && !isBusy
-                      ? "bg-accent text-white hover:bg-accent/90 shadow-gold"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      ? "bg-[#d4af37] text-white shadow-gold"
+                      : "bg-[#e8eaf2] text-[#1a2642]/40 cursor-not-allowed border border-[#1a2642]/10"
                   )}
                   aria-label="Изпрати съобщение"
                 >
