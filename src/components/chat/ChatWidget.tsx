@@ -180,33 +180,39 @@ export function ChatWidget() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 8 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            style={{ transformOrigin: "bottom right" }}
+            style={{ transformOrigin: "bottom right", boxShadow: "0 20px 60px rgba(26,38,66,0.18), 0 4px 16px rgba(26,38,66,0.08)" }}
             className={cn(
               "fixed z-50",
               // Mobile: full-screen panel
               "inset-0 sm:inset-auto",
               // Desktop: fixed 380×560, anchored bottom-right
-              "sm:bottom-[4.5rem] sm:right-4",
+              "sm:bottom-[6.5rem] sm:right-4",
               "sm:w-[380px] sm:h-[560px]",
               "flex flex-col",
-              "bg-white sm:rounded-2xl shadow-card border border-gray-100"
+              "bg-gradient-to-b from-white to-[#f5f7ff] sm:rounded-2xl border border-primary/10"
             )}
             role="dialog"
             aria-label="AI имотен асистент"
             aria-modal="false"
           >
             {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-primary sm:rounded-t-2xl flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                <MessageCircle className="w-4 h-4 text-accent" aria-hidden="true" />
+            <div className="flex items-center gap-3 px-4 py-3.5 bg-[#1a2642]/95 backdrop-blur-[8px] sm:rounded-t-2xl flex-shrink-0 border-b border-white/10 relative overflow-hidden">
+              {/* Subtle gold shimmer line at bottom — mirrors site header accent */}
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-70" />
+              {/* Logo-style icon badge — gold gradient circle matching site CTA */}
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-[#c49b33] flex items-center justify-center shadow-gold flex-shrink-0">
+                <MessageCircle className="w-4 h-4 text-[#1a2642]" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold text-sm leading-tight">Nova Nest Асистент</p>
-                <p className="text-white/60 text-xs">AI имотен консултант</p>
+                <p className="text-white font-semibold text-sm leading-tight tracking-wide">Nova Nest Асистент</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                  <p className="text-white/50 text-[11px] tracking-wide">AI имотен консултант</p>
+                </div>
               </div>
               <button
                 onClick={handleToggle}
-                className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
                 aria-label="Затвори чата"
               >
                 <X className="w-4 h-4" />
@@ -214,7 +220,7 @@ export function ChatWidget() {
             </div>
 
             {/* Messages list */}
-            <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-3 min-h-0">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-3 min-h-0 bg-[radial-gradient(ellipse_at_top,_#eef1fa_0%,_#f5f7ff_70%)]">
               {messages.map((msg, i) => (
                 <ChatMessage
                   key={i}
@@ -232,11 +238,11 @@ export function ChatWidget() {
                   <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary flex items-center justify-center mt-0.5">
                     <span className="text-accent text-xs font-bold">N</span>
                   </div>
-                  <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-3.5 py-3 flex items-center gap-1">
+                  <div className="bg-white rounded-2xl rounded-tl-sm px-3.5 py-3 flex items-center gap-1 shadow-subtle border border-primary/8">
                     {[0, 1, 2].map((i) => (
                       <span
                         key={i}
-                        className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"
+                        className="w-1.5 h-1.5 bg-accent/70 rounded-full animate-bounce"
                         style={{ animationDelay: `${i * 0.15}s` }}
                       />
                     ))}
@@ -251,7 +257,7 @@ export function ChatWidget() {
                     <button
                       key={s}
                       onClick={() => sendMessage(s)}
-                      className="text-left text-xs text-primary/70 bg-gray-50 hover:bg-accent/10 hover:text-primary border border-gray-200 hover:border-accent/30 rounded-xl px-3 py-2 transition-all duration-150"
+                      className="text-left text-xs text-primary/90 bg-white hover:bg-[#fffdf4] border border-primary/15 hover:border-accent/40 rounded-xl px-3 py-2 transition-all duration-200 shadow-subtle hover:shadow-gold active:bg-[#fffdf4] active:shadow-gold relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-accent before:to-accent/60 before:rounded-l-xl"
                     >
                       {s}
                     </button>
@@ -263,8 +269,8 @@ export function ChatWidget() {
             </div>
 
             {/* Input row */}
-            <div className="flex-shrink-0 px-3 pb-3 pt-2 border-t border-gray-100">
-              <div className="flex items-end gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-200 focus-within:border-primary/40 transition-colors">
+            <div className="flex-shrink-0 px-3 pb-3 pt-2 border-t border-primary/8">
+              <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-primary/15 focus-within:border-accent/50 focus-within:shadow-gold transition-all duration-200">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -308,7 +314,7 @@ export function ChatWidget() {
                 </p>
               )}
 
-              <p className="text-center text-gray-400 text-[10px] mt-1.5">
+              <p className="text-center text-primary/35 tracking-wide text-[10px] mt-1.5">
                 Powered by Claude AI · Nova Nest
               </p>
             </div>
@@ -317,25 +323,62 @@ export function ChatWidget() {
       </AnimatePresence>
 
       {/* ── FAB toggle button ─────────────────────────────────────────── */}
-      <button
-        onClick={handleToggle}
-        aria-label={isOpen ? "Затвори чата" : "Отвори AI асистент"}
-        aria-expanded={isOpen}
-        className={cn(
-          "fixed bottom-4 right-3 sm:right-4 z-50",
-          "flex items-center justify-center",
-          "shadow-lift transition-all duration-200",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-          isOpen
-            ? "bg-primary text-white scale-95"
-            : "bg-accent text-white hover:scale-110 active:scale-95"
-        )}
-        style={{ width: "3.25rem", height: "3.25rem", borderRadius: "9999px" }}
-      >
-        <span className={cn("transition-transform duration-200", isOpen ? "rotate-90" : "rotate-0")}>
-          {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
-        </span>
-      </button>
+      <div className="fixed bottom-20 right-3 sm:right-4 z-50">
+        <button
+          onClick={handleToggle}
+          aria-label={isOpen ? "Затвори чата" : "Отвори AI асистент"}
+          aria-expanded={isOpen}
+          className={cn(
+            "relative z-0 flex items-center justify-center",
+            "transition-all duration-200",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+            isOpen ? "scale-95" : "hover:scale-110 active:scale-95"
+          )}
+          style={{
+            width: "3.5rem",
+            height: "3.5rem",
+            borderRadius: "9999px",
+            background: "#1a2642",
+            boxShadow: isOpen
+              ? "0 4px 16px rgba(26,38,66,0.40)"
+              : "0 6px 24px rgba(26,38,66,0.45), 0 2px 8px rgba(26,38,66,0.25)",
+            "--speed": "1.5s",
+          } as React.CSSProperties}
+        >
+          {/* Shimmer layer — gold arc rotating around perimeter (closed state) */}
+          {!isOpen && (
+            <>
+              {/* Spinning conic gradient — full coverage behind button */}
+              <div
+                className="animate-spin-around pointer-events-none absolute -inset-1"
+                style={{
+                  borderRadius: "9999px",
+                  background: "conic-gradient(from 0deg, transparent 0deg, #d4af37 60deg, #f0d78c 90deg, #d4af37 120deg, transparent 180deg, transparent 360deg)",
+                  zIndex: -2,
+                  "--speed": "1.5s",
+                } as React.CSSProperties}
+              />
+              {/* Navy inset fill — shows only the border ring of the gradient */}
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  inset: "3px",
+                  borderRadius: "9999px",
+                  background: "#1a2642",
+                  zIndex: -1,
+                }}
+              />
+            </>
+          )}
+          {/* Icon */}
+          <span className={cn("relative z-10 transition-transform duration-200", isOpen ? "rotate-90" : "rotate-0")}>
+            {isOpen
+              ? <X className="w-5 h-5 text-white" />
+              : <MessageCircle className="w-5 h-5 text-white" />
+            }
+          </span>
+        </button>
+      </div>
     </>
   );
 }

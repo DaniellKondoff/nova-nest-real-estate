@@ -39,7 +39,7 @@ function renderAssistantContent(content: string, isStreaming?: boolean) {
           <p className="whitespace-pre-wrap break-words mt-2 text-xs text-primary/70">{phoneFooter}</p>
         )}
         {isStreaming && (
-          <span className="inline-block w-1.5 h-4 bg-primary/40 ml-0.5 animate-pulse rounded-sm align-middle" />
+          <span className="inline-block w-1.5 h-4 bg-accent/60 ml-0.5 animate-pulse rounded-sm align-middle" />
         )}
       </>
     );
@@ -59,7 +59,7 @@ function renderAssistantContent(content: string, isStreaming?: boolean) {
         <p className="whitespace-pre-wrap break-words text-xs text-primary/70">{phoneFooter}</p>
       )}
       {isStreaming && (
-        <span className="inline-block w-1.5 h-4 bg-primary/40 ml-0.5 animate-pulse rounded-sm align-middle" />
+        <span className="inline-block w-1.5 h-4 bg-accent/60 ml-0.5 animate-pulse rounded-sm align-middle" />
       )}
     </div>
   );
@@ -80,8 +80,8 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         className={cn(
           "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-accent text-white rounded-tr-sm"
-            : "bg-gray-100 text-primary rounded-tl-sm"
+            ? "bg-primary text-white rounded-tr-sm shadow-soft"
+            : "bg-white text-primary rounded-tl-sm shadow-subtle border border-primary/8"
         )}
       >
         {isUser ? (
@@ -92,8 +92,8 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
       </div>
 
       {isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center mt-0.5">
-          <span className="text-primary/60 text-xs font-semibold">Вие</span>
+        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-accent to-[#c49b33] flex items-center justify-center mt-0.5 shadow-gold">
+          <span className="text-[#1a2642] text-[10px] font-bold">ВИЕ</span>
         </div>
       )}
     </div>

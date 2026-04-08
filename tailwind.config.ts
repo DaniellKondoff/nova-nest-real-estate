@@ -126,6 +126,23 @@ const config: Config = {
         "gradient-primary": "linear-gradient(135deg, #1a2642 0%, #2c3e50 100%)",
         "gradient-accent": "linear-gradient(135deg, #d4af37 0%, #f0d78c 100%)",
       },
+
+      // Magic UI shimmer animations for FAB
+      animation: {
+        "shimmer-slide": "shimmer-slide var(--speed, 3s) ease-in-out infinite alternate",
+        "spin-around": "spin-around calc(var(--speed, 1.5s) * 2) infinite linear",
+      },
+      keyframes: {
+        "shimmer-slide": {
+          to: { transform: "translate(calc(100cqw - 100%), 0)" },
+        },
+        "spin-around": {
+          "0%": { transform: "translateZ(0) rotate(0)" },
+          "15%, 35%": { transform: "translateZ(0) rotate(90deg)" },
+          "65%, 85%": { transform: "translateZ(0) rotate(270deg)" },
+          "100%": { transform: "translateZ(0) rotate(360deg)" },
+        },
+      },
     },
   },
   plugins: [typography],
