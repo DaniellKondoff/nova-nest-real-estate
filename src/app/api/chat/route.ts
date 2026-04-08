@@ -3,6 +3,7 @@ import { z } from "zod";
 import { fail } from "@/lib/api";
 import { streamChatResponse, type ChatMessage } from "@/lib/chat/assistant";
 import { getServerEnv } from "@/lib/env";
+import { checkRateLimit } from "@/lib/chat/rate-limit";
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -32,6 +33,16 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   const { message, history } = parsed.data;
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const rl = checkRateLimit(ip);
+  if (!rl.allowed) {
+    return fail("Твърде много заявки. Моля, изчакайте малко.", {
+      status: 429,
+      code: "RATE_LIMITED",
+      details: { retryAfter: rl.retryAfter },
+    });
+  }
 
   const serverEnv = getServerEnv();
   const apiKey = serverEnv.ANTHROPIC_API_KEY;

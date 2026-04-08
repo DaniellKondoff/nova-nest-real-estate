@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { semanticSearch, extractFiltersFromQuery } from "@/lib/search";
+import { semanticSearch, extractFiltersFromQuery, type SemanticPropertyResult, type SemanticNeighborhoodResult } from "@/lib/search";
 import { buildSystemPrompt } from "./prompts";
 import { formatSearchContext } from "./context";
 
@@ -26,9 +26,17 @@ export async function streamChatResponse(
 ): Promise<ReadableStream<Uint8Array>> {
   const encoder = new TextEncoder();
 
-  // 1. Extract filters and run semantic search in parallel
-  const filters = extractFiltersFromQuery(userMessage);
-  const { properties, neighborhoods } = await semanticSearch(userMessage, filters, TOP_K);
+  // 1. Extract filters and run semantic search — degrade gracefully on failure
+  let properties: SemanticPropertyResult[] = [];
+  let neighborhoods: SemanticNeighborhoodResult[] = [];
+  try {
+    const filters = extractFiltersFromQuery(userMessage);
+    const result = await semanticSearch(userMessage, filters, TOP_K);
+    properties = result.properties;
+    neighborhoods = result.neighborhoods;
+  } catch (err) {
+    console.error("[chat-assistant] semantic search failed, continuing without context:", err);
+  }
 
   // 2. Build context block
   const contextBlock = formatSearchContext(properties, neighborhoods, siteUrl);

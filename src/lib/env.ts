@@ -15,6 +15,7 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_SITE_NAME: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_CHAT_ENABLED: z.enum(["true", "false"]).optional().default("true"),
 });
 
 const serverEnvSchema = z.object({
@@ -47,6 +48,7 @@ export const env: PublicEnv = (() => {
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME,
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    NEXT_PUBLIC_CHAT_ENABLED: process.env.NEXT_PUBLIC_CHAT_ENABLED,
   };
   const parsed = clientEnvSchema.safeParse(raw);
   if (!parsed.success) {
@@ -63,6 +65,7 @@ export const env: PublicEnv = (() => {
     NEXT_PUBLIC_SITE_NAME: parsed.data.NEXT_PUBLIC_SITE_NAME,
     NEXT_PUBLIC_GA_ID: parsed.data.NEXT_PUBLIC_GA_ID,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: parsed.data.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    NEXT_PUBLIC_CHAT_ENABLED: parsed.data.NEXT_PUBLIC_CHAT_ENABLED,
   };
 })();
 

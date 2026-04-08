@@ -25,6 +25,8 @@ const SUGGESTIONS = [
 
 const MAX_CHARS = 500;
 const COUNTER_THRESHOLD = 400;
+const MAX_MESSAGES = 50;
+const REQUEST_TIMEOUT_MS = 30_000;
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,6 +54,18 @@ export function ChatWidget() {
     const trimmed = (text ?? input).trim();
     if (!trimmed || isStreaming || isWaiting) return;
 
+    // Session message cap
+    if (messages.length >= MAX_MESSAGES) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Достигнахте лимита на съобщенията за тази сесия. Моля, презаредете страницата за нов разговор.",
+        },
+      ]);
+      return;
+    }
+
     const history = messages.slice(1).map((m) => ({ role: m.role, content: m.content }));
 
     setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
@@ -60,6 +74,11 @@ export function ChatWidget() {
 
     const controller = new AbortController();
     abortRef.current = controller;
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
 
     try {
       const res = await fetch("/api/chat", {
@@ -110,25 +129,24 @@ export function ChatWidget() {
       }
     } catch (err) {
       setIsWaiting(false);
-      if ((err as Error).name !== "AbortError") {
+      const isAbort = (err as Error).name === "AbortError";
+      if (!isAbort || timedOut) {
+        const errorContent = timedOut
+          ? "Заявката отне твърде дълго. Моля, опитайте отново."
+          : "Съжалявам, възникна грешка. Моля, опитайте отново.";
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
           if (last?.role === "assistant" && last.content === "") {
-            next[next.length - 1] = {
-              role: "assistant",
-              content: "Съжалявам, възникна грешка. Моля, опитайте отново.",
-            };
+            next[next.length - 1] = { role: "assistant", content: errorContent };
           } else {
-            next.push({
-              role: "assistant",
-              content: "Съжалявам, възникна грешка. Моля, опитайте отново.",
-            });
+            next.push({ role: "assistant", content: errorContent });
           }
           return next;
         });
       }
     } finally {
+      clearTimeout(timeoutId);
       setIsStreaming(false);
       abortRef.current = null;
     }
