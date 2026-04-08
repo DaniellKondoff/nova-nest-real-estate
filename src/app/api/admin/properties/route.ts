@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
 import { AdminPropertySchema } from "@/lib/validations";
+import { syncPropertyEmbedding } from "@/lib/embeddings/sync";
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,6 +100,11 @@ export async function POST(request: NextRequest) {
         // Don't fail the request, just log the error
       }
     }
+
+    // Sync embedding in the background — must not block the create response
+    syncPropertyEmbedding(property.id).catch((err) =>
+      console.error(`Failed to sync embedding for property ${property.id}:`, err)
+    );
 
     return NextResponse.json({ property }, { status: 201 });
   } catch (error) {

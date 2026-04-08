@@ -67,6 +67,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   trailingSlash: true,
   images: {
+    // Declare all quality values used across the app (required in Next.js 16+)
+    qualities: [70, 75, 80, 85, 90],
     // Use WebP only to reduce transformations by 50% (AVIF removed)
     formats: ["image/webp"],
     // Cache optimized images for 31 days to reduce transformations and cache writes

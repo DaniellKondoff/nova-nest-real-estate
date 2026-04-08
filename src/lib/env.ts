@@ -15,6 +15,7 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_SITE_NAME: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_CHAT_ENABLED: z.enum(["true", "false"]).optional().default("true"),
 });
 
 const serverEnvSchema = z.object({
@@ -27,6 +28,8 @@ const serverEnvSchema = z.object({
     .email({ message: "SMTP_FROM_EMAIL must be a valid email" })
     .optional(),
   GOOGLE_MY_BUSINESS_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
 });
 
 export type PublicEnv = z.infer<typeof clientEnvSchema>;
@@ -45,6 +48,7 @@ export const env: PublicEnv = (() => {
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME,
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    NEXT_PUBLIC_CHAT_ENABLED: process.env.NEXT_PUBLIC_CHAT_ENABLED,
   };
   const parsed = clientEnvSchema.safeParse(raw);
   if (!parsed.success) {
@@ -61,6 +65,7 @@ export const env: PublicEnv = (() => {
     NEXT_PUBLIC_SITE_NAME: parsed.data.NEXT_PUBLIC_SITE_NAME,
     NEXT_PUBLIC_GA_ID: parsed.data.NEXT_PUBLIC_GA_ID,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: parsed.data.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    NEXT_PUBLIC_CHAT_ENABLED: parsed.data.NEXT_PUBLIC_CHAT_ENABLED,
   };
 })();
 
@@ -72,6 +77,8 @@ export function getServerEnv(): ServerEnv {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL,
     GOOGLE_MY_BUSINESS_API_KEY: process.env.GOOGLE_MY_BUSINESS_API_KEY,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   };
   const parsed = serverEnvSchema.safeParse(raw as Record<string, unknown>);
   if (!parsed.success) {
@@ -86,6 +93,8 @@ export function getServerEnv(): ServerEnv {
     RESEND_API_KEY: parsed.data.RESEND_API_KEY,
     SMTP_FROM_EMAIL: parsed.data.SMTP_FROM_EMAIL,
     GOOGLE_MY_BUSINESS_API_KEY: parsed.data.GOOGLE_MY_BUSINESS_API_KEY,
+    OPENAI_API_KEY: parsed.data.OPENAI_API_KEY,
+    ANTHROPIC_API_KEY: parsed.data.ANTHROPIC_API_KEY,
   };
 }
 

@@ -3,7 +3,22 @@
     "allow": [
       "Bash(findstr:*)",
       "Bash(dir:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "Bash(grep -r \"CREATE OR REPLACE FUNCTION\" /d/MyCode/NovaNest/nova-nest-real-estate/scripts/migrations/*.sql)",
+      "Bash(npm install:*)",
+      "Bash(find /d/MyCode/NovaNest/nova-nest-real-estate/src -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"throttle\\\\|debounce\\\\|RateLimit\\\\|Limit\\\\|security\\\\|cors\\\\|helmet\\\\|auth\" {} \\\\;)",
+      "WebFetch(domain:magicui.design)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -s \"https://api.github.com/repos/magicuidesign/magicui/contents/registry/magicui\" -H \"Accept: application/vnd.github.v3+json\")",
+      "Bash(curl -s \"https://api.github.com/repos/magicuidesign/magicui/contents\" -H \"Accept: application/vnd.github.v3+json\")",
+      "WebSearch",
+      "WebFetch(domain:ui-thing.behonbaker.com)",
+      "WebFetch(domain:www.reactbits.dev)",
+      "WebFetch(domain:blog.alvanle.me)",
+      "WebFetch(domain:flowbite.com)",
+      "Bash(xargs grep:*)"
     ],
     "deny": [],
     "ask": []

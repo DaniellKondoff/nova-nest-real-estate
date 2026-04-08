@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabase/server";
 import { AdminPropertySchema } from "@/lib/validations";
+import { syncPropertyEmbedding } from "@/lib/embeddings/sync";
 
 export async function PUT(
   request: NextRequest,
@@ -118,6 +119,11 @@ export async function PUT(
 
     // Purge the ISR cache for this property page
     revalidatePath(`/properties/${propertyId}`);
+
+    // Sync embedding in the background — must not block the save response
+    syncPropertyEmbedding(propertyId).catch((err) =>
+      console.error(`Failed to sync embedding for property ${propertyId}:`, err)
+    );
 
     return NextResponse.json({ property }, { status: 200 });
   } catch (error) {
