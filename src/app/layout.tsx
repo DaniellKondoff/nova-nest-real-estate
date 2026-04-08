@@ -4,6 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import "../styles/globals.css";
 import ConditionalWrapper from "@/components/layout/ConditionalWrapper";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 import { generateDefaultMetadata, generateDefaultViewport } from "@/lib/seo/metadata";
 import { OrganizationSchema, WebsiteSchema } from "@/components/seo/StructuredData";
 
@@ -29,6 +30,7 @@ export default async function RootLayout({
         <ConditionalWrapper>
           {children}
         </ConditionalWrapper>
+        <ChatWidget />
         <SpeedInsights />
         <Analytics />
       </body>
