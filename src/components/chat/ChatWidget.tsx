@@ -282,7 +282,7 @@ export function ChatWidget() {
                   rows={1}
                   disabled={isBusy}
                   maxLength={MAX_CHARS}
-                  className="flex-1 bg-transparent text-sm text-primary placeholder:text-gray-500 resize-none outline-none leading-6 min-h-[2rem] sm:min-h-[1.5rem] max-h-24 overflow-y-auto"
+                  className="flex-1 bg-transparent text-sm text-[#1a2642] font-medium placeholder:text-[#1a2642]/50 resize-none outline-none leading-6 min-h-[2rem] sm:min-h-[1.5rem] max-h-24 overflow-y-auto"
                   aria-label="Съобщение до асистента"
                 />
                 <button
