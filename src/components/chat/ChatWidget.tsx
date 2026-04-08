@@ -257,7 +257,7 @@ export function ChatWidget() {
                     <button
                       key={s}
                       onClick={() => sendMessage(s)}
-                      className="text-left text-xs text-primary/90 bg-white hover:bg-[#fffdf4] border border-primary/15 hover:border-accent/40 rounded-xl px-3 py-2 transition-all duration-200 shadow-subtle hover:shadow-gold active:bg-[#fffdf4] active:shadow-gold relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-accent before:to-accent/60 before:rounded-l-xl"
+                      className="text-left text-sm sm:text-xs text-primary/90 bg-white hover:bg-[#fffdf4] border border-primary/15 hover:border-accent/40 rounded-xl px-3 py-2 transition-all duration-200 shadow-subtle hover:shadow-gold active:bg-[#fffdf4] active:shadow-gold relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-accent before:to-accent/60 before:rounded-l-xl"
                     >
                       {s}
                     </button>
@@ -269,7 +269,7 @@ export function ChatWidget() {
             </div>
 
             {/* Input row */}
-            <div className="flex-shrink-0 px-3 pb-3 pt-2 border-t border-primary/8">
+            <div className="flex-shrink-0 px-3 pt-2 border-t border-primary/8" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}>
               <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-primary/15 focus-within:border-accent/50 focus-within:shadow-gold transition-all duration-200">
                 <textarea
                   ref={inputRef}
@@ -282,14 +282,14 @@ export function ChatWidget() {
                   rows={1}
                   disabled={isBusy}
                   maxLength={MAX_CHARS}
-                  className="flex-1 bg-transparent text-sm text-primary placeholder:text-gray-400 resize-none outline-none leading-6 min-h-[1.5rem] max-h-24 overflow-y-auto"
+                  className="flex-1 bg-transparent text-sm text-primary placeholder:text-gray-400 resize-none outline-none leading-6 min-h-[2rem] sm:min-h-[1.5rem] max-h-24 overflow-y-auto"
                   aria-label="Съобщение до асистента"
                 />
                 <button
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || isBusy}
                   className={cn(
-                    "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                    "flex-shrink-0 w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all",
                     input.trim() && !isBusy
                       ? "bg-accent text-white hover:bg-accent/90 shadow-gold"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -323,7 +323,7 @@ export function ChatWidget() {
       </AnimatePresence>
 
       {/* ── FAB toggle button ─────────────────────────────────────────── */}
-      <div className="fixed bottom-20 right-3 sm:right-4 z-50">
+      <div className={cn("fixed bottom-20 right-3 sm:right-4 z-50", isOpen && "hidden sm:flex")}>
         <button
           onClick={handleToggle}
           aria-label={isOpen ? "Затвори чата" : "Отвори AI асистент"}

@@ -249,5 +249,6 @@ export function generateDefaultViewport() {
     maximumScale: 5,
     userScalable: true,
     themeColor: THEME_COLOR,
+    viewportFit: "cover" as const,
   };
 }
