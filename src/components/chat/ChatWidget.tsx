@@ -315,7 +315,7 @@ export function ChatWidget() {
               )}
 
               <p className="text-center text-primary/35 tracking-wide text-[10px] mt-1.5">
-                Powered by Claude AI · Nova Nest
+                Nova Nest Real Estate Assistant — помага ви да намерите идеалния имот в Стара Загора.
               </p>
             </div>
           </motion.div>
