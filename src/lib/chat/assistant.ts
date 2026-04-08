@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { semanticSearch, extractFiltersFromQuery, type SemanticPropertyResult, type SemanticNeighborhoodResult } from "@/lib/search";
+import { getCategoryByKeyword } from "@/lib/search/categories";
 import { buildSystemPrompt } from "./prompts";
 import { formatSearchContext } from "./context";
 
@@ -31,7 +32,9 @@ export async function streamChatResponse(
   let neighborhoods: SemanticNeighborhoodResult[] = [];
   try {
     const filters = extractFiltersFromQuery(userMessage);
-    const result = await semanticSearch(userMessage, filters, TOP_K);
+    const categoryId = await getCategoryByKeyword(userMessage);
+    const searchFilters = { ...filters, ...(categoryId ? { categoryId } : {}) };
+    const result = await semanticSearch(userMessage, searchFilters, TOP_K);
     properties = result.properties;
     neighborhoods = result.neighborhoods;
   } catch (err) {
@@ -54,6 +57,8 @@ export async function streamChatResponse(
 
   // 4. Create Anthropic client and start streaming
   const anthropic = new Anthropic({ apiKey });
+
+  console.log("[chat-assistant] messages sent to Claude:", JSON.stringify(messages, null, 2));
 
   const stream = anthropic.messages.stream({
     model: MODEL,

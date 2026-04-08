@@ -17,7 +17,8 @@
       "WebFetch(domain:ui-thing.behonbaker.com)",
       "WebFetch(domain:www.reactbits.dev)",
       "WebFetch(domain:blog.alvanle.me)",
-      "WebFetch(domain:flowbite.com)"
+      "WebFetch(domain:flowbite.com)",
+      "Bash(xargs grep:*)"
     ],
     "deny": [],
     "ask": []
