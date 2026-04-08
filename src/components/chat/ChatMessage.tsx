@@ -80,7 +80,7 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         className={cn(
           "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-primary text-white rounded-tr-sm shadow-soft"
+            ? "bg-gradient-to-br from-accent to-[#c49b33] text-[#1a2642] rounded-tr-sm shadow-gold font-medium"
             : "bg-white text-primary rounded-tl-sm shadow-subtle border border-primary/8"
         )}
       >

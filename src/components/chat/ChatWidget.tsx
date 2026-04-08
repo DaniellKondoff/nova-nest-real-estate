@@ -220,7 +220,7 @@ export function ChatWidget() {
             </div>
 
             {/* Messages list */}
-            <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-3 min-h-0 bg-[radial-gradient(ellipse_at_top,_#eef1fa_0%,_#f5f7ff_70%)]">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-3 min-h-0 bg-white">
               {messages.map((msg, i) => (
                 <ChatMessage
                   key={i}
