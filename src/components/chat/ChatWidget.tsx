@@ -257,7 +257,7 @@ export function ChatWidget() {
                     <button
                       key={s}
                       onClick={() => sendMessage(s)}
-                      className="text-left text-sm sm:text-xs text-primary/90 bg-white hover:bg-[#fffdf4] border border-primary/15 hover:border-accent/40 rounded-xl px-3 py-2 transition-all duration-200 shadow-subtle hover:shadow-gold active:bg-[#fffdf4] active:shadow-gold relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-accent before:to-accent/60 before:rounded-l-xl"
+                      className="text-left text-sm sm:text-xs text-[#1a2642] font-medium bg-white hover:bg-[#fffdf4] border border-[#1a2642]/20 hover:border-accent/40 rounded-xl px-3 py-2.5 transition-all duration-200 shadow-subtle hover:shadow-gold active:bg-[#fffdf4] active:shadow-gold relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-accent before:to-accent/60 before:rounded-l-xl"
                     >
                       {s}
                     </button>
@@ -314,7 +314,7 @@ export function ChatWidget() {
                 </p>
               )}
 
-              <p className="text-center text-primary/35 tracking-wide text-[10px] mt-1.5">
+              <p className="text-center text-[#1a2642]/60 tracking-wide text-[11px] mt-1.5 font-medium">
                 Nova Nest Real Estate Assistant — помага ви да намерите идеалния имот в Стара Загора.
               </p>
             </div>

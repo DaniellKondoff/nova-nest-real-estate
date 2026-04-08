@@ -81,7 +81,7 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
           "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[0.9375rem] sm:text-sm leading-relaxed",
           isUser
             ? "bg-gradient-to-br from-accent to-[#c49b33] text-[#1a2642] rounded-tr-sm shadow-gold font-semibold"
-            : "bg-[#f4f6fb] text-primary font-medium rounded-tl-sm shadow-subtle border border-primary/10"
+            : "bg-white text-[#1a2642] font-medium rounded-tl-sm shadow-subtle border border-[#1a2642]/15"
         )}
       >
         {isUser ? (
