@@ -188,7 +188,7 @@ export function ChatWidget() {
               // Desktop: fixed 380×560, anchored bottom-right
               "sm:bottom-[6.5rem] sm:right-4",
               "sm:w-[380px] sm:h-[560px]",
-              "flex flex-col",
+              "flex flex-col overflow-hidden",
               "bg-gradient-to-b from-white to-[#f5f7ff] sm:rounded-2xl border border-primary/10"
             )}
             role="dialog"
@@ -270,7 +270,7 @@ export function ChatWidget() {
 
             {/* Input row */}
             <div className="flex-shrink-0 px-3 pt-2 border-t border-primary/8" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}>
-              <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-[#1a2642]/20 focus-within:border-[#d4af37] focus-within:shadow-gold transition-all duration-200">
+              <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-[#1a2642]/20 focus-within:border-[#d4af37] focus-within:shadow-gold transition-all duration-200 overflow-hidden">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -282,7 +282,7 @@ export function ChatWidget() {
                   rows={1}
                   disabled={isBusy}
                   maxLength={MAX_CHARS}
-                  className="flex-1 bg-transparent text-sm text-[#1a2642] font-medium placeholder:text-[#1a2642]/50 resize-none outline-none leading-6 min-h-[2rem] sm:min-h-[1.5rem] max-h-24 overflow-y-auto"
+                  className="flex-1 min-w-0 bg-transparent text-sm text-[#1a2642] font-medium placeholder:text-[#1a2642]/50 resize-none outline-none leading-6 min-h-[2rem] sm:min-h-[1.5rem] max-h-24 overflow-y-auto"
                   aria-label="Съобщение до асистента"
                 />
                 <button
