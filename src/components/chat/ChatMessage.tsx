@@ -14,23 +14,36 @@ interface ChatMessageProps {
  * Property lines (containing "ID:" and "/properties/") are rendered as cards;
  * everything else renders as plain text.
  */
+const PHONE_LINE_PATTERN = /📞[^\n]*/g;
+
 function renderAssistantContent(content: string, isStreaming?: boolean) {
   const properties = parsePropertyLines(content);
+
+  // Extract phone footer lines so we can pin them after the cards
+  const phoneLines = content.match(PHONE_LINE_PATTERN) ?? [];
+  const phoneFooter = phoneLines[phoneLines.length - 1] ?? null;
+
+  // Strip property lines and phone lines from prose
+  const propertyLinePattern = /^.*ID:\s*\d+.*\/properties\/\d+.*$/gm;
+  const textOnly = content
+    .replace(propertyLinePattern, "")
+    .replace(PHONE_LINE_PATTERN, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
   if (properties.length === 0) {
     return (
       <>
-        <p className="whitespace-pre-wrap break-words">{content}</p>
+        <p className="whitespace-pre-wrap break-words">{textOnly || content}</p>
+        {phoneFooter && (
+          <p className="whitespace-pre-wrap break-words mt-2 text-xs text-primary/70">{phoneFooter}</p>
+        )}
         {isStreaming && (
           <span className="inline-block w-1.5 h-4 bg-primary/40 ml-0.5 animate-pulse rounded-sm align-middle" />
         )}
       </>
     );
   }
-
-  // Strip property lines from the text so they don't render twice
-  const propertyLinePattern = /^.*ID:\s*\d+.*\/properties\/\d+.*$/gm;
-  const textOnly = content.replace(propertyLinePattern, "").replace(/\n{3,}/g, "\n\n").trim();
 
   return (
     <div className="space-y-2">
@@ -42,6 +55,9 @@ function renderAssistantContent(content: string, isStreaming?: boolean) {
           <PropertyCard key={p.id} property={p} />
         ))}
       </div>
+      {phoneFooter && (
+        <p className="whitespace-pre-wrap break-words text-xs text-primary/70">{phoneFooter}</p>
+      )}
       {isStreaming && (
         <span className="inline-block w-1.5 h-4 bg-primary/40 ml-0.5 animate-pulse rounded-sm align-middle" />
       )}
