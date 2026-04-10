@@ -8,13 +8,14 @@ export interface ParsedProperty {
   price: string;
   area: string;
   rooms: string;
+  neighborhood: string;
   url: string;
 }
 
 /**
  * Parses property lines from assistant context text.
  * Matches lines like:
- *   - ID: 42 | Продажба | 120000 EUR | 85 кв.м | 3 стаи | квартал ID: 5 | релевантност: 92% | https://…/properties/42
+ *   ID: 42 | Продажба | 120000 EUR | 85 кв.м | 3 стаи | Център | https://…/properties/42
  */
 export function parsePropertyLines(text: string): ParsedProperty[] {
   const results: ParsedProperty[] = [];
@@ -28,7 +29,9 @@ export function parsePropertyLines(text: string): ParsedProperty[] {
     const opMatch = line.match(/\|\s*(Продажба|Наем)\s*\|/);
     const priceMatch = line.match(/\|\s*([\d\s.,]+\s*(?:EUR|лв\.?))\s*\|/i);
     const areaMatch = line.match(/\|\s*([\d.,]+\s*кв\.м)\s*\|/);
-    const roomsMatch = line.match(/\|\s*(\d+\s*стаи)\s*[\|$]/);
+    const roomsMatch = line.match(/\|\s*(\d+\s*стаи)\s*\|/);
+    // Neighborhood: field after rooms, before the URL — any non-pipe text that isn't a URL
+    const neighborhoodMatch = line.match(/\|\s*(\d+\s*стаи)\s*\|\s*([^|]+?)\s*\|\s*https?:\/\//);
     const urlMatch = line.match(/(https?:\/\/[^\s|]+\/properties\/\d+\/?)/);
 
     if (!idMatch || !urlMatch) continue;
@@ -39,6 +42,7 @@ export function parsePropertyLines(text: string): ParsedProperty[] {
       price: priceMatch?.[1]?.trim() ?? "",
       area: areaMatch?.[1]?.trim() ?? "",
       rooms: roomsMatch?.[1]?.trim() ?? "",
+      neighborhood: neighborhoodMatch?.[2]?.trim() ?? "",
       url: urlMatch[1],
     });
   }
@@ -85,6 +89,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
           )}
           {property.rooms && (
             <span className="text-xs text-gray-500">{property.rooms}</span>
+          )}
+          {property.neighborhood && (
+            <span className="text-xs text-gray-400">{property.neighborhood}</span>
           )}
         </div>
       </div>
