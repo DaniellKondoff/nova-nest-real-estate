@@ -10,8 +10,10 @@ export function formatSearchContext(
   siteUrl: string
 ): string {
   if (properties.length === 0 && neighborhoods.length === 0) {
-    return "Не са намерени релевантни имоти.";
+    return "";
   }
+
+  const neighborhoodMap = new Map(neighborhoods.map((n) => [n.neighborhoodId, n.nameBg]));
 
   const lines: string[] = [];
 
@@ -22,9 +24,10 @@ export function formatSearchContext(
       const price = p.priceEur != null ? `${p.priceEur} EUR` : "цена при запитване";
       const area = p.areaSqm != null ? `${p.areaSqm} кв.м` : "площ н/а";
       const rooms = p.rooms != null ? `${p.rooms} стаи` : "стаи н/а";
+      const neighborhood = neighborhoodMap.get(p.neighborhoodId) ?? `квартал ID: ${p.neighborhoodId}`;
       const similarity = (p.similarity * 100).toFixed(0);
       lines.push(
-        `- ID: ${p.propertyId} | ${op} | ${price} | ${area} | ${rooms} | квартал ID: ${p.neighborhoodId} | релевантност: ${similarity}% | ${siteUrl}/properties/${p.propertyId}`
+        `- ID: ${p.propertyId} | ${op} | ${price} | ${area} | ${rooms} | ${neighborhood} | релевантност: ${similarity}% | ${siteUrl}/properties/${p.propertyId}`
       );
     }
   }

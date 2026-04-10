@@ -4,6 +4,15 @@ import { getCategoryByKeyword } from "@/lib/search/categories";
 import { buildSystemPrompt } from "./prompts";
 import { formatSearchContext } from "./context";
 
+let anthropicClient: Anthropic | null = null;
+
+function getAnthropicClient(apiKey: string): Anthropic {
+  if (!anthropicClient) {
+    anthropicClient = new Anthropic({ apiKey });
+  }
+  return anthropicClient;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -55,8 +64,8 @@ export async function streamChatResponse(
     { role: "user", content: userMessageWithContext },
   ];
 
-  // 4. Create Anthropic client and start streaming
-  const anthropic = new Anthropic({ apiKey });
+  // 4. Get (or initialize) the Anthropic client singleton and start streaming
+  const anthropic = getAnthropicClient(apiKey);
 
   console.log("[chat-assistant] messages sent to Claude:", JSON.stringify(messages, null, 2));
 

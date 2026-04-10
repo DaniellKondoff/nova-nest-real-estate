@@ -2,6 +2,9 @@ import { generateEmbedding } from "@/lib/embeddings/openai";
 import { getServiceClient } from "@/lib/supabase/service";
 import type { ExtractedFilters } from "./filters";
 
+const MIN_PROPERTY_SIMILARITY = 0.15;
+const MIN_NEIGHBORHOOD_SIMILARITY = 0.10;
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -58,6 +61,7 @@ export async function searchProperties(
       filter_max_price:       filters?.maxPriceEur    ?? null,
       filter_min_area:        filters?.minAreaSqm     ?? null,
       filter_max_area:        filters?.maxAreaSqm     ?? null,
+      filter_min_rooms:       filters?.minRooms       ?? null,
       filter_max_rooms:       filters?.maxRooms       ?? null,
     });
 
@@ -67,19 +71,21 @@ export async function searchProperties(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (data as any[]).map((row) => ({
-      propertyId:     row.property_id as number,
-      similarity:     row.similarity as number,
-      priceEur:       row.price_eur as number | null,
-      priceBgn:       row.price_bgn as number | null,
-      areaSqm:        row.area_sqm as number | null,
-      rooms:          row.rooms as number | null,
-      bedrooms:       row.bedrooms as number | null,
-      categoryId:     row.category_id as number,
-      neighborhoodId: row.neighborhood_id as number,
-      operationType:  row.operation_type as "sale" | "rent",
-      isFeatured:     row.is_featured as boolean,
-    }));
+    return (data as any[])
+      .map((row) => ({
+        propertyId:     row.property_id as number,
+        similarity:     row.similarity as number,
+        priceEur:       row.price_eur as number | null,
+        priceBgn:       row.price_bgn as number | null,
+        areaSqm:        row.area_sqm as number | null,
+        rooms:          row.rooms as number | null,
+        bedrooms:       row.bedrooms as number | null,
+        categoryId:     row.category_id as number,
+        neighborhoodId: row.neighborhood_id as number,
+        operationType:  row.operation_type as "sale" | "rent",
+        isFeatured:     row.is_featured as boolean,
+      }))
+      .filter((r) => r.similarity >= MIN_PROPERTY_SIMILARITY);
   } catch (err) {
     console.error("[semantic-search] searchProperties unexpected error:", err);
     return [];
@@ -112,12 +118,14 @@ export async function searchNeighborhoods(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (data as any[]).map((row) => ({
-      neighborhoodId: row.neighborhood_id as number,
-      similarity:     row.similarity as number,
-      nameBg:         row.name_bg as string,
-      slug:           row.slug as string,
-    }));
+    return (data as any[])
+      .map((row) => ({
+        neighborhoodId: row.neighborhood_id as number,
+        similarity:     row.similarity as number,
+        nameBg:         row.name_bg as string,
+        slug:           row.slug as string,
+      }))
+      .filter((r) => r.similarity >= MIN_NEIGHBORHOOD_SIMILARITY);
   } catch (err) {
     console.error("[semantic-search] searchNeighborhoods unexpected error:", err);
     return [];

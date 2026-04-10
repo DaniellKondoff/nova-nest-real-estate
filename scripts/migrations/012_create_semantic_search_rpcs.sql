@@ -21,6 +21,7 @@ CREATE OR REPLACE FUNCTION public.match_properties(
   filter_max_price       float8  DEFAULT NULL,
   filter_min_area        float8  DEFAULT NULL,
   filter_max_area        float8  DEFAULT NULL,
+  filter_min_rooms       int     DEFAULT NULL,
   filter_max_rooms       int     DEFAULT NULL
 )
 RETURNS TABLE (
@@ -62,6 +63,7 @@ AS $$
     AND (filter_max_price       IS NULL OR p.price_eur            <= filter_max_price)
     AND (filter_min_area        IS NULL OR p.area_sqm             >= filter_min_area)
     AND (filter_max_area        IS NULL OR p.area_sqm             <= filter_max_area)
+    AND (filter_min_rooms       IS NULL OR p.rooms                >= filter_min_rooms)
     AND (filter_max_rooms       IS NULL OR p.rooms                <= filter_max_rooms)
   ORDER BY pe.embedding <=> query_embedding
   LIMIT match_count;
