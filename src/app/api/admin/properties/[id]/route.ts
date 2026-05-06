@@ -120,10 +120,11 @@ export async function PUT(
     // Purge the ISR cache for this property page
     revalidatePath(`/properties/${propertyId}`);
 
-    // Sync embedding in the background — must not block the save response
-    syncPropertyEmbedding(propertyId).catch((err) =>
-      console.error(`Failed to sync embedding for property ${propertyId}:`, err)
-    );
+    try {
+      await syncPropertyEmbedding(propertyId);
+    } catch (err) {
+      console.error(`Failed to sync embedding for property ${propertyId}:`, err);
+    }
 
     return NextResponse.json({ property }, { status: 200 });
   } catch (error) {

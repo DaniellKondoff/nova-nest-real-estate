@@ -101,10 +101,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sync embedding in the background — must not block the create response
-    syncPropertyEmbedding(property.id).catch((err) =>
-      console.error(`Failed to sync embedding for property ${property.id}:`, err)
-    );
+    try {
+      await syncPropertyEmbedding(property.id);
+    } catch (err) {
+      console.error(`Failed to sync embedding for property ${property.id}:`, err);
+    }
 
     return NextResponse.json({ property }, { status: 201 });
   } catch (error) {
