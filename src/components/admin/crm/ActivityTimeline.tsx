@@ -74,6 +74,7 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
 
   // Delete state
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const resetForm = () => {
     setActivityType("note");
@@ -124,6 +125,7 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
   };
 
   const startEdit = (activity: CrmActivity) => {
+    setConfirmDeleteId(null);
     setEditingId(activity.id);
     setEditType(activity.type as CrmActivityType);
     setEditContent(activity.content);
@@ -182,7 +184,7 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
   };
 
   const handleDelete = async (activityId: string) => {
-    if (!window.confirm("Сигурни ли сте, че искате да изтриете тази активност?")) return;
+    setConfirmDeleteId(null);
     setDeletingId(activityId);
     try {
       const res = await fetch(
@@ -429,7 +431,7 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(activity.id)}
+                            onClick={() => setConfirmDeleteId(activity.id)}
                             disabled={isDeleting}
                             title="Изтрий"
                             className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
@@ -442,6 +444,23 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
                           </button>
                         </div>
                       </div>
+                      {confirmDeleteId === activity.id && (
+                        <div className="mb-2 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-md">
+                          <span className="text-xs text-red-700 flex-1">Изтриване на активността?</span>
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="text-xs px-2 py-1 bg-white border border-gray-300 text-gray-600 rounded hover:bg-gray-50 transition-colors"
+                          >
+                            Отказ
+                          </button>
+                          <button
+                            onClick={() => handleDelete(activity.id)}
+                            className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                          >
+                            Изтрий
+                          </button>
+                        </div>
+                      )}
                       <p className="text-sm text-gray-800 whitespace-pre-wrap">{activity.content}</p>
                       {activity.outcome && (
                         <p className="text-xs text-gray-500 mt-1 italic">
