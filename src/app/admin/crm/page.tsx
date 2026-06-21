@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import ContactsTable from "@/components/admin/crm/ContactsTable";
 import CreateContactModal from "@/components/admin/crm/CreateContactModal";
 import DeleteConfirmModal from "@/components/admin/DeleteConfirmModal";
+import AdminPagination from "@/components/admin/AdminPagination";
 import type { CrmContact, CrmContactStatus, CrmClientType } from "@/types/crm";
 
 export default function AdminCrmPage() {
@@ -26,6 +27,10 @@ export default function AdminCrmPage() {
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalContacts, setTotalContacts] = useState(0);
+  const PAGE_SIZE = 20;
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -38,6 +43,11 @@ export default function AdminCrmPage() {
     };
   }, [search]);
 
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, clientTypeFilter]);
+
   const fetchContacts = useCallback(async () => {
     try {
       setLoading(true);
@@ -47,6 +57,8 @@ export default function AdminCrmPage() {
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (statusFilter) params.set("status", statusFilter);
       if (clientTypeFilter) params.set("client_type", clientTypeFilter);
+      params.set("page", String(currentPage));
+      params.set("limit", String(PAGE_SIZE));
 
       const response = await fetch(`/api/admin/crm/contacts?${params.toString()}`, {
         credentials: "include",
@@ -63,13 +75,14 @@ export default function AdminCrmPage() {
 
       const json = await response.json();
       setContacts(json.contacts ?? []);
+      setTotalContacts(json.total ?? 0);
     } catch (err) {
       console.error("Error fetching CRM contacts:", err);
       setError("Грешка при зареждане на контактите.");
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilter, clientTypeFilter]);
+  }, [debouncedSearch, statusFilter, clientTypeFilter, currentPage]);
 
   // Auth check + initial fetch
   useEffect(() => {
@@ -137,9 +150,9 @@ export default function AdminCrmPage() {
         throw new Error("Грешка при изтриване");
       }
 
-      setContacts((prev) => prev.filter((c) => c.id !== contactToDelete.id));
       setDeleteModalOpen(false);
       setContactToDelete(null);
+      fetchContacts();
     } catch (err) {
       console.error("Error deleting contact:", err);
       alert("Грешка при изтриване на контакта");
@@ -154,8 +167,9 @@ export default function AdminCrmPage() {
     setContactToDelete(null);
   };
 
-  const handleContactCreated = (contact: CrmContact) => {
-    setContacts((prev) => [contact, ...prev]);
+  const handleContactCreated = (_contact: CrmContact) => {
+    setCurrentPage(1);
+    fetchContacts();
   };
 
   if (loading && !isAuthenticated) {
@@ -245,11 +259,20 @@ export default function AdminCrmPage() {
           <p className="text-gray-500">Зареждане на контакти...</p>
         </div>
       ) : (
-        <ContactsTable
-          contacts={contacts}
-          onDelete={handleDelete}
-          processingId={processingId}
-        />
+        <>
+          <ContactsTable
+            contacts={contacts}
+            onDelete={handleDelete}
+            processingId={processingId}
+          />
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalContacts / PAGE_SIZE)}
+            totalResults={totalContacts}
+            onPageChange={setCurrentPage}
+            itemsPerPage={PAGE_SIZE}
+          />
+        </>
       )}
 
       {/* Delete modal */}

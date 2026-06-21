@@ -15,13 +15,17 @@ import type {
  */
 export async function getCrmContacts(
   filters?: CrmContactFilters
-): Promise<CrmContact[]> {
+): Promise<{ contacts: CrmContact[]; total: number }> {
   const supabase = await getServerClient();
+  const page = Math.max(1, filters?.page ?? 1);
+  const limit = Math.min(100, Math.max(1, filters?.limit ?? 20));
+  const offset = (page - 1) * limit;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("crm_contacts" as any) as any)
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (filters?.status) {
     query = query.eq("status", filters.status);
@@ -37,14 +41,14 @@ export async function getCrmContacts(
     );
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
 
   if (error) {
     console.error("Error fetching CRM contacts:", error);
-    return [];
+    return { contacts: [], total: 0 };
   }
 
-  return (data as CrmContact[]) ?? [];
+  return { contacts: (data as CrmContact[]) ?? [], total: count ?? 0 };
 }
 
 /**

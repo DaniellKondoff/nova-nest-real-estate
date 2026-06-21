@@ -62,6 +62,8 @@ export interface CrmContactFilters {
   status?: CrmContactStatus;
   client_type?: CrmClientType;
   search?: string;
+  page?: number;
+  limit?: number;
 }
 
 export const CRM_STATUS_LABELS: Record<CrmContactStatus, string> = {

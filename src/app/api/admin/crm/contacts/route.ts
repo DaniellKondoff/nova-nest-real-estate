@@ -40,13 +40,15 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "20")));
 
-    const contacts = await getCrmContacts({
+    const result = await getCrmContacts({
       status: status ?? undefined,
       client_type: client_type ?? undefined,
       search,
+      page,
+      limit,
     });
 
-    return NextResponse.json({ contacts, page, limit });
+    return NextResponse.json({ contacts: result.contacts, total: result.total, page, limit });
   } catch (error) {
     console.error("GET /api/admin/crm/contacts error:", error);
     return NextResponse.json(
