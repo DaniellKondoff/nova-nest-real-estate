@@ -3,15 +3,16 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Home, 
-  MessageSquare, 
+import {
+  LayoutDashboard,
+  Home,
+  MessageSquare,
   Star,
   Settings,
   LogOut,
   Loader2,
-  BarChart3
+  BarChart3,
+  Users
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -89,6 +90,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: "Анализ на прегледи",
       href: "/admin/analytics/views/",
       icon: BarChart3,
+    },
+    {
+      name: "CRM",
+      href: "/admin/crm/",
+      icon: Users,
     },
     {
       name: "Настройки",

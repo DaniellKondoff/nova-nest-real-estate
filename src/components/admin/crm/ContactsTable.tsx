@@ -102,7 +102,7 @@ export default function ContactsTable({ contacts, onDelete, processingId }: Cont
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => { window.location.href = `/admin/crm/${contact.id}`; }}
+                        onClick={() => { window.location.href = `/admin/crm/${contact.id}/`; }}
                         disabled={isProcessing}
                         className="p-1.5 text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Преглед"
