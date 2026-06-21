@@ -7,7 +7,7 @@ import { RecentInquiries } from "@/components/admin/RecentInquiries";
 import { RecentProperties } from "@/components/admin/RecentProperties";
 import { ActivityLog } from "@/components/admin/ActivityLog";
 import { QuickActions } from "@/components/admin/QuickActions";
-import { Home, MessageSquare, Star, TrendingUp, Eye } from "lucide-react";
+import { Home, MessageSquare, Star, TrendingUp, Eye, Users } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
 interface DashboardStats {
@@ -21,6 +21,9 @@ interface DashboardStats {
     title_bg: string;
     view_count: number | null;
   } | null;
+  crmTotal: number;
+  crmActive: number;
+  crmClosed: number;
 }
 
 export default function AdminDashboard() {
@@ -31,6 +34,9 @@ export default function AdminDashboard() {
     propertiesThisMonth: 0,
     totalViews: 0,
     mostViewedProperty: null,
+    crmTotal: 0,
+    crmActive: 0,
+    crmClosed: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,6 +105,11 @@ export default function AdminDashboard() {
           return sum + (property.view_count || 0);
         }, 0);
 
+        // CRM stats — separate fetch; crm_contacts not in generated types
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const crmContactsRes = await (supabase.from("crm_contacts" as any) as any).select("status");
+        const crmRows = (crmContactsRes.data as { status: string }[] | null) ?? [];
+
         setStats({
           totalProperties: propertiesRes.count || 0,
           activeInquiries: activeInquiriesRes.count || 0,
@@ -106,6 +117,9 @@ export default function AdminDashboard() {
           propertiesThisMonth: monthlyPropertiesRes.count || 0,
           totalViews,
           mostViewedProperty: mostViewedRes.data || null,
+          crmTotal: crmRows.length,
+          crmActive: crmRows.filter((r) => r.status === "active").length,
+          crmClosed: crmRows.filter((r) => r.status === "closed").length,
         });
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);
@@ -124,7 +138,7 @@ export default function AdminDashboard() {
         <AdminHeader pageTitle="Табло за управление" />
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(8)].map((_, i) => (
               <div key={i} className="bg-white p-6 rounded-lg border border-gray-200 animate-pulse">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
@@ -168,7 +182,7 @@ export default function AdminDashboard() {
       
       <div className="p-6">
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
             title="Общо имоти"
             value={stats.totalProperties}
@@ -207,6 +221,30 @@ export default function AdminDashboard() {
             icon={Eye}
             color="indigo"
             trend={stats.mostViewedProperty ? `Най-гледан: ${stats.mostViewedProperty.title_bg}` : "Няма данни"}
+          />
+
+          <StatsCard
+            title="CRM контакти"
+            value={stats.crmTotal}
+            icon={Users}
+            color="blue"
+            trend="Общо контакти"
+          />
+
+          <StatsCard
+            title="Активни клиенти"
+            value={stats.crmActive}
+            icon={Users}
+            color="green"
+            trend="Активни контакти"
+          />
+
+          <StatsCard
+            title="Затворени сделки"
+            value={stats.crmClosed}
+            icon={Users}
+            color="indigo"
+            trend="Приключени"
           />
         </div>
 
