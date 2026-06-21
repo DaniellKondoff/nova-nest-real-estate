@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import type { CrmContact, CrmContactStatus, CrmClientType } from "@/types/crm";
 import { CRM_STATUS_LABELS, CRM_CLIENT_TYPE_LABELS } from "@/types/crm";
 
@@ -104,10 +104,9 @@ export default function ContactsTable({ contacts, onDelete, processingId }: Cont
                       <button
                         onClick={() => { window.location.href = `/admin/crm/${contact.id}/`; }}
                         disabled={isProcessing}
-                        className="p-1.5 text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Преглед"
+                        className="px-3 py-1.5 text-sm font-medium text-white bg-[#1a2642] hover:bg-[#243152] rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Eye className="w-4 h-4" />
+                        Детайли
                       </button>
 
                       <button
