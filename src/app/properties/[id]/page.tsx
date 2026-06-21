@@ -16,6 +16,7 @@ import NeighborhoodInfo from "@/components/property/NeighborhoodInfo";
 import PropertyContact from "@/components/property/PropertyContact";
 import PropertyViewTracker from "@/components/property/PropertyViewTracker";
 import { PropertyDetailSchema } from "@/components/seo/PropertySchema";
+import { PropertyReviewSchema } from "@/components/seo/PropertyReviewSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { getPropertyBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
@@ -170,6 +171,7 @@ export default async function PropertyDetailPage({ params }: PageParams) {
 
       {/* Structured Data for Rich Search Results */}
       <PropertyDetailSchema property={details} />
+      <PropertyReviewSchema propertyId={String(idNum)} />
       <BreadcrumbSchema items={breadcrumbs} />
       
       {/* View Tracker - tracks views when page loads */}
