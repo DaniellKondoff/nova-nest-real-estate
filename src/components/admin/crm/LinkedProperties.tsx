@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { X, Plus, Loader2, ExternalLink, Search } from "lucide-react";
 import Image from "next/image";
 import type { Tables } from "@/types/database.generated";
+import type { CrmPropertyWithImages } from "@/types/crm";
 
 const PROPERTY_STATUS: Record<string, { label: string; classes: string }> = {
   available: { label: "Наличен", classes: "bg-green-100 text-green-800" },
@@ -16,6 +17,7 @@ const PROPERTY_STATUS: Record<string, { label: string; classes: string }> = {
 interface PropertyImage {
   url: string;
   is_primary: boolean;
+  sort_order?: number | null;
 }
 
 interface PropertyEntry {
@@ -25,17 +27,21 @@ interface PropertyEntry {
 
 interface LinkedPropertiesProps {
   contactId: string;
-  initialProperties: Tables<"properties">[];
+  initialProperties: CrmPropertyWithImages[];
 }
 
 function pickImage(images: PropertyImage[] | undefined, fallback: string | null): string | null {
   if (!images || images.length === 0) return fallback;
-  return (images.find((img) => img.is_primary) ?? images[0]).url;
+  const sorted = [...images].sort((a, b) => (a.sort_order ?? 99) - (b.sort_order ?? 99));
+  return (sorted.find((img) => img.is_primary) ?? sorted[0]).url;
 }
 
 export default function LinkedProperties({ contactId, initialProperties }: LinkedPropertiesProps) {
   const [entries, setEntries] = useState<PropertyEntry[]>(
-    initialProperties.map((p) => ({ property: p, primaryImage: p.og_image ?? null }))
+    initialProperties.map((p) => ({
+      property: p,
+      primaryImage: pickImage(p.property_images, p.og_image ?? null),
+    }))
   );
   const [unlinkingId, setUnlinkingId] = useState<number | null>(null);
   const [linkingId, setLinkingId] = useState<number | null>(null);

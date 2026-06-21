@@ -61,7 +61,7 @@ export async function getCrmContactById(
       `
       *,
       neighborhoods:crm_contact_neighborhoods(neighborhood:neighborhoods(*)),
-      properties:crm_contact_properties(property:properties(*)),
+      properties:crm_contact_properties(property:properties(*, property_images(url, is_primary, sort_order))),
       activities:crm_activities(*)
     `
     )
@@ -88,7 +88,9 @@ export async function getCrmContactById(
     properties: (raw.properties ?? [])
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((j: any) => j.property)
-      .filter(Boolean),
+      .filter(Boolean)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((p: any) => ({ ...p, property_images: p.property_images ?? [] })),
     activities: raw.activities ?? [],
   };
 

@@ -32,10 +32,20 @@ export interface CrmActivity {
   occurred_at: string;
 }
 
+export interface CrmPropertyImage {
+  url: string;
+  is_primary: boolean;
+  sort_order: number | null;
+}
+
+export interface CrmPropertyWithImages extends Tables<"properties"> {
+  property_images: CrmPropertyImage[];
+}
+
 /** CrmContact enriched with joined neighborhoods, properties, and activities. */
 export interface CrmContactWithRelations extends CrmContact {
   neighborhoods: Tables<"neighborhoods">[];
-  properties: Tables<"properties">[];
+  properties: CrmPropertyWithImages[];
   activities: CrmActivity[];
 }
 
