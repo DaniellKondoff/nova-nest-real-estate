@@ -31,8 +31,8 @@ export interface GeoCoordinates {
   longitude: number;
 }
 
-export interface Organization {
-  '@type': 'Organization';
+export interface Brand {
+  '@type': 'Brand';
   name: string;
 }
 
@@ -47,6 +47,14 @@ export interface Offer {
     '@type': 'RealEstateAgent';
     name: string;
   };
+  hasMerchantReturnPolicy: {
+    '@type': 'MerchantReturnPolicy';
+    returnPolicyCategory: string;
+  };
+  shippingDetails: {
+    '@type': 'OfferShippingDetails';
+    doesNotShip: boolean;
+  };
 }
 
 export interface ProductSchema {
@@ -56,7 +64,7 @@ export interface ProductSchema {
   name: string;
   description: string;
   image: string[];
-  brand: Organization;
+  brand: Brand;
   offers: Offer;
   additionalProperty: PropertyValue[];
   address: PostalAddress;
@@ -173,7 +181,7 @@ export function generatePropertySchema(property: PropertyWithDetails): ProductSc
     description: truncateDescription(prop.description_bg),
     image: imageUrls,
     brand: {
-      '@type': 'Organization',
+      '@type': 'Brand',
       name: 'Nova Nest Real Estate'
     },
     offers: {
@@ -186,6 +194,14 @@ export function generatePropertySchema(property: PropertyWithDetails): ProductSc
       seller: {
         '@type': 'RealEstateAgent',
         name: 'Nova Nest Real Estate'
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted'
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        doesNotShip: true
       }
     },
     additionalProperty: additionalProperties,
