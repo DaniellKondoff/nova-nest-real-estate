@@ -13,24 +13,41 @@ const PROPERTY_STATUS: Record<string, { label: string; classes: string }> = {
   archived: { label: "Архивиран", classes: "bg-gray-100 text-gray-800" },
 };
 
+interface PropertyImage {
+  url: string;
+  is_primary: boolean;
+}
+
+interface PropertyEntry {
+  property: Tables<"properties">;
+  primaryImage: string | null;
+}
+
 interface LinkedPropertiesProps {
   contactId: string;
   initialProperties: Tables<"properties">[];
 }
 
+function pickImage(images: PropertyImage[] | undefined, fallback: string | null): string | null {
+  if (!images || images.length === 0) return fallback;
+  return (images.find((img) => img.is_primary) ?? images[0]).url;
+}
+
 export default function LinkedProperties({ contactId, initialProperties }: LinkedPropertiesProps) {
-  const [properties, setProperties] = useState<Tables<"properties">[]>(initialProperties);
+  const [entries, setEntries] = useState<PropertyEntry[]>(
+    initialProperties.map((p) => ({ property: p, primaryImage: p.og_image ?? null }))
+  );
   const [unlinkingId, setUnlinkingId] = useState<number | null>(null);
   const [linkingId, setLinkingId] = useState<number | null>(null);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
-  const [allProperties, setAllProperties] = useState<Tables<"properties">[]>([]);
+  const [modalEntries, setModalEntries] = useState<PropertyEntry[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
   const filterRef = useRef<HTMLInputElement>(null);
 
-  const linkedIds = new Set(properties.map((p) => p.id));
+  const linkedIds = new Set(entries.map((e) => e.property.id));
 
   // Load all properties when modal opens
   useEffect(() => {
@@ -46,8 +63,16 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
       .then((r) => r.json())
       .then((json) => {
         if (json.success) {
-          const rows = (json.data?.properties ?? []) as Array<{ property: Tables<"properties"> }>;
-          setAllProperties(rows.map((r) => r.property));
+          const rows = (json.data?.properties ?? []) as Array<{
+            property: Tables<"properties">;
+            images?: PropertyImage[];
+          }>;
+          setModalEntries(
+            rows.map((r) => ({
+              property: r.property,
+              primaryImage: pickImage(r.images, r.property.og_image ?? null),
+            }))
+          );
         }
       })
       .catch(() => {})
@@ -65,28 +90,25 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
     return () => document.removeEventListener("keydown", onKey);
   }, [modalOpen]);
 
-  const filteredProperties = allProperties.filter((p) => {
-    if (linkedIds.has(p.id)) return false;
+  const filteredEntries = modalEntries.filter((e) => {
+    if (linkedIds.has(e.property.id)) return false;
     if (!filterQuery.trim()) return true;
     const q = filterQuery.toLowerCase();
-    return (
-      p.title_bg?.toLowerCase().includes(q) ||
-      p.neighborhood_id?.toString().includes(q)
-    );
+    return e.property.title_bg?.toLowerCase().includes(q);
   });
 
-  const handleLink = async (property: Tables<"properties">) => {
-    setLinkingId(property.id);
+  const handleLink = async (entry: PropertyEntry) => {
+    const propertyId = entry.property.id;
+    setLinkingId(propertyId);
     try {
       const res = await fetch(`/api/admin/crm/contacts/${contactId}/properties`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ property_id: property.id }),
+        body: JSON.stringify({ property_id: propertyId }),
       });
       if (res.ok) {
-        setProperties((prev) => [...prev, property]);
-        setAllProperties((prev) => prev.filter((p) => p.id !== property.id));
+        setEntries((prev) => [...prev, entry]);
       }
     } finally {
       setLinkingId(null);
@@ -103,7 +125,7 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
         body: JSON.stringify({ property_id: propertyId }),
       });
       if (res.ok) {
-        setProperties((prev) => prev.filter((p) => p.id !== propertyId));
+        setEntries((prev) => prev.filter((e) => e.property.id !== propertyId));
       }
     } finally {
       setUnlinkingId(null);
@@ -135,11 +157,12 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
         </div>
 
         {/* Linked properties list */}
-        {properties.length === 0 ? (
+        {entries.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-6">Няма свързани имоти</p>
         ) : (
           <div className="space-y-2">
-            {properties.map((property) => {
+            {entries.map((entry) => {
+              const { property, primaryImage } = entry;
               const s = statusInfo(property.status);
               const isUnlinking = unlinkingId === property.id;
               return (
@@ -148,9 +171,9 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
                   className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-14 h-14 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
-                    {property.og_image ? (
+                    {primaryImage ? (
                       <Image
-                        src={property.og_image}
+                        src={primaryImage}
                         alt={property.title_bg}
                         width={56}
                         height={56}
@@ -242,27 +265,28 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
                 <div className="flex items-center justify-center py-16">
                   <Loader2 className="w-6 h-6 animate-spin text-[#D4AF37]" />
                 </div>
-              ) : filteredProperties.length === 0 ? (
+              ) : filteredEntries.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-16">
                   {filterQuery.trim() ? "Няма намерени имоти" : "Всички имоти са вече свързани"}
                 </p>
               ) : (
                 <ul className="divide-y divide-gray-100">
-                  {filteredProperties.map((property) => {
+                  {filteredEntries.map((entry) => {
+                    const { property, primaryImage } = entry;
                     const s = statusInfo(property.status);
                     const isLinking = linkingId === property.id;
                     return (
                       <li key={property.id}>
                         <button
-                          onClick={() => handleLink(property)}
+                          onClick={() => handleLink(entry)}
                           disabled={isLinking}
                           className="w-full flex items-center gap-4 px-6 py-3 text-left hover:bg-gray-50 transition-colors disabled:opacity-60"
                         >
                           {/* Thumbnail */}
                           <div className="w-14 h-14 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
-                            {property.og_image ? (
+                            {primaryImage ? (
                               <Image
-                                src={property.og_image}
+                                src={primaryImage}
                                 alt={property.title_bg}
                                 width={56}
                                 height={56}
@@ -305,7 +329,7 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
             {/* Footer count */}
             {!modalLoading && (
               <div className="px-6 py-3 border-t border-gray-100 text-xs text-gray-400">
-                {filteredProperties.length} имота
+                {filteredEntries.length} имота
               </div>
             )}
           </div>
