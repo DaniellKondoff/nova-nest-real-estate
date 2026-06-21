@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Loader2, FileText, Phone, Users } from "lucide-react";
+import { Plus, Loader2, FileText, Phone, Users, Pencil, Trash2 } from "lucide-react";
 import type { CrmActivity, CrmActivityType } from "@/types/crm";
 import { CRM_ACTIVITY_TYPE_LABELS } from "@/types/crm";
 
@@ -42,6 +42,10 @@ function toLocalDatetimeValue(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function getOutcomeLabel(type: CrmActivityType): string {
+  return OUTCOME_LABEL[type] ?? "Резултат";
+}
+
 interface ActivityTimelineProps {
   contactId: string;
   initialActivities: CrmActivity[];
@@ -49,14 +53,27 @@ interface ActivityTimelineProps {
 
 export default function ActivityTimeline({ contactId, initialActivities }: ActivityTimelineProps) {
   const [activities, setActivities] = useState<CrmActivity[]>(initialActivities);
+
+  // Create form state
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-
   const [activityType, setActivityType] = useState<CrmActivityType>("note");
   const [content, setContent] = useState("");
   const [outcome, setOutcome] = useState("");
   const [occurredAt, setOccurredAt] = useState(() => toLocalDatetimeValue(new Date()));
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editType, setEditType] = useState<CrmActivityType>("note");
+  const [editContent, setEditContent] = useState("");
+  const [editOutcome, setEditOutcome] = useState("");
+  const [editOccurredAt, setEditOccurredAt] = useState("");
+
+  // Delete state
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const resetForm = () => {
     setActivityType("note");
@@ -106,6 +123,80 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
     }
   };
 
+  const startEdit = (activity: CrmActivity) => {
+    setEditingId(activity.id);
+    setEditType(activity.type as CrmActivityType);
+    setEditContent(activity.content);
+    setEditOutcome(activity.outcome ?? "");
+    setEditOccurredAt(toLocalDatetimeValue(new Date(activity.occurred_at)));
+    setEditError(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError(null);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent, activityId: string) => {
+    e.preventDefault();
+    if (!editContent.trim()) {
+      setEditError("Съдържанието е задължително");
+      return;
+    }
+
+    setEditSubmitting(true);
+    setEditError(null);
+
+    try {
+      const res = await fetch(
+        `/api/admin/crm/contacts/${contactId}/activities/${activityId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            type: editType,
+            content: editContent.trim(),
+            outcome: editOutcome.trim() || null,
+            occurred_at: new Date(editOccurredAt).toISOString(),
+          }),
+        }
+      );
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        setEditError(json.error ?? "Грешка при запазване");
+        return;
+      }
+
+      setActivities((prev) =>
+        prev.map((a) => (a.id === activityId ? (json.activity as CrmActivity) : a))
+      );
+      setEditingId(null);
+    } catch {
+      setEditError("Грешка при свързване със сървъра");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (activityId: string) => {
+    if (!window.confirm("Сигурни ли сте, че искате да изтриете тази активност?")) return;
+    setDeletingId(activityId);
+    try {
+      const res = await fetch(
+        `/api/admin/crm/contacts/${contactId}/activities/${activityId}`,
+        { method: "DELETE", credentials: "include" }
+      );
+      if (res.ok) {
+        setActivities((prev) => prev.filter((a) => a.id !== activityId));
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       {/* Header */}
@@ -133,27 +224,20 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
         >
           <h4 className="text-sm font-medium text-gray-800">Нова активност</h4>
 
-          {/* Type */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Тип</label>
             <select
               value={activityType}
-              onChange={(e) => {
-                setActivityType(e.target.value as CrmActivityType);
-                setOutcome("");
-              }}
+              onChange={(e) => { setActivityType(e.target.value as CrmActivityType); setOutcome(""); }}
               disabled={submitting}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent disabled:bg-gray-100"
             >
               {(["note", "call", "meeting"] as CrmActivityType[]).map((t) => (
-                <option key={t} value={t}>
-                  {CRM_ACTIVITY_TYPE_LABELS[t]}
-                </option>
+                <option key={t} value={t}>{CRM_ACTIVITY_TYPE_LABELS[t]}</option>
               ))}
             </select>
           </div>
 
-          {/* Content */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Съдържание <span className="text-red-500">*</span>
@@ -164,17 +248,13 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
               disabled={submitting}
               rows={3}
               placeholder={
-                activityType === "note"
-                  ? "Опишете бележката..."
-                  : activityType === "call"
-                  ? "За какво беше обаждането?"
-                  : "За какво беше срещата?"
+                activityType === "note" ? "Опишете бележката..." :
+                activityType === "call" ? "За какво беше обаждането?" : "За какво беше срещата?"
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent disabled:bg-gray-100 resize-none"
             />
           </div>
 
-          {/* Outcome (only for call/meeting) */}
           {OUTCOME_LABEL[activityType] && (
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">{OUTCOME_LABEL[activityType]}</label>
@@ -189,7 +269,6 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
             </div>
           )}
 
-          {/* Date */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Дата и час</label>
             <input
@@ -210,10 +289,7 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
           <div className="flex gap-2 pt-1">
             <button
               type="button"
-              onClick={() => {
-                resetForm();
-                setShowForm(false);
-              }}
+              onClick={() => { resetForm(); setShowForm(false); }}
               disabled={submitting}
               className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 disabled:opacity-50 transition-colors"
             >
@@ -240,6 +316,8 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
             const type = activity.type as CrmActivityType;
             const iconBg = ACTIVITY_ICON_BG[type] ?? "bg-gray-100 text-gray-600";
             const isLast = index === activities.length - 1;
+            const isEditing = editingId === activity.id;
+            const isDeleting = deletingId === activity.id;
 
             return (
               <div key={activity.id} className="flex gap-3">
@@ -253,17 +331,124 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
 
                 {/* Content */}
                 <div className={`flex-1 min-w-0 ${!isLast ? "pb-4" : ""}`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-gray-700">
-                      {CRM_ACTIVITY_TYPE_LABELS[type]}
-                    </span>
-                    <span className="text-xs text-gray-400">{formatDate(activity.occurred_at)}</span>
-                  </div>
-                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{activity.content}</p>
-                  {activity.outcome && (
-                    <p className="text-xs text-gray-500 mt-1 italic">
-                      {getOutcomeLabel(type)}: {activity.outcome}
-                    </p>
+                  {isEditing ? (
+                    <form
+                      onSubmit={(e) => handleEditSubmit(e, activity.id)}
+                      className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3"
+                    >
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Тип</label>
+                        <select
+                          value={editType}
+                          onChange={(e) => { setEditType(e.target.value as CrmActivityType); setEditOutcome(""); }}
+                          disabled={editSubmitting}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent disabled:bg-gray-100"
+                        >
+                          {(["note", "call", "meeting"] as CrmActivityType[]).map((t) => (
+                            <option key={t} value={t}>{CRM_ACTIVITY_TYPE_LABELS[t]}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Съдържание <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          disabled={editSubmitting}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent disabled:bg-gray-100 resize-none"
+                        />
+                      </div>
+
+                      {OUTCOME_LABEL[editType] && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">{OUTCOME_LABEL[editType]}</label>
+                          <input
+                            type="text"
+                            value={editOutcome}
+                            onChange={(e) => setEditOutcome(e.target.value)}
+                            disabled={editSubmitting}
+                            placeholder="Незадължително"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent disabled:bg-gray-100"
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Дата и час</label>
+                        <input
+                          type="datetime-local"
+                          value={editOccurredAt}
+                          onChange={(e) => setEditOccurredAt(e.target.value)}
+                          disabled={editSubmitting}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent disabled:bg-gray-100"
+                        />
+                      </div>
+
+                      {editError && (
+                        <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                          <p className="text-xs text-red-800">{editError}</p>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={cancelEdit}
+                          disabled={editSubmitting}
+                          className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                        >
+                          Отказ
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={editSubmitting}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#D4AF37] text-white text-xs font-medium rounded-md hover:bg-[#B8941F] disabled:opacity-50 transition-colors"
+                        >
+                          {editSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                          Запази
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {CRM_ACTIVITY_TYPE_LABELS[type]}
+                        </span>
+                        <span className="text-xs text-gray-400">{formatDate(activity.occurred_at)}</span>
+                        <div className="ml-auto flex items-center gap-1">
+                          <button
+                            onClick={() => startEdit(activity)}
+                            title="Редактирай"
+                            className="p-1 text-gray-400 hover:text-[#D4AF37] hover:bg-yellow-50 rounded transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(activity.id)}
+                            disabled={isDeleting}
+                            title="Изтрий"
+                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                          >
+                            {isDeleting ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-800 whitespace-pre-wrap">{activity.content}</p>
+                      {activity.outcome && (
+                        <p className="text-xs text-gray-500 mt-1 italic">
+                          {getOutcomeLabel(type)}: {activity.outcome}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -273,8 +458,4 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
       )}
     </div>
   );
-}
-
-function getOutcomeLabel(type: CrmActivityType): string {
-  return OUTCOME_LABEL[type] ?? "Резултат";
 }

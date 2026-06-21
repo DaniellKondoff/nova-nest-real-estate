@@ -123,6 +123,45 @@ export async function createCrmContact(
 }
 
 /**
+ * Update an existing CRM activity by ID. Throws on database error.
+ */
+export async function updateCrmActivity(
+  id: string,
+  input: Partial<Omit<CrmActivity, "id" | "created_at" | "contact_id">>
+): Promise<CrmActivity> {
+  const supabase = await getServerClient();
+
+  const { data, error } = await (supabase.from("crm_activities" as any) as any)
+    .update(input)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating CRM activity:", error);
+    throw error;
+  }
+
+  return data as CrmActivity;
+}
+
+/**
+ * Delete a CRM activity by ID. Throws on database error.
+ */
+export async function deleteCrmActivity(id: string): Promise<void> {
+  const supabase = await getServerClient();
+
+  const { error } = await (supabase.from("crm_activities" as any) as any)
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting CRM activity:", error);
+    throw error;
+  }
+}
+
+/**
  * Update an existing CRM contact by ID. Throws on database error.
  */
 export async function updateCrmContact(
