@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -24,6 +24,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, isAdmin, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [taskCount, setTaskCount] = useState(0);
 
   // Skip auth check for login page (handle both with and without trailing slash)
   const isLoginPage = pathname === "/admin/login" || pathname === "/admin/login/";
@@ -35,6 +36,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       }
     }
   }, [user, isAdmin, loading, router, isLoginPage]);
+
+  useEffect(() => {
+    if (!user || !isAdmin || isLoginPage) return;
+    fetch("/api/admin/crm/tasks/today", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: unknown[]) => setTaskCount(Array.isArray(data) ? data.length : 0))
+      .catch(() => setTaskCount(0));
+  }, [user, isAdmin, isLoginPage]);
 
   const handleLogout = async () => {
     const success = await signOut();
@@ -70,36 +79,43 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: "Dashboard",
       href: "/admin/dashboard/",
       icon: LayoutDashboard,
+      badge: 0,
     },
     {
       name: "Імоти",
       href: "/admin/properties/",
       icon: Home,
+      badge: 0,
     },
     {
       name: "Запитвания",
       href: "/admin/inquiries/",
       icon: MessageSquare,
+      badge: 0,
     },
     {
       name: "Отзиви",
       href: "/admin/testimonials/",
       icon: Star,
+      badge: 0,
     },
     {
       name: "Анализ на прегледи",
       href: "/admin/analytics/views/",
       icon: BarChart3,
+      badge: 0,
     },
     {
       name: "CRM",
       href: "/admin/crm/",
       icon: Users,
+      badge: taskCount,
     },
     {
       name: "Настройки",
       href: "/admin/settings/",
       icon: Settings,
+      badge: 0,
     },
   ];
 
@@ -120,21 +136,26 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || pathname.startsWith(item.href.replace(/\/$/, ''));
-              
+
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={`
                     flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200
-                    ${isActive 
-                      ? 'bg-[#d4af37] text-white' 
+                    ${isActive
+                      ? 'bg-[#d4af37] text-white'
                       : 'text-gray-300 hover:text-[#d4af37] hover:bg-white/10'
                     }
                   `}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-medium flex-1">{item.name}</span>
+                  {item.badge > 0 && (
+                    <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold ${isActive ? "bg-[#1a2642] text-white" : "bg-[#d4af37] text-[#1a2642]"}`}>
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}

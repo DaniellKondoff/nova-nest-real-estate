@@ -9,6 +9,7 @@ import { ActivityLog } from "@/components/admin/ActivityLog";
 import { QuickActions } from "@/components/admin/QuickActions";
 import { Home, MessageSquare, Star, TrendingUp, Eye, Users } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { TodaysTasksWidget } from "@/components/admin/crm/TodaysTasksWidget";
 
 interface DashboardStats {
   totalProperties: number;
@@ -242,6 +243,11 @@ export default function AdminDashboard() {
             color="indigo"
             trend="Приключени"
           />
+        </div>
+
+        {/* Today's CRM Tasks */}
+        <div className="mb-8">
+          <TodaysTasksWidget />
         </div>
 
         {/* Recent Activity Widgets */}
