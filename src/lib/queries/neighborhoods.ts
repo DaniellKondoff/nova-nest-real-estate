@@ -102,13 +102,13 @@ export async function getPropertiesByNeighborhood(
     .from("properties")
     .select(`
       *,
-      images:property_images(*),
+      images:property_images(id, url, is_primary, sort_order, alt_text_bg),
       features:property_property_features(
         feature_id,
-        property_features(*)
+        property_features(id, name_bg, name_en, category)
       ),
-      neighborhood:neighborhoods(*),
-      category:property_categories(*)
+      neighborhood:neighborhoods(id, name_bg, name_en, slug),
+      category:property_categories(id, name_bg, name_en, slug)
     `)
     .eq("neighborhood_id", neighborhoodId)
     .eq("status", "available")
@@ -188,4 +188,17 @@ export const getCachedNeighborhoods = unstable_cache(
   },
   ["all-neighborhoods"],
   { tags: ["neighborhoods"] }
+);
+
+/**
+ * Cached version of getPropertiesByNeighborhood.
+ * Results are cached for 1 hour and tagged for on-demand revalidation when properties or
+ * neighborhoods change. Each neighborhoodId gets its own cache entry via the key array.
+ */
+export const getCachedPropertiesByNeighborhood = unstable_cache(
+  async (neighborhoodId: number, limit: number = 20): Promise<PropertyWithDetails[]> => {
+    return getPropertiesByNeighborhood(neighborhoodId, limit);
+  },
+  ["properties-by-neighborhood"],
+  { tags: ["properties", "neighborhoods"], revalidate: 3600 }
 );

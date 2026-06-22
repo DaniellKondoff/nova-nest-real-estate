@@ -23,6 +23,8 @@ export interface AggregateRating {
   reviewCount: number;
 }
 
+import { unstable_cache } from 'next/cache';
+
 /**
  * Creates a static Supabase client for static generation (no cookies)
  */
@@ -30,42 +32,49 @@ function getStaticClient() {
   return createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-/**
- * Fetches all approved testimonials from the database (static version for SSG)
- * @returns Promise<Testimonial[]> - Array of approved testimonials
- */
-export async function getApprovedTestimonialsStatic(): Promise<Testimonial[]> {
-  try {
-    const supabase = getStaticClient();
-    
-    const { data, error } = await supabase
-      .from('testimonials')
-      .select('id, rating, client_name, content_bg, created_at')
-      .eq('is_published', true)
-      .not('rating', 'is', null)
-      .order('created_at', { ascending: false });
+async function _fetchApprovedTestimonials(): Promise<Testimonial[]> {
+  const supabase = getStaticClient();
 
-    if (error) {
-      console.error('Error fetching testimonials:', error);
-      return [];
-    }
+  const { data, error } = await supabase
+    .from('testimonials')
+    .select('id, rating, client_name, content_bg, created_at')
+    .eq('is_published', true)
+    .not('rating', 'is', null)
+    .order('created_at', { ascending: false });
 
-    // Filter out testimonials without ratings and map to our interface
-    return (data || [])
-      .filter((testimonial): testimonial is NonNullable<typeof testimonial> & { rating: number } => 
-        testimonial.rating !== null && testimonial.rating > 0
-      )
-      .map(testimonial => ({
-        id: testimonial.id,
-        rating: testimonial.rating,
-        client_name: testimonial.client_name,
-        comment_text: testimonial.content_bg,
-        created_at: testimonial.created_at
-      }));
-  } catch (error) {
-    console.error('Error in getApprovedTestimonialsStatic:', error);
+  if (error) {
+    console.error('Error fetching testimonials:', error);
     return [];
   }
+
+  return (data || [])
+    .filter((testimonial): testimonial is NonNullable<typeof testimonial> & { rating: number } =>
+      testimonial.rating !== null && testimonial.rating > 0
+    )
+    .map(testimonial => ({
+      id: testimonial.id,
+      rating: testimonial.rating,
+      client_name: testimonial.client_name,
+      comment_text: testimonial.content_bg,
+      created_at: testimonial.created_at
+    }));
+}
+
+/**
+ * Fetches all approved testimonials, cached for 1 hour and tagged for on-demand revalidation.
+ * Use this everywhere instead of getApprovedTestimonialsStatic.
+ */
+export const getCachedApprovedTestimonials = unstable_cache(
+  _fetchApprovedTestimonials,
+  ['approved-testimonials'],
+  { tags: ['testimonials'], revalidate: 3600 }
+);
+
+/**
+ * @deprecated Use getCachedApprovedTestimonials instead.
+ */
+export async function getApprovedTestimonialsStatic(): Promise<Testimonial[]> {
+  return getCachedApprovedTestimonials();
 }
 
 /**
@@ -112,7 +121,7 @@ export async function getApprovedTestimonials(): Promise<Testimonial[]> {
  */
 export async function getAggregateRatingStatic(): Promise<AggregateRating> {
   try {
-    const testimonials = await getApprovedTestimonialsStatic();
+    const testimonials = await getCachedApprovedTestimonials();
     
     if (testimonials.length === 0) {
       return {

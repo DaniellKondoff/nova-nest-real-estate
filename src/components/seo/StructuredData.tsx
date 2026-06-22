@@ -4,7 +4,7 @@
  */
 
 import { generateOrganizationSchema, generateWebsiteSchema, generateAggregateRatingSchema, generateReviewsSchema } from '@/lib/seo/generate-schema';
-import { getAggregateRatingStatic, getApprovedTestimonialsStatic } from '@/lib/queries/testimonials';
+import { getCachedApprovedTestimonials, getAggregateRatingStatic } from '@/lib/queries/testimonials';
 
 /**
  * Organization Schema Component
@@ -12,9 +12,9 @@ import { getAggregateRatingStatic, getApprovedTestimonialsStatic } from '@/lib/q
  * Enables Google Maps integration, business hours, contact info, and star ratings in search results
  */
 export async function OrganizationSchema() {
-  // Fetch rating and review data
+  // Fetch rating and review data — both derived from the same cached testimonials call
+  const testimonials = await getCachedApprovedTestimonials();
   const { averageRating, reviewCount } = await getAggregateRatingStatic();
-  const testimonials = await getApprovedTestimonialsStatic();
   
   // Generate base organization schema
   const baseSchema = generateOrganizationSchema();

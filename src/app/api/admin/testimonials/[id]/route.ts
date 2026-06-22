@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { revalidateTag } from "next/cache";
 import { isAdminUserServer } from "@/lib/auth-server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
@@ -94,6 +95,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       await supa.rpc("auto_approve_testimonial", { testimonial_id: id, min_rating: 5 });
     }
 
+    revalidateTag("testimonials");
     return ok(data);
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -126,6 +128,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
     if (error) throw new DatabaseError("Неуспешно изтриване на отзив.");
 
+    revalidateTag("testimonials");
     return ok({ message: "Отзивът е изтрит успешно" });
   } catch (err) {
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;

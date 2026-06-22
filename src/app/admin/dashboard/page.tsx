@@ -54,36 +54,34 @@ export default function AdminDashboard() {
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
         // Fetch all statistics in parallel
-        const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes, totalViewsRes, mostViewedRes] = await Promise.all([
+        const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes, totalViewsRes, mostViewedRes, crmTotalRes, crmActiveRes, crmClosedRes] = await Promise.all([
           // Total properties (excluding archived)
           supabase
             .from("properties")
             .select("id", { count: "exact", head: true })
             .neq("status", "archived"),
-          
+
           // Active inquiries (new or in_progress status)
           supabase
             .from("inquiries")
             .select("id", { count: "exact", head: true })
             .in("status", ["new", "in_progress"]),
-          
+
           // Pending testimonials (not published)
           supabase
             .from("testimonials")
             .select("id", { count: "exact", head: true })
             .eq("is_published", false),
-          
+
           // Properties created this month
           supabase
             .from("properties")
             .select("id", { count: "exact", head: true })
             .gte("created_at", monthStart.toISOString()),
 
-          // Total views across all properties
-          supabase
-            .from("properties")
-            .select("view_count")
-            .neq("status", "archived"),
+          // Total views — server-side SUM via RPC to avoid downloading all rows
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.rpc as any)("get_total_view_count"),
 
           // Most viewed property
           supabase
@@ -93,6 +91,14 @@ export default function AdminDashboard() {
             .order("view_count", { ascending: false })
             .limit(1)
             .single(),
+
+          // CRM counts via HEAD-only queries — zero body bytes transferred
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }).eq("status", "active"),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }).eq("status", "closed"),
         ]);
 
         // Check for errors
@@ -100,26 +106,16 @@ export default function AdminDashboard() {
           throw new Error("Грешка при зареждане на статистиките от базата данни");
         }
 
-        // Calculate total views
-        const totalViews = (totalViewsRes.data || []).reduce((sum, property) => {
-          return sum + (property.view_count || 0);
-        }, 0);
-
-        // CRM stats — separate fetch; crm_contacts not in generated types
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const crmContactsRes = await (supabase.from("crm_contacts" as any) as any).select("status");
-        const crmRows = (crmContactsRes.data as { status: string }[] | null) ?? [];
-
         setStats({
           totalProperties: propertiesRes.count || 0,
           activeInquiries: activeInquiriesRes.count || 0,
           pendingTestimonials: pendingTestimonialsRes.count || 0,
           propertiesThisMonth: monthlyPropertiesRes.count || 0,
-          totalViews,
+          totalViews: (totalViewsRes.data as number) ?? 0,
           mostViewedProperty: mostViewedRes.data || null,
-          crmTotal: crmRows.length,
-          crmActive: crmRows.filter((r) => r.status === "active").length,
-          crmClosed: crmRows.filter((r) => r.status === "closed").length,
+          crmTotal: crmTotalRes.count ?? 0,
+          crmActive: crmActiveRes.count ?? 0,
+          crmClosed: crmClosedRes.count ?? 0,
         });
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);

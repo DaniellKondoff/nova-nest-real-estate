@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { revalidateTag } from "next/cache";
 import { isAdminUserServer } from "@/lib/auth-server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
@@ -125,6 +126,7 @@ export async function POST(req: NextRequest) {
       await supa.rpc("auto_approve_testimonial", { testimonial_id: (data as any).id, min_rating: 5 });
     }
 
+    revalidateTag("testimonials");
     return ok(data as any, { status: 201 });
   } catch (err) {
     console.error("Testimonial creation error:", err);

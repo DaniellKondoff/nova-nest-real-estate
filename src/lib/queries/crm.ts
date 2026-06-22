@@ -65,7 +65,7 @@ export async function getCrmContactById(
       `
       *,
       neighborhoods:crm_contact_neighborhoods(neighborhood:neighborhoods(*)),
-      properties:crm_contact_properties(property:properties(*, property_images(url, is_primary, sort_order))),
+      properties:crm_contact_properties(property:properties(*)),
       activities:crm_activities(*)
     `
     )
@@ -83,18 +83,37 @@ export async function getCrmContactById(
   // Flatten junction wrapper objects returned by PostgREST nested selects
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const raw = data as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const linkedProperties: any[] = (raw.properties ?? [])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((j: any) => j.property)
+    .filter(Boolean);
+
+  // Fetch only the primary image per linked property — avoids downloading all images in the join
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let primaryImagesByPropertyId: Record<string, any> = {};
+  if (linkedProperties.length > 0) {
+    const propertyIds = linkedProperties.map((p) => p.id);
+    const { data: images } = await supabase
+      .from("property_images")
+      .select("property_id, url, is_primary, sort_order, alt_text_bg")
+      .in("property_id", propertyIds)
+      .eq("is_primary", true);
+    for (const img of images ?? []) {
+      primaryImagesByPropertyId[img.property_id] = img;
+    }
+  }
+
   const contact: CrmContactWithRelations = {
     ...raw,
     neighborhoods: (raw.neighborhoods ?? [])
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((j: any) => j.neighborhood)
       .filter(Boolean),
-    properties: (raw.properties ?? [])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((j: any) => j.property)
-      .filter(Boolean)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((p: any) => ({ ...p, property_images: p.property_images ?? [] })),
+    properties: linkedProperties.map((p) => ({
+      ...p,
+      property_images: primaryImagesByPropertyId[p.id] ? [primaryImagesByPropertyId[p.id]] : [],
+    })),
     activities: raw.activities ?? [],
   };
 
@@ -337,6 +356,7 @@ export async function unlinkNeighborhoodFromContact(
 
 /**
  * Returns aggregate counts for the CRM dashboard: total contacts, active, and closed.
+ * Uses HEAD-only count queries so zero row data is transferred from Supabase.
  */
 export async function getCrmDashboardStats(): Promise<{
   total: number;
@@ -345,18 +365,20 @@ export async function getCrmDashboardStats(): Promise<{
 }> {
   const supabase = await getServerClient();
 
-  const { data, error } = await (supabase.from("crm_contacts" as any) as any)
-    .select("status");
+  const [totalRes, activeRes, closedRes] = await Promise.all([
+    (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }),
+    (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }).eq("status", "active"),
+    (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }).eq("status", "closed"),
+  ]);
 
-  if (error) {
-    console.error("Error fetching CRM dashboard stats:", error);
+  if (totalRes.error || activeRes.error || closedRes.error) {
+    console.error("Error fetching CRM dashboard stats:", totalRes.error ?? activeRes.error ?? closedRes.error);
     return { total: 0, active: 0, closed: 0 };
   }
 
-  const rows = (data as { status: string }[]) ?? [];
   return {
-    total: rows.length,
-    active: rows.filter((r) => r.status === "active").length,
-    closed: rows.filter((r) => r.status === "closed").length,
+    total: totalRes.count ?? 0,
+    active: activeRes.count ?? 0,
+    closed: closedRes.count ?? 0,
   };
 }
