@@ -1,6 +1,6 @@
 import React from "react";
 import { unstable_cache } from "next/cache";
-import { getServerClient } from "@/lib/supabase/server";
+import { getStaticServerClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database.generated";
 import type { PropertyWithDetails } from "@/types/property";
 import PropertyCard from "@/components/property/PropertyCard";
@@ -16,7 +16,7 @@ async function fetchRelated(
   categoryId: number,
   neighborhoodId: number
 ): Promise<PropertyWithDetails[]> {
-  const supabase = await getServerClient();
+  const supabase = getStaticServerClient();
 
   // First try: same category + same neighborhood
   let { data } = await supabase
