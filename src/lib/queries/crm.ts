@@ -91,7 +91,7 @@ export async function getCrmContactById(
 
   // Fetch only the primary image per linked property — avoids downloading all images in the join
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let primaryImagesByPropertyId: Record<string, any> = {};
+  const primaryImagesByPropertyId: Record<string, any> = {};
   if (linkedProperties.length > 0) {
     const propertyIds = linkedProperties.map((p) => p.id);
     const { data: images } = await supabase
