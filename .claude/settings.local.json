@@ -19,7 +19,8 @@
       "WebFetch(domain:blog.alvanle.me)",
       "WebFetch(domain:flowbite.com)",
       "Bash(xargs grep:*)",
-      "Bash(xargs head:*)"
+      "Bash(xargs head:*)",
+      "mcp__claude_ai_Supabase__execute_sql"
     ],
     "deny": [],
     "ask": []

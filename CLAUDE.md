@@ -351,3 +351,4 @@ Placeholder directories for MCP-fetched components:
 
 ### Creating DB Changes
 1. When you change Database Schema always create migration script below scripts\migrations
+2. When new DB select is needed avoid Select * from table, I prefer to select what is needed only.
