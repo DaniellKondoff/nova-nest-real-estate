@@ -1,9 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getServerClient } from "@/lib/supabase/server";
-import { getCrmContactById } from "@/lib/queries/crm";
+import { getCrmContactById, getContactTasks } from "@/lib/queries/crm";
 import ContactInfoCard from "@/components/admin/crm/ContactInfoCard";
 import LinkedProperties from "@/components/admin/crm/LinkedProperties";
+import TasksSection from "@/components/admin/crm/TasksSection";
 import ActivityTimeline from "@/components/admin/crm/ActivityTimeline";
 
 export default async function CrmContactDetailPage({
@@ -39,6 +40,8 @@ export default async function CrmContactDetailPage({
     notFound();
   }
 
+  const tasks = await getContactTasks(id);
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Breadcrumb */}
@@ -60,11 +63,15 @@ export default async function CrmContactDetailPage({
           <ContactInfoCard contact={contact} />
         </div>
 
-        {/* Right column: linked properties + activity timeline */}
+        {/* Right column: linked properties + tasks + activity timeline */}
         <div className="lg:col-span-2 space-y-6">
           <LinkedProperties
             contactId={id}
             initialProperties={contact.properties}
+          />
+          <TasksSection
+            contactId={id}
+            initialTasks={tasks}
           />
           <ActivityTimeline
             contactId={id}
