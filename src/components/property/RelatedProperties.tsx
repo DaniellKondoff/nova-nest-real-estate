@@ -1,4 +1,5 @@
 import React from "react";
+import { unstable_cache } from "next/cache";
 import { getServerClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database.generated";
 import type { PropertyWithDetails } from "@/types/property";
@@ -22,7 +23,7 @@ async function fetchRelated(
     .from("properties")
     .select(`
       *,
-      images:property_images(*),
+      images:property_images(id, url, is_primary, sort_order, alt_text_bg),
       neighborhood:neighborhoods(*),
       category:property_categories(*)
     `)
@@ -42,7 +43,7 @@ async function fetchRelated(
       .from("properties")
       .select(`
         *,
-        images:property_images(*),
+        images:property_images(id, url, is_primary, sort_order, alt_text_bg),
         neighborhood:neighborhoods(*),
         category:property_categories(*)
       `)
@@ -63,12 +64,19 @@ async function fetchRelated(
   }));
 }
 
+const fetchRelatedCached = unstable_cache(
+  async (currentPropertyId: number, categoryId: number, neighborhoodId: number) =>
+    fetchRelated(currentPropertyId, categoryId, neighborhoodId),
+  ["related-properties"],
+  { tags: ["properties"], revalidate: 3600 }
+);
+
 export default async function RelatedProperties({
   currentPropertyId,
   categoryId,
   neighborhoodId,
 }: RelatedPropertiesProps): Promise<React.ReactElement | null> {
-  const related = await fetchRelated(currentPropertyId, categoryId, neighborhoodId);
+  const related = await fetchRelatedCached(currentPropertyId, categoryId, neighborhoodId);
 
   if (related.length === 0) return null;
 
