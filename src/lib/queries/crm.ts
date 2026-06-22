@@ -7,6 +7,9 @@ import type {
   CreateCrmContactInput,
   UpdateCrmContactInput,
   CreateCrmActivityInput,
+  CrmTask,
+  CrmTaskWithContact,
+  CreateCrmTaskInput,
 } from "@/types/crm";
 
 /**
@@ -381,4 +384,114 @@ export async function getCrmDashboardStats(): Promise<{
     active: activeRes.count ?? 0,
     closed: closedRes.count ?? 0,
   };
+}
+
+const TASK_SELECT =
+  "id, created_at, contact_id, type, title, due_date, is_done, completed_at";
+
+/**
+ * Fetch all tasks for a contact.
+ * Open tasks come first (ordered by due_date asc), done tasks come second (ordered by completed_at desc).
+ * Two queries are needed because Supabase doesn't support a conditional ORDER BY in a single call.
+ */
+export async function getContactTasks(contactId: string): Promise<CrmTask[]> {
+  const supabase = await getServerClient();
+  const [open, done] = await Promise.all([
+    (supabase.from("crm_tasks" as any) as any)
+      .select(TASK_SELECT)
+      .eq("contact_id", contactId)
+      .eq("is_done", false)
+      .order("due_date", { ascending: true }),
+    (supabase.from("crm_tasks" as any) as any)
+      .select(TASK_SELECT)
+      .eq("contact_id", contactId)
+      .eq("is_done", true)
+      .order("completed_at", { ascending: false }),
+  ]);
+  return [...(open.data ?? []), ...(done.data ?? [])] as CrmTask[];
+}
+
+/**
+ * Fetch all incomplete tasks due today or earlier (overdue included).
+ * Enriches each task with the contact's id and full_name for the dashboard widget.
+ */
+export async function getTodaysTasks(): Promise<CrmTaskWithContact[]> {
+  const supabase = await getServerClient();
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data: tasks, error } = await (supabase.from("crm_tasks" as any) as any)
+    .select(TASK_SELECT)
+    .eq("is_done", false)
+    .lte("due_date", today)
+    .order("due_date", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching today's tasks:", error);
+    return [];
+  }
+  if (!tasks?.length) return [];
+
+  const contactIds = [...new Set((tasks as CrmTask[]).map((t) => t.contact_id))];
+  const { data: contacts } = await (supabase.from("crm_contacts" as any) as any)
+    .select("id, full_name")
+    .in("id", contactIds);
+
+  const contactMap = Object.fromEntries(
+    ((contacts ?? []) as { id: string; full_name: string }[]).map((c) => [c.id, c])
+  );
+
+  return (tasks as CrmTask[]).map((t) => ({
+    ...t,
+    contact: contactMap[t.contact_id] ?? { id: t.contact_id, full_name: "Неизвестен" },
+  })) as CrmTaskWithContact[];
+}
+
+/**
+ * Create a new task for a contact. is_done is always false on creation.
+ */
+export async function createTask(input: CreateCrmTaskInput): Promise<CrmTask> {
+  const supabase = await getServerClient();
+  const { data, error } = await (supabase.from("crm_tasks" as any) as any)
+    .insert({ ...input, is_done: false })
+    .select(TASK_SELECT)
+    .single();
+  if (error) throw error;
+  return data as CrmTask;
+}
+
+/**
+ * Mark a task as done and record the completion timestamp.
+ */
+export async function completeTask(taskId: string): Promise<CrmTask> {
+  const supabase = await getServerClient();
+  const { data, error } = await (supabase.from("crm_tasks" as any) as any)
+    .update({ is_done: true, completed_at: new Date().toISOString() })
+    .eq("id", taskId)
+    .select(TASK_SELECT)
+    .single();
+  if (error) throw error;
+  return data as CrmTask;
+}
+
+/**
+ * Reopen an accidentally completed task, clearing its completion timestamp.
+ */
+export async function reopenTask(taskId: string): Promise<CrmTask> {
+  const supabase = await getServerClient();
+  const { data, error } = await (supabase.from("crm_tasks" as any) as any)
+    .update({ is_done: false, completed_at: null })
+    .eq("id", taskId)
+    .select(TASK_SELECT)
+    .single();
+  if (error) throw error;
+  return data as CrmTask;
+}
+
+/** Delete a task permanently. */
+export async function deleteTask(taskId: string): Promise<void> {
+  const supabase = await getServerClient();
+  const { error } = await (supabase.from("crm_tasks" as any) as any)
+    .delete()
+    .eq("id", taskId);
+  if (error) throw error;
 }

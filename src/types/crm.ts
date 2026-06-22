@@ -3,6 +3,7 @@ import type { Tables } from "@/types/database.generated";
 export type CrmContactStatus = "active" | "inactive" | "closed";
 export type CrmClientType = "buyer" | "seller" | "renter" | "landlord";
 export type CrmActivityType = "note" | "call" | "meeting";
+export type CrmTaskType = "call" | "meeting" | "follow_up" | "other";
 
 /** Mirrors the crm_contacts database table. */
 export interface CrmContact {
@@ -32,6 +33,24 @@ export interface CrmActivity {
   occurred_at: string;
 }
 
+/** Mirrors the crm_tasks database table. */
+export interface CrmTask {
+  id: string;
+  created_at: string;
+  contact_id: string;
+  type: CrmTaskType;
+  title: string;
+  /** DATE column — Supabase returns it as "YYYY-MM-DD" string. */
+  due_date: string;
+  is_done: boolean;
+  completed_at: string | null;
+}
+
+/** CrmTask enriched with minimal contact info — used in the dashboard "today's tasks" view. */
+export interface CrmTaskWithContact extends CrmTask {
+  contact: { id: string; full_name: string };
+}
+
 export interface CrmPropertyImage {
   url: string;
   is_primary: boolean;
@@ -58,6 +77,9 @@ export type UpdateCrmContactInput = Partial<CreateCrmContactInput>;
 /** contact_id is kept — caller always provides it. */
 export type CreateCrmActivityInput = Omit<CrmActivity, "id" | "created_at">;
 
+/** contact_id is required; is_done defaults false on creation (omit it). */
+export type CreateCrmTaskInput = Omit<CrmTask, "id" | "created_at" | "is_done" | "completed_at">;
+
 export interface CrmContactFilters {
   status?: CrmContactStatus;
   client_type?: CrmClientType;
@@ -83,4 +105,11 @@ export const CRM_ACTIVITY_TYPE_LABELS: Record<CrmActivityType, string> = {
   note: "Бележка",
   call: "Обаждане",
   meeting: "Среща",
+} as const;
+
+export const CRM_TASK_TYPE_LABELS: Record<CrmTaskType, string> = {
+  call: "Обаждане",
+  meeting: "Среща",
+  follow_up: "Последващо действие",
+  other: "Друго",
 } as const;
