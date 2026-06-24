@@ -3,7 +3,7 @@ import { Star, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/design-tokens";
 import { Section } from "@/components/ui/section";
 import { Heading, Text } from "@/components/ui/typography";
-import { getApprovedTestimonialsStatic } from "@/lib/queries/testimonials";
+import { getCachedApprovedTestimonials } from "@/lib/queries/testimonials";
 import { TestimonialsCarousel, type TestimonialData } from "./TestimonialsCarousel";
 
 interface TestimonialsSectionProps extends React.ComponentPropsWithoutRef<"section"> {
@@ -20,7 +20,7 @@ export async function TestimonialsSection({
   className,
   ...rest
 }: TestimonialsSectionProps) {
-  const raw = await getApprovedTestimonialsStatic();
+  const raw = await getCachedApprovedTestimonials();
 
   const testimonials: TestimonialData[] = raw.slice(0, 12).map(t => ({
     id: t.id.toString(),

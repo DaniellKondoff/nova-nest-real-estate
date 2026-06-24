@@ -74,7 +74,7 @@ export default function PropertiesListPage() {
             *,
             category:property_categories(*),
             neighborhood:neighborhoods(*),
-            images:property_images(*)
+            images:property_images(id, url, is_primary, sort_order)
           `, { count: 'exact' })
           .order("created_at", { ascending: false });
 

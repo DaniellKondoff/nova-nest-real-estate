@@ -7,8 +7,8 @@ import { getNeighborhoodBreadcrumbs } from "@/lib/seo/neighborhood-breadcrumbs";
 import { generateNeighborhoodMetadata } from "@/lib/seo/neighborhood-metadata";
 import {
   getCachedNeighborhoods,
+  getCachedPropertiesByNeighborhood,
   getNeighborhoodBySlug,
-  getPropertiesByNeighborhood,
   getPropertyCountByNeighborhood
 } from "@/lib/queries/neighborhoods";
 import NeighborhoodHero from "@/components/neighborhoods/NeighborhoodHero";
@@ -88,8 +88,8 @@ export default async function NeighborhoodPage({
       notFound();
     }
 
-    // Fetch properties in this neighborhood
-    const properties = await getPropertiesByNeighborhood(neighborhood.id, 20);
+    // Fetch properties in this neighborhood (cached for 1 hour)
+    const properties = await getCachedPropertiesByNeighborhood(neighborhood.id, 20);
     
     // Generate breadcrumbs
     const breadcrumbs = getNeighborhoodBreadcrumbs(

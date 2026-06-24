@@ -220,8 +220,49 @@ Dynamic neighborhood pages with SEO optimization:
 - `/admin/testimonials` - Testimonial CRUD
 - `/admin/inquiries` - Inquiry management with status tracking
 - `/admin/analytics/views` - Property view analytics
+- `/admin/crm` - CRM contact list with filters and pagination
+- `/admin/crm/[id]` - CRM contact detail with activity timeline and linked properties/neighborhoods
+
+### 11. CRM Module
+
+**Types** (`src/types/crm.ts`):
+- `CrmContact`, `CrmActivity`, `CrmContactWithRelations`
+- Status: `active | inactive | closed`; Client types: `buyer | seller | renter | landlord`
+- Activity types: `note | call | meeting`
+- Label maps: `CRM_STATUS_LABELS`, `CRM_CLIENT_TYPE_LABELS`, `CRM_ACTIVITY_TYPE_LABELS`
+
+**Queries** (`src/lib/queries/crm.ts`): `getCrmContacts`, `getCrmContactById`, `createCrmContact`, `updateCrmContact`, `deleteCrmContact`, `getCrmActivities`, `createCrmActivity`, `updateCrmActivity`, `deleteCrmActivity`, `linkPropertyToContact`, `unlinkPropertyFromContact`, `linkNeighborhoodToContact`, `unlinkNeighborhoodFromContact`, `getCrmDashboardStats`
+
+**API routes** (`/api/admin/crm/contacts/`):
+- `GET/POST /contacts` — list with filters + create
+- `GET/PUT/DELETE /contacts/[id]` — single contact CRUD
+- `GET/POST /contacts/[id]/activities` — activity list + create
+- `PUT/DELETE /contacts/[id]/activities/[activityId]` — edit/delete activity
+- `POST/DELETE /contacts/[id]/properties` — link/unlink property
+- `POST/DELETE /contacts/[id]/neighborhoods` — link/unlink neighborhood
+
+**Components** (`src/components/admin/crm/`): `ContactsTable`, `CreateContactModal`, `ContactInfoCard`, `LinkedProperties`, `ActivityTimeline`
+
+**CRM tables not in generated types**: `crm_contacts`, `crm_activities`, `crm_contact_properties`, `crm_contact_neighborhoods` require the cast pattern:
+```typescript
+(supabase.from("crm_contacts" as any) as any).select(...)
+```
 
 ## Important Implementation Notes
+
+### Admin Route Auth Pattern
+
+Every admin API route handler **must inline auth** — do not extract it into a helper that accepts the supabase client as a parameter. The helper abstraction silently fails at runtime even when TypeScript passes. Copy this pattern from existing working routes:
+
+```typescript
+const supabase = await getServerClient();
+const { data: { user }, error: authError } = await supabase.auth.getUser();
+if (authError || !user) return NextResponse.json({ error: "Неоторизиран достъп" }, { status: 401 });
+
+const { data: adminProfile, error: adminError } = await supabase
+  .from("admin_profiles").select("role").eq("user_id", user.id).single();
+if (adminError || !adminProfile) return NextResponse.json({ error: "Нямате администраторски права" }, { status: 403 });
+```
 
 ### Next.js 15 Patterns
 
@@ -308,19 +349,6 @@ Placeholder directories for MCP-fetched components:
 4. Use Bulgarian/English bilingual error messages
 5. Follow existing form patterns (e.g., `InquiryForm`, `SearchForm`)
 
-## Testing Status
-
-According to `TESTING_SUMMARY.md`:
-- ✅ TypeScript compilation passing
-- ✅ Development server running
-- ✅ Home page and Bulgarian content verified
-- ✅ Responsive design tested across breakpoints
-- 🟡 Property listing functionality in testing
-- ⏳ Property detail pages, performance, accessibility pending
-
-## Notes for Future Development
-
-- Complete testing checklist in `TESTING_CHECKLIST.md`
-- Review/rating schema implementation documented in `REVIEW_SCHEMA_IMPLEMENTATION.md`
-- Recent work includes neighborhood landing pages, breadcrumb schema, and structured data implementation
-- The codebase follows modern React Server Component patterns with proper separation of server/client code
+### Creating DB Changes
+1. When you change Database Schema always create migration script below scripts\migrations
+2. When new DB select is needed avoid Select * from table, I prefer to select what is needed only.

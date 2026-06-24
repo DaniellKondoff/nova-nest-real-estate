@@ -7,8 +7,9 @@ import { RecentInquiries } from "@/components/admin/RecentInquiries";
 import { RecentProperties } from "@/components/admin/RecentProperties";
 import { ActivityLog } from "@/components/admin/ActivityLog";
 import { QuickActions } from "@/components/admin/QuickActions";
-import { Home, MessageSquare, Star, TrendingUp, Eye } from "lucide-react";
+import { Home, MessageSquare, Star, TrendingUp, Eye, Users } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { TodaysTasksWidget } from "@/components/admin/crm/TodaysTasksWidget";
 
 interface DashboardStats {
   totalProperties: number;
@@ -21,6 +22,9 @@ interface DashboardStats {
     title_bg: string;
     view_count: number | null;
   } | null;
+  crmTotal: number;
+  crmActive: number;
+  crmClosed: number;
 }
 
 export default function AdminDashboard() {
@@ -31,6 +35,9 @@ export default function AdminDashboard() {
     propertiesThisMonth: 0,
     totalViews: 0,
     mostViewedProperty: null,
+    crmTotal: 0,
+    crmActive: 0,
+    crmClosed: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,36 +55,34 @@ export default function AdminDashboard() {
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
         // Fetch all statistics in parallel
-        const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes, totalViewsRes, mostViewedRes] = await Promise.all([
+        const [propertiesRes, activeInquiriesRes, pendingTestimonialsRes, monthlyPropertiesRes, totalViewsRes, mostViewedRes, crmTotalRes, crmActiveRes, crmClosedRes] = await Promise.all([
           // Total properties (excluding archived)
           supabase
             .from("properties")
             .select("id", { count: "exact", head: true })
             .neq("status", "archived"),
-          
+
           // Active inquiries (new or in_progress status)
           supabase
             .from("inquiries")
             .select("id", { count: "exact", head: true })
             .in("status", ["new", "in_progress"]),
-          
+
           // Pending testimonials (not published)
           supabase
             .from("testimonials")
             .select("id", { count: "exact", head: true })
             .eq("is_published", false),
-          
+
           // Properties created this month
           supabase
             .from("properties")
             .select("id", { count: "exact", head: true })
             .gte("created_at", monthStart.toISOString()),
 
-          // Total views across all properties
-          supabase
-            .from("properties")
-            .select("view_count")
-            .neq("status", "archived"),
+          // Total views — server-side SUM via RPC to avoid downloading all rows
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.rpc as any)("get_total_view_count"),
 
           // Most viewed property
           supabase
@@ -87,6 +92,14 @@ export default function AdminDashboard() {
             .order("view_count", { ascending: false })
             .limit(1)
             .single(),
+
+          // CRM counts via HEAD-only queries — zero body bytes transferred
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }).eq("status", "active"),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase.from("crm_contacts" as any) as any).select("*", { count: "exact", head: true }).eq("status", "closed"),
         ]);
 
         // Check for errors
@@ -94,18 +107,16 @@ export default function AdminDashboard() {
           throw new Error("Грешка при зареждане на статистиките от базата данни");
         }
 
-        // Calculate total views
-        const totalViews = (totalViewsRes.data || []).reduce((sum, property) => {
-          return sum + (property.view_count || 0);
-        }, 0);
-
         setStats({
           totalProperties: propertiesRes.count || 0,
           activeInquiries: activeInquiriesRes.count || 0,
           pendingTestimonials: pendingTestimonialsRes.count || 0,
           propertiesThisMonth: monthlyPropertiesRes.count || 0,
-          totalViews,
+          totalViews: (totalViewsRes.data as number) ?? 0,
           mostViewedProperty: mostViewedRes.data || null,
+          crmTotal: crmTotalRes.count ?? 0,
+          crmActive: crmActiveRes.count ?? 0,
+          crmClosed: crmClosedRes.count ?? 0,
         });
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);
@@ -124,7 +135,7 @@ export default function AdminDashboard() {
         <AdminHeader pageTitle="Табло за управление" />
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(8)].map((_, i) => (
               <div key={i} className="bg-white p-6 rounded-lg border border-gray-200 animate-pulse">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
@@ -168,7 +179,7 @@ export default function AdminDashboard() {
       
       <div className="p-6">
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
             title="Общо имоти"
             value={stats.totalProperties}
@@ -208,6 +219,35 @@ export default function AdminDashboard() {
             color="indigo"
             trend={stats.mostViewedProperty ? `Най-гледан: ${stats.mostViewedProperty.title_bg}` : "Няма данни"}
           />
+
+          <StatsCard
+            title="CRM контакти"
+            value={stats.crmTotal}
+            icon={Users}
+            color="blue"
+            trend="Общо контакти"
+          />
+
+          <StatsCard
+            title="Активни клиенти"
+            value={stats.crmActive}
+            icon={Users}
+            color="green"
+            trend="Активни контакти"
+          />
+
+          <StatsCard
+            title="Затворени сделки"
+            value={stats.crmClosed}
+            icon={Users}
+            color="indigo"
+            trend="Приключени"
+          />
+        </div>
+
+        {/* Today's CRM Tasks */}
+        <div className="mb-8">
+          <TodaysTasksWidget />
         </div>
 
         {/* Recent Activity Widgets */}

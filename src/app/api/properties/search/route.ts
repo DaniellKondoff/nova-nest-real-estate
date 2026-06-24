@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { PropertyWithDetails } from "@/types/property";
 import type { PropertySearchFilters } from "@/types/search";
 import { PropertySearchSchema } from "@/lib/validations";
-import { searchProperties, getPublishedProperties } from "@/lib/queries/properties";
+import { searchProperties, searchPropertiesFallback } from "@/lib/queries/properties";
 import { formatErrorMessage, ValidationError, DatabaseError } from "@/lib/errors";
 import { getServerClient } from "@/lib/supabase/server";
 
@@ -103,36 +103,43 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       (restFilters.featureIds && restFilters.featureIds.length > 0)
     );
 
+    let total = 0;
+    let pageIds: number[] = [];
+
     if (hasAnyFilter) {
       try {
         const searchList = await searchProperties(searchTerm, restFilters);
         ids = searchList.map((r) => r.id);
+        total = ids.length;
+        const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+        const clampedPage2 = totalPages > 0 ? Math.min(Math.max(1, page), totalPages) : 1;
+        const offset2 = (clampedPage2 - 1) * limit;
+        pageIds = ids.slice(offset2, offset2 + limit);
       } catch (_e) {
-        const all = await getPublishedProperties();
-        const filtered = all.filter((p) => {
-          const byCategory = typeof restFilters.categoryId === "number" ? p.category_id === restFilters.categoryId : true;
-          const byNeighborhood = typeof restFilters.neighborhoodId === "number" ? p.neighborhood_id === restFilters.neighborhoodId : true;
-          const price = (p.price_eur ?? undefined) ?? (p.price_bgn ?? undefined);
-          const byMinPrice = typeof restFilters.minPrice === "number" ? (price ?? 0) >= restFilters.minPrice : true;
-          const byMaxPrice = typeof restFilters.maxPrice === "number" ? (price ?? 0) <= restFilters.maxPrice : true;
-          const byAreaMin = typeof restFilters.minArea === "number" ? (p.area_sqm ?? 0) >= restFilters.minArea : true;
-          const byAreaMax = typeof restFilters.maxArea === "number" ? (p.area_sqm ?? 0) <= restFilters.maxArea : true;
-          const bySearch = searchTerm && p.title_bg ? p.title_bg.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-          const byOperationType = restFilters.operationType ? p.operation_type === restFilters.operationType : true;
-          return byCategory && byNeighborhood && byMinPrice && byMaxPrice && byAreaMin && byAreaMax && bySearch && byOperationType;
-        });
-        ids = filtered.map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
+        // RPC failed — use server-side fallback that filters in Postgres, not in JS
+        const fallbackList = await searchPropertiesFallback(searchTerm, restFilters);
+        ids = fallbackList.map((r) => r.id);
+        total = ids.length;
+        const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+        const clampedPage2 = totalPages > 0 ? Math.min(Math.max(1, page), totalPages) : 1;
+        const offset2 = (clampedPage2 - 1) * limit;
+        pageIds = ids.slice(offset2, offset2 + limit);
       }
     } else {
-      const all = await getPublishedProperties();
-      ids = all.map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
+      // No filters — paginate directly in the DB; fetch only IDs + total count
+      const supabaseForCount = await getServerClient();
+      const { data: pageRows, count: totalCount } = await supabaseForCount
+        .from("properties")
+        .select("id", { count: "exact" })
+        .eq("status", "available")
+        .order("created_at", { ascending: false })
+        .range((page - 1) * limit, page * limit - 1);
+      total = totalCount ?? 0;
+      pageIds = (pageRows ?? []).map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
     }
 
-    const total = ids.length;
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
     const clampedPage = totalPages > 0 ? Math.min(Math.max(1, page), totalPages) : 1;
-    const offset = (clampedPage - 1) * limit;
-    const pageIds = ids.slice(offset, offset + limit);
 
     // Fetch details for current page in a single joined query
     const supabase = await getServerClient();

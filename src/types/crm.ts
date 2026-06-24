@@ -1,0 +1,115 @@
+import type { Tables } from "@/types/database.generated";
+
+export type CrmContactStatus = "active" | "inactive" | "closed";
+export type CrmClientType = "buyer" | "seller" | "renter" | "landlord";
+export type CrmActivityType = "note" | "call" | "meeting";
+export type CrmTaskType = "call" | "meeting" | "follow_up" | "other";
+
+/** Mirrors the crm_contacts database table. */
+export interface CrmContact {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  full_name: string;
+  phone: string;
+  email: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  budget_currency: string;
+  status: CrmContactStatus;
+  /** TEXT[] column — values are CrmClientType literals but typed as string[] to match Supabase return. */
+  client_types: string[];
+  general_notes: string | null;
+}
+
+/** Mirrors the crm_activities database table. */
+export interface CrmActivity {
+  id: string;
+  created_at: string;
+  contact_id: string;
+  type: CrmActivityType;
+  content: string;
+  outcome: string | null;
+  occurred_at: string;
+}
+
+/** Mirrors the crm_tasks database table. */
+export interface CrmTask {
+  id: string;
+  created_at: string;
+  contact_id: string;
+  type: CrmTaskType;
+  title: string;
+  /** DATE column — Supabase returns it as "YYYY-MM-DD" string. */
+  due_date: string;
+  is_done: boolean;
+  completed_at: string | null;
+}
+
+/** CrmTask enriched with minimal contact info — used in the dashboard "today's tasks" view. */
+export interface CrmTaskWithContact extends CrmTask {
+  contact: { id: string; full_name: string };
+}
+
+export interface CrmPropertyImage {
+  url: string;
+  is_primary: boolean;
+  sort_order: number | null;
+}
+
+export interface CrmPropertyWithImages extends Tables<"properties"> {
+  property_images: CrmPropertyImage[];
+}
+
+/** CrmContact enriched with joined neighborhoods, properties, and activities. */
+export interface CrmContactWithRelations extends CrmContact {
+  neighborhoods: Tables<"neighborhoods">[];
+  properties: CrmPropertyWithImages[];
+  activities: CrmActivity[];
+}
+
+export type CreateCrmContactInput = Omit<
+  CrmContact,
+  "id" | "created_at" | "updated_at"
+>;
+export type UpdateCrmContactInput = Partial<CreateCrmContactInput>;
+
+/** contact_id is kept — caller always provides it. */
+export type CreateCrmActivityInput = Omit<CrmActivity, "id" | "created_at">;
+
+/** contact_id is required; is_done defaults false on creation (omit it). */
+export type CreateCrmTaskInput = Omit<CrmTask, "id" | "created_at" | "is_done" | "completed_at">;
+
+export interface CrmContactFilters {
+  status?: CrmContactStatus;
+  client_type?: CrmClientType;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export const CRM_STATUS_LABELS: Record<CrmContactStatus, string> = {
+  active: "Активен",
+  inactive: "Неактивен",
+  closed: "Затворен",
+} as const;
+
+export const CRM_CLIENT_TYPE_LABELS: Record<CrmClientType, string> = {
+  buyer: "Купувач",
+  seller: "Продавач",
+  renter: "Наемател",
+  landlord: "Наемодател",
+} as const;
+
+export const CRM_ACTIVITY_TYPE_LABELS: Record<CrmActivityType, string> = {
+  note: "Бележка",
+  call: "Обаждане",
+  meeting: "Среща",
+} as const;
+
+export const CRM_TASK_TYPE_LABELS: Record<CrmTaskType, string> = {
+  call: "Обаждане",
+  meeting: "Среща",
+  follow_up: "Последващо действие",
+  other: "Друго",
+} as const;

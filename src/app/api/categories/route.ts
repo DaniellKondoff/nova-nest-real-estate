@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     const body: SuccessResponse<{ categories: typeof mapped }> = {
       data: { categories: mapped },
     };
-    return ok(body.data);
+    return ok(body.data, { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" } });
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : 500;
