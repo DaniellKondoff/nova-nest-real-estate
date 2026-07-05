@@ -20,7 +20,8 @@
       "WebFetch(domain:flowbite.com)",
       "Bash(xargs grep:*)",
       "Bash(xargs head:*)",
-      "mcp__claude_ai_Supabase__execute_sql"
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Bash(npm run *)"
     ],
     "deny": [],
     "ask": []
