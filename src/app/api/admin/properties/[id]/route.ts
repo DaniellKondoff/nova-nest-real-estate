@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabase/server";
 import { AdminPropertySchema } from "@/lib/validations";
 import { syncPropertyEmbedding } from "@/lib/embeddings/sync";
+import { deletePropertyImagesByUrls } from "@/lib/storage";
 
 export async function PUT(
   request: NextRequest,
@@ -194,34 +195,51 @@ export async function DELETE(
       );
     }
 
-    // Soft delete: update status to archived
-    // This preserves data and allows for potential recovery
-    const { error: updateError } = await supabase
-      .from("properties")
-      .update({ status: "archived" })
-      .eq("id", propertyId);
+    // Fetch property images so we can remove the files from Storage before hard-deleting
+    const { data: images, error: imagesError } = await supabase
+      .from("property_images")
+      .select("url")
+      .eq("property_id", propertyId);
 
-    if (updateError) {
-      console.error("Property delete error:", updateError);
+    if (imagesError) {
+      console.error("Property images fetch error:", imagesError);
       return NextResponse.json(
         { error: "Грешка при изтриване на имот" },
         { status: 500 }
       );
     }
 
-    // Note: Images are not deleted from storage in soft delete
-    // They remain accessible in case of recovery
-    // For hard delete, you would need to:
-    // 1. Fetch all property images
-    // 2. Delete from storage bucket
-    // 3. Delete from property_images table
-    // 4. Delete from properties table
+    try {
+      await deletePropertyImagesByUrls((images ?? []).map((img) => img.url));
+    } catch (storageError) {
+      console.error("Property images storage delete error:", storageError);
+      return NextResponse.json(
+        { error: "Грешка при изтриване на снимките от хранилището" },
+        { status: 500 }
+      );
+    }
+
+    // Hard delete: permanently remove the property row (cascades to property_images,
+    // property_property_features, property_embeddings, crm_contact_properties;
+    // sets inquiries.property_id / testimonials.property_id to NULL)
+    const { error: deleteError } = await supabase
+      .from("properties")
+      .delete()
+      .eq("id", propertyId);
+
+    if (deleteError) {
+      console.error("Property delete error:", deleteError);
+      return NextResponse.json(
+        { error: "Грешка при изтриване на имот" },
+        { status: 500 }
+      );
+    }
 
     // Purge the ISR cache for this property page
     revalidatePath(`/properties/${propertyId}`);
 
     return NextResponse.json(
-      { message: "Имотът е архивиран успешно" },
+      { message: "Имотът е изтрит успешно" },
       { status: 200 }
     );
   } catch (error) {

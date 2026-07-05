@@ -1,4 +1,5 @@
 import { getBrowserClient } from "@/lib/supabase/client";
+import { getServiceClient } from "@/lib/supabase/service";
 
 export type UploadResult = { path: string; url: string };
 
@@ -46,6 +47,29 @@ export function getImageUrl(imagePath: string): string {
   const supabase = getBrowserClient();
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(imagePath);
   return data.publicUrl;
+}
+
+/**
+ * Server-side batch removal of property images from Storage, derived from their public URLs.
+ * Uses the service-role client since this runs in admin API routes without a browser session.
+ */
+export async function deletePropertyImagesByUrls(urls: string[]): Promise<void> {
+  const paths = urls
+    .map((url) => {
+      try {
+        const idx = new URL(url).pathname.indexOf(`/${BUCKET}/`);
+        return idx >= 0 ? new URL(url).pathname.substring(idx + BUCKET.length + 2) : null;
+      } catch {
+        return null;
+      }
+    })
+    .filter((p): p is string => !!p);
+
+  if (paths.length === 0) return;
+
+  const supabase = getServiceClient();
+  const { error } = await supabase.storage.from(BUCKET).remove(paths);
+  if (error) throw new Error("Изтриването на изображенията от хранилището неуспешно.");
 }
 
 
