@@ -29,6 +29,8 @@ npm run type-check   # Run TypeScript type checking without emitting files
 npm run ci           # Run type-check, lint, and build (for CI/CD pipelines)
 ```
 
+There is no automated test suite yet (`npm run test:ci` is a placeholder). Verify changes via `npm run type-check`, `npm run lint`, and manual testing in the browser.
+
 ### Environment Setup
 ```bash
 npm run setup:env    # Copy env.example to .env.local
@@ -40,6 +42,8 @@ Required environment variables in `.env.local`:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_SITE_NAME` (optional)
 - `NEXT_PUBLIC_APP_URL` (optional, defaults to localhost:3000)
+- `ANTHROPIC_API_KEY` (required for `/api/chat` — the AI property assistant; route returns 503 when unset)
+- `OPENAI_API_KEY` (used for embeddings that power semantic search — see `openai` dependency and `src/lib/search/semantic.ts`)
 
 ## Architecture Patterns
 
@@ -118,6 +122,8 @@ export async function GET(
 - `/api/images/[id]` - Image operations
 - `/api/images/[id]/primary` - Set primary image
 - `/api/health` - Health check endpoint
+- `/api/chat` - Streaming AI property assistant (SSE response), backed by `src/lib/chat/` (Anthropic SDK, rate-limited per IP via `rate-limit.ts`)
+- `/api/search/semantic` - Vector similarity search over properties/neighborhoods via `src/lib/search/semantic.ts` (OpenAI embeddings + Supabase pgvector RPCs)
 
 **Admin API routes** (`/api/admin/*`):
 - `/api/admin/properties` - CRUD for properties
@@ -135,6 +141,8 @@ export async function GET(
 - `/api/admin/features` - Feature management
 - `/api/admin/features/[id]` - Single feature operations
 - `/api/admin/dashboard` - Dashboard stats
+- `/api/admin/embeddings/sync-all` - Re-generate property/neighborhood embeddings for semantic search
+- `/api/admin/crm/*` - CRM contacts, activities, and tasks (see [CRM Module](#11-crm-module))
 
 ### 5. SEO Implementation
 
@@ -226,29 +234,41 @@ Dynamic neighborhood pages with SEO optimization:
 ### 11. CRM Module
 
 **Types** (`src/types/crm.ts`):
-- `CrmContact`, `CrmActivity`, `CrmContactWithRelations`
+- `CrmContact`, `CrmActivity`, `CrmTask`, `CrmContactWithRelations`, `CrmTaskWithContact`
 - Status: `active | inactive | closed`; Client types: `buyer | seller | renter | landlord`
-- Activity types: `note | call | meeting`
-- Label maps: `CRM_STATUS_LABELS`, `CRM_CLIENT_TYPE_LABELS`, `CRM_ACTIVITY_TYPE_LABELS`
+- Activity types: `note | call | meeting`; Task types: `call | meeting | follow_up | other`
+- Label maps: `CRM_STATUS_LABELS`, `CRM_CLIENT_TYPE_LABELS`, `CRM_ACTIVITY_TYPE_LABELS`, `CRM_TASK_TYPE_LABELS`
 
-**Queries** (`src/lib/queries/crm.ts`): `getCrmContacts`, `getCrmContactById`, `createCrmContact`, `updateCrmContact`, `deleteCrmContact`, `getCrmActivities`, `createCrmActivity`, `updateCrmActivity`, `deleteCrmActivity`, `linkPropertyToContact`, `unlinkPropertyFromContact`, `linkNeighborhoodToContact`, `unlinkNeighborhoodFromContact`, `getCrmDashboardStats`
+**Queries** (`src/lib/queries/crm.ts` server-side, `crm-client.ts` for browser components): `getCrmContacts`, `getCrmContactById`, `createCrmContact`, `updateCrmContact`, `deleteCrmContact`, `getCrmActivities`, `createCrmActivity`, `updateCrmActivity`, `deleteCrmActivity`, `linkPropertyToContact`, `unlinkPropertyFromContact`, `linkNeighborhoodToContact`, `unlinkNeighborhoodFromContact`, `getCrmDashboardStats`, plus CRUD for tasks
 
-**API routes** (`/api/admin/crm/contacts/`):
+**API routes** (`/api/admin/crm/`):
 - `GET/POST /contacts` — list with filters + create
 - `GET/PUT/DELETE /contacts/[id]` — single contact CRUD
 - `GET/POST /contacts/[id]/activities` — activity list + create
 - `PUT/DELETE /contacts/[id]/activities/[activityId]` — edit/delete activity
 - `POST/DELETE /contacts/[id]/properties` — link/unlink property
 - `POST/DELETE /contacts/[id]/neighborhoods` — link/unlink neighborhood
+- `GET/POST /contacts/[id]/tasks` — task list + create
+- `PUT/DELETE /contacts/[id]/tasks/[taskId]` — edit/delete task
+- `GET /tasks/today` — today's tasks across all contacts (dashboard widget)
 
-**Components** (`src/components/admin/crm/`): `ContactsTable`, `CreateContactModal`, `ContactInfoCard`, `LinkedProperties`, `ActivityTimeline`
+**Components** (`src/components/admin/crm/`): `ContactsTable`, `CreateContactModal`, `ContactInfoCard`, `LinkedProperties`, `TasksSection`, `TodaysTasksWidget`
 
-**CRM tables not in generated types**: `crm_contacts`, `crm_activities`, `crm_contact_properties`, `crm_contact_neighborhoods` require the cast pattern:
+**CRM tables not in generated types**: `crm_contacts`, `crm_activities`, `crm_contact_properties`, `crm_contact_neighborhoods`, `crm_tasks` require the cast pattern:
 ```typescript
 (supabase.from("crm_contacts" as any) as any).select(...)
 ```
 
 ## Important Implementation Notes
+
+### API Response Envelope
+
+Route handlers built after the CRM module use helpers from `src/lib/api.ts` instead of raw `NextResponse.json()`:
+- `ok(data, init?)` → `{ data, message? }`
+- `fail(err, init?)` → `{ error, code?, details? }`
+- Convenience wrappers: `validationError`, `unauthorized`, `notFound`, `serverError`
+
+Older routes still return `NextResponse.json({ error: ... })` directly — match the convention of the file you're editing rather than mixing both in one route.
 
 ### Admin Route Auth Pattern
 
@@ -290,8 +310,9 @@ ESLint rules are warnings (not errors) to allow flexibility:
 ### Image Handling
 
 **Next Image Configuration** (`next.config.ts`):
-- Formats: AVIF, WebP
-- Remote patterns configured for Supabase Storage, Unsplash, UI Avatars
+- Formats: WebP only (AVIF removed to reduce transformation costs)
+- Cache TTL: 31 days; explicit `deviceSizes`/`imageSizes` tuned to Tailwind breakpoints
+- Remote patterns configured for Supabase Storage, Unsplash, UI Avatars, Google Maps/user content
 - Property images domain: `img.novanest.bg` (or `NEXT_PUBLIC_PROPERTY_IMAGES_HOST`)
 
 **Image Storage**:
@@ -302,7 +323,7 @@ ESLint rules are warnings (not errors) to allow flexibility:
 ### Security Headers
 
 Configured in `next.config.ts`:
-- CSP temporarily disabled (line 96-97)
+- CSP is built (`csp` const) but currently commented out of the emitted headers — re-enable by uncommenting the `Content-Security-Policy` header line once verified
 - Strict-Transport-Security enabled
 - X-Frame-Options: SAMEORIGIN
 - Permissions-Policy for geolocation/camera/microphone
