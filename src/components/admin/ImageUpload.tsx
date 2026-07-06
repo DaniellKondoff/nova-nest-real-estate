@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { compressImage } from "@/lib/image-compression";
+import { validateImageFile } from "@/lib/validations";
 
 interface PropertyImage {
   id: number;
@@ -30,28 +32,13 @@ export default function ImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const totalImages = existingImages.length + images.length;
 
-  // Validate file
-  const validateFile = (file: File): string | null => {
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (!validTypes.includes(file.type)) {
-      return `${file.name}: Невалиден формат. Използвайте JPG, PNG или WebP.`;
-    }
-
-    if (file.size > maxSize) {
-      return `${file.name}: Файлът е твърде голям. Максимум 5MB.`;
-    }
-
-    return null;
-  };
-
   // Handle file selection
   const handleFiles = useCallback(
-    (fileList: FileList | null) => {
+    async (fileList: FileList | null) => {
       if (!fileList) return;
 
       const newFiles = Array.from(fileList);
@@ -69,22 +56,28 @@ export default function ImageUpload({
 
       // Validate all files
       for (const file of newFiles) {
-        const validationError = validateFile(file);
-        if (validationError) {
-          setError(validationError);
+        const check = validateImageFile(file);
+        if (!check.valid) {
+          setError(check.error);
           return;
         }
       }
 
       setError(null);
-      onImagesChange([...images, ...newFiles]);
+      setIsCompressing(true);
+      try {
+        const compressedFiles = await Promise.all(newFiles.map((file) => compressImage(file)));
+        onImagesChange([...images, ...compressedFiles]);
+      } finally {
+        setIsCompressing(false);
+      }
     },
     [images, totalImages, maxImages, onImagesChange]
   );
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFiles(e.target.files);
+    void handleFiles(e.target.files);
     // Reset input value to allow selecting the same file again
     e.target.value = "";
   };
@@ -103,11 +96,13 @@ export default function ImageUpload({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    handleFiles(e.dataTransfer.files);
+    if (isCompressing) return;
+    void handleFiles(e.dataTransfer.files);
   };
 
   // Handle click to browse
   const handleClick = () => {
+    if (isCompressing) return;
     fileInputRef.current?.click();
   };
 
@@ -177,7 +172,8 @@ export default function ImageUpload({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`
-            border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all
+            border-2 border-dashed rounded-lg p-8 text-center transition-all
+            ${isCompressing ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}
             ${
               isDragging
                 ? "border-[#D4AF37] bg-[#D4AF37]/10"
@@ -185,10 +181,19 @@ export default function ImageUpload({
             }
           `}
         >
-          <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-700 font-medium mb-1">
-            Плъзнете снимки тук или кликнете за избор
-          </p>
+          {isCompressing ? (
+            <>
+              <Loader2 className="w-12 h-12 mx-auto text-gray-400 mb-4 animate-spin" />
+              <p className="text-gray-700 font-medium mb-1">Компресиране на снимки...</p>
+            </>
+          ) : (
+            <>
+              <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-700 font-medium mb-1">
+                Плъзнете снимки тук или кликнете за избор
+              </p>
+            </>
+          )}
           <p className="text-sm text-gray-500">
             Максимум {maxImages} снимки общо, до 5MB всяка
           </p>
@@ -198,6 +203,7 @@ export default function ImageUpload({
             accept="image/jpeg,image/jpg,image/png,image/webp"
             multiple
             onChange={handleInputChange}
+            disabled={isCompressing}
             className="hidden"
           />
         </div>

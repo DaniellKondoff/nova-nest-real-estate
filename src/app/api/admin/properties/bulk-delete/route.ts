@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
+import { deletePropertyImagesByUrls } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,16 +57,37 @@ export async function POST(request: NextRequest) {
     let deletedCount = 0;
     const failedIds: number[] = [];
 
-    // Soft delete approach: update status to archived
+    // Hard delete: remove images from storage, then delete each property row
+    // (cascades to property_images, property_property_features, property_embeddings,
+    // crm_contact_properties; sets inquiries.property_id / testimonials.property_id to NULL)
     for (const propertyId of numericIds) {
       try {
-        const { error: updateError } = await supabase
+        const { data: images, error: imagesError } = await supabase
+          .from("property_images")
+          .select("url")
+          .eq("property_id", propertyId);
+
+        if (imagesError) {
+          console.error(`Failed to fetch images for property ${propertyId}:`, imagesError);
+          failedIds.push(propertyId);
+          continue;
+        }
+
+        try {
+          await deletePropertyImagesByUrls((images ?? []).map((img) => img.url));
+        } catch (storageError) {
+          console.error(`Failed to delete storage images for property ${propertyId}:`, storageError);
+          failedIds.push(propertyId);
+          continue;
+        }
+
+        const { error: deleteError } = await supabase
           .from("properties")
-          .update({ status: "archived" })
+          .delete()
           .eq("id", propertyId);
 
-        if (updateError) {
-          console.error(`Failed to archive property ${propertyId}:`, updateError);
+        if (deleteError) {
+          console.error(`Failed to delete property ${propertyId}:`, deleteError);
           failedIds.push(propertyId);
         } else {
           deletedCount++;
@@ -81,19 +103,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         deleted: deletedCount,
-        message: `Успешно архивирани ${deletedCount} имота`,
+        message: `Успешно изтрити ${deletedCount} имота`,
       });
     } else if (deletedCount > 0) {
       return NextResponse.json({
         success: true,
         deleted: deletedCount,
         failed: failedIds.length,
-        message: `Архивирани ${deletedCount} от ${numericIds.length} имота`,
+        message: `Изтрити ${deletedCount} от ${numericIds.length} имота`,
       });
     } else {
       return NextResponse.json(
         {
-          error: "Грешка при архивиране на имотите",
+          error: "Грешка при изтриване на имотите",
           failed: failedIds.length,
         },
         { status: 500 }

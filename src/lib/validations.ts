@@ -15,6 +15,20 @@ export const currencySchema = z.union([z.literal("BGN"), z.literal("EUR")]);
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"] as const;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
+// Image file validation (used by storage.ts upload + ImageUpload.tsx client-side check)
+export const ACCEPTED_IMAGE_FILE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+export const MAX_IMAGE_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
+export function validateImageFile(file: File): { valid: true } | { valid: false; error: string } {
+  if (!ACCEPTED_IMAGE_FILE_TYPES.includes(file.type)) {
+    return { valid: false, error: "Невалиден тип на файл (jpg, jpeg, png, webp)." };
+  }
+  if (file.size > MAX_IMAGE_FILE_SIZE_BYTES) {
+    return { valid: false, error: "Файлът е твърде голям (макс. 5MB)." };
+  }
+  return { valid: true };
+}
+
 export const imageUploadSchema = z.object({
   file: z
     .custom<File>((v) => v instanceof File, {
