@@ -4,6 +4,7 @@ import { useRef, useState, useCallback } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { compressImage } from "@/lib/image-compression";
+import { validateImageFile } from "@/lib/validations";
 
 interface PropertyImage {
   id: number;
@@ -35,22 +36,6 @@ export default function ImageUpload({
 
   const totalImages = existingImages.length + images.length;
 
-  // Validate file
-  const validateFile = (file: File): string | null => {
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (!validTypes.includes(file.type)) {
-      return `${file.name}: Невалиден формат. Използвайте JPG, PNG или WebP.`;
-    }
-
-    if (file.size > maxSize) {
-      return `${file.name}: Файлът е твърде голям. Максимум 5MB.`;
-    }
-
-    return null;
-  };
-
   // Handle file selection
   const handleFiles = useCallback(
     async (fileList: FileList | null) => {
@@ -71,9 +56,9 @@ export default function ImageUpload({
 
       // Validate all files
       for (const file of newFiles) {
-        const validationError = validateFile(file);
-        if (validationError) {
-          setError(validationError);
+        const check = validateImageFile(file);
+        if (!check.valid) {
+          setError(check.error);
           return;
         }
       }

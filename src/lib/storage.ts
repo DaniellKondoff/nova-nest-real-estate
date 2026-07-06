@@ -1,23 +1,13 @@
 import { getBrowserClient } from "@/lib/supabase/client";
 import { getServiceClient } from "@/lib/supabase/service";
 import { compressImage } from "@/lib/image-compression";
+import { validateImageFile } from "@/lib/validations";
+
+export { validateImageFile };
 
 export type UploadResult = { path: string; url: string };
 
 const BUCKET = "property-images"; // Make sure this bucket exists in Supabase Storage
-
-const ACCEPTED_IMAGE_MIME = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-
-export function validateImageFile(file: File): { valid: true } | { valid: false; error: string } {
-  if (!ACCEPTED_IMAGE_MIME.includes(file.type)) {
-    return { valid: false, error: "Невалиден тип на файл (jpg, jpeg, png, webp)." };
-  }
-  if (file.size > MAX_IMAGE_SIZE_BYTES) {
-    return { valid: false, error: "Файлът е твърде голям (макс. 5MB)." };
-  }
-  return { valid: true };
-}
 
 export async function uploadPropertyImage(propertyId: number, file: File): Promise<UploadResult> {
   const check = validateImageFile(file);
