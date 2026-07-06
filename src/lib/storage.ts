@@ -1,5 +1,6 @@
 import { getBrowserClient } from "@/lib/supabase/client";
 import { getServiceClient } from "@/lib/supabase/service";
+import { compressImage } from "@/lib/image-compression";
 
 export type UploadResult = { path: string; url: string };
 
@@ -22,12 +23,14 @@ export async function uploadPropertyImage(propertyId: number, file: File): Promi
   const check = validateImageFile(file);
   if (!check.valid) throw new Error(check.error);
 
+  const compressedFile = await compressImage(file);
+
   const supabase = getBrowserClient();
-  const fileExt = file.name.split(".").pop() || "jpg";
+  const fileExt = compressedFile.type === "image/webp" ? "webp" : (compressedFile.name.split(".").pop() || "jpg");
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
   const filePath = `${propertyId}/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(filePath, file, {
+  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(filePath, compressedFile, {
     cacheControl: "3600",
     upsert: false,
   });
