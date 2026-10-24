@@ -1,6 +1,15 @@
 import { getBrowserClient } from "@/lib/supabase/client";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Tables, Database } from "@/types/database.generated";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/** Any Supabase client for our schema (browser, server or static) */
+type DbClient = SupabaseClient<Database>;
+
+/** Strip characters that carry meaning inside PostgREST filter strings (e.g. .or()) */
+function sanitizeFilterTerm(term: string): string {
+  return term.replace(/[,()*%\\]/g, " ").replace(/\s+/g, " ").trim().slice(0, 100);
+}
 
 export type SearchFilters = {
   categoryId?: number;
@@ -74,10 +83,11 @@ export async function getPublishedProperties(): Promise<Tables<"properties">[]> 
 
 export async function searchProperties(
   searchTerm?: string,
-  filters: SearchFilters = {}
+  filters: SearchFilters = {},
+  client?: DbClient
 ): Promise<Array<{ id: number; title_bg: string; price_eur: number; rank?: number }>> {
-  const supabase = getBrowserClient();
-  
+  const supabase: DbClient = client ?? (getBrowserClient() as unknown as DbClient);
+
   try {
     // Try the RPC function first (without feature filtering)
     // @ts-expect-error - RPC function not in generated types yet
@@ -95,7 +105,7 @@ export async function searchProperties(
 
     if (error) {
       console.warn("RPC search failed, falling back to direct query:", error);
-      return await searchPropertiesFallback(searchTerm, filters);
+      return await searchPropertiesFallback(searchTerm, filters, client);
     }
 
     let results = (data as any) || [];
@@ -125,7 +135,7 @@ export async function searchProperties(
     return results;
   } catch (error) {
     console.warn("RPC search failed, falling back to direct query:", error);
-    return await searchPropertiesFallback(searchTerm, filters);
+    return await searchPropertiesFallback(searchTerm, filters, client);
   }
 }
 
@@ -135,18 +145,20 @@ export async function searchProperties(
  */
 export async function searchPropertiesFallback(
   searchTerm?: string,
-  filters: SearchFilters = {}
+  filters: SearchFilters = {},
+  client?: DbClient
 ): Promise<Array<{ id: number; title_bg: string; price_eur: number; rank?: number }>> {
-  const supabase = getBrowserClient();
-  
+  const supabase: DbClient = client ?? (getBrowserClient() as unknown as DbClient);
+
   let query = supabase
     .from("properties")
     .select("id, title_bg, description_bg, price_eur")
     .eq("status", "available");
 
-  // Apply text search if provided
-  if (searchTerm && searchTerm.trim()) {
-    query = query.or(`title_bg.ilike.%${searchTerm}%,description_bg.ilike.%${searchTerm}%`);
+  // Apply text search if provided (sanitized: the term is embedded in a PostgREST filter string)
+  const safeTerm = searchTerm ? sanitizeFilterTerm(searchTerm) : "";
+  if (safeTerm) {
+    query = query.or(`title_bg.ilike.%${safeTerm}%,description_bg.ilike.%${safeTerm}%`);
   }
 
   // Apply category filter

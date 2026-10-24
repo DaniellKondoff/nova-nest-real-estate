@@ -80,8 +80,8 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         className={cn(
           "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[0.9375rem] sm:text-sm leading-relaxed",
           isUser
-            ? "bg-gradient-to-br from-accent to-[#c49b33] text-[#1a2642] rounded-tr-sm shadow-gold font-semibold"
-            : "bg-white text-[#1a2642] font-medium rounded-tl-sm shadow-subtle border border-[#1a2642]/15"
+            ? "bg-gradient-to-br from-accent to-accent-dark text-primary rounded-tr-sm shadow-gold font-semibold"
+            : "bg-white text-primary font-medium rounded-tl-sm shadow-subtle border border-primary/15"
         )}
       >
         {isUser ? (
@@ -92,8 +92,8 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
       </div>
 
       {isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-accent to-[#c49b33] flex items-center justify-center mt-0.5 shadow-gold">
-          <span className="text-[#1a2642] text-[10px] font-bold">ВИЕ</span>
+        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center mt-0.5 shadow-gold">
+          <span className="text-primary text-[10px] font-bold">ВИЕ</span>
         </div>
       )}
     </div>

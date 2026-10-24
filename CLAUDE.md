@@ -86,11 +86,12 @@ Required environment variables in `.env.local`:
 - Some query files have `-client.ts` variants for browser components
 - Example: `testimonials-client.ts` for client-side testimonial fetching
 
+**Public listing search (SSR)**:
+- `/properties` is a server component that reads `searchParams` and calls `searchPropertyListings()` (`src/lib/queries/property-listings.ts`, cookie-free static client). `POST /api/properties/search` is a thin wrapper around the same function.
+- URL contract helpers live in `src/lib/search/params.ts` (`urlParamsToFilters`, `buildPropertiesHref`, `PROPERTIES_PAGE_SIZE`). Filters/sort/pagination are real links or native GET forms, enhanced via `PropertiesNavigationProvider` (transition + dimmed results).
+- Shared listing select clause: `src/lib/queries/listing-select.ts` (no `select *`).
+
 **Custom Hooks** (`src/hooks/`):
-- `usePropertySearch.ts` - Search with debouncing, filters, pagination
-- `usePropertyCategories.ts` - Category and feature data
-- `usePropertyFeatures.ts` - Property features data
-- `useNeighborhoods.ts` - Neighborhood data
 - `useAuth.ts` - Authentication state
 - `usePropertyViewTracking.ts` - Property view analytics
 
@@ -177,16 +178,24 @@ export async function GET(
 
 ### 7. Design System
 
-**Colors** (defined in `src/app/globals.css` and `tailwind.config.ts`):
-- Primary Navy: `#1a2642` → `bg-primary` / `--brand-navy`
-- Accent Gold: `#d4af37` → `bg-accent` / `--brand-gold`
+**Tokens** – single source: `@theme` in `src/styles/globals.css` (Tailwind v4, there is no tailwind.config). Light theme only.
+- Primary Navy: `#1a2642` → `bg-primary` / `text-primary` (+ `-light`, `-dark`)
+- Accent Gold: `#d4af37` → `bg-accent` / `text-accent` (+ `-light`, `-dark` for hover/text on white)
+- `rounded-card`, `shadow-card|soft|lift|gold`, fluid type `text-display|h2|h3`, `.reveal` (CSS-only scroll fade), `--header-h`
+- Never hardcode hex values in components; use the tokens. `cn()` in `@/lib/utils` knows the custom tokens.
+
+**Public pages are server-first & mobile-first**:
+- Public routes live in the `src/app/(site)/` route group (server Header/Footer in `(site)/layout.tsx`); admin is outside it.
+- Keep client components as small leaf islands; prefer links/anchors and native forms over onClick handlers.
+- Design at 360–430px first: 44px min tap targets, 16px inputs, `svh/dvh`, safe-area insets, scroll-snap rows instead of JS carousels.
+- Layout primitives: `Section`, `SectionHeading`, `containerClass` (`ui/section.tsx`), `Button` with `asChild` (`ui/button.tsx`).
 
 **Components** (`src/components/`):
 - `ui/` - Base UI primitives (Button, Input, Card, Typography, etc.)
 - `property/` - Property listing components (Card, Grid, Filters, etc.)
 - `layout/` - Layout components (Header, Footer, Container, etc.)
 - `admin/` - Admin panel components
-- `forms/` - Form components (InquiryForm, SearchForm, etc.)
+- `forms/` - Form components (ContactForm, HeroSearchForm)
 - `seo/` - SEO structured data components
 
 **Spacing**: 8px grid system (use Tailwind's numeric scale)
@@ -205,7 +214,7 @@ Key property attributes for Bulgarian market:
 
 ### 9. Neighborhood Landing Pages
 
-**Route**: `src/app/[neighborhood-slug]/page.tsx`
+**Route**: `src/app/(site)/[neighborhood-slug]/page.tsx`
 
 Dynamic neighborhood pages with SEO optimization:
 - Breadcrumb structured data
@@ -368,7 +377,7 @@ Placeholder directories for MCP-fetched components:
 2. Use React Hook Form with `@hookform/resolvers/zod`
 3. Create form component in `src/components/forms/`
 4. Use Bulgarian/English bilingual error messages
-5. Follow existing form patterns (e.g., `InquiryForm`, `SearchForm`)
+5. Follow existing form patterns (e.g., `ContactForm`, `PropertyInquiryForm`)
 
 ### Creating DB Changes
 1. When you change Database Schema always create migration script below scripts\migrations

@@ -3,10 +3,7 @@ import { Inter } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import "../styles/globals.css";
-import ConditionalWrapper from "@/components/layout/ConditionalWrapper";
-import { ChatWidget } from "@/components/chat/ChatWidget";
 import { generateDefaultMetadata, generateDefaultViewport } from "@/lib/seo/metadata";
-import { env } from "@/lib/env";
 import { OrganizationSchema, WebsiteSchema } from "@/components/seo/StructuredData";
 
 const inter = Inter({
@@ -28,10 +25,7 @@ export default async function RootLayout({
       <body className={`${inter.variable} antialiased`}>
         <OrganizationSchema />
         <WebsiteSchema />
-        <ConditionalWrapper>
-          {children}
-        </ConditionalWrapper>
-        {env.NEXT_PUBLIC_CHAT_ENABLED !== "false" && <ChatWidget />}
+        {children}
         <SpeedInsights />
         <Analytics />
       </body>

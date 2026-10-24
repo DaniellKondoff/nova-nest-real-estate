@@ -250,5 +250,7 @@ export function generateDefaultViewport() {
     userScalable: true,
     themeColor: THEME_COLOR,
     viewportFit: "cover" as const,
+    interactiveWidget: "resizes-content" as const,
+    colorScheme: "light" as const,
   };
 }

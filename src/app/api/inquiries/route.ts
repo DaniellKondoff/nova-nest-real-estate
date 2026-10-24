@@ -6,10 +6,19 @@ import { ContactFormSchema } from "@/lib/validations";
 import { env, getServerEnv } from "@/lib/env";
 import { sendInquiryNotification } from '@/lib/email'
 
+// Public inquiry payload: contact fields + optional context (which property / what kind of request)
+const InquiryRequestSchema = ContactFormSchema.extend({
+  property_id: z.number().int().positive().optional(),
+  inquiry_type: z
+    .enum(["general", "property_interest", "viewing_request", "valuation", "selling", "renting"])
+    .optional(),
+});
+
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
-    const data = await ContactFormSchema.parseAsync(payload);
+    const data = await InquiryRequestSchema.parseAsync(payload);
+    const inquiryType = data.inquiry_type ?? (data.property_id ? "property_interest" : "general");
 
     // Use service role on the server to bypass RLS for safe server-only writes
     const { SUPABASE_SERVICE_ROLE_KEY } = getServerEnv();
@@ -23,10 +32,10 @@ export async function POST(req: NextRequest) {
         full_name: data.full_name,
         email: data.email,
         phone: data.phone && data.phone.length > 0 ? data.phone : null,
-        inquiry_type: "general" as Database["public"]["Enums"]["inquiry_type"],
+        inquiry_type: inquiryType as Database["public"]["Enums"]["inquiry_type"],
         message: data.message,
         subject: null,
-        property_id: null,
+        property_id: data.property_id ?? null,
         status: "new" as Database["public"]["Enums"]["inquiry_status"],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

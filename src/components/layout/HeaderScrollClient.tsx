@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * Adds a scroll-based box-shadow to the containing <header> element.
@@ -19,8 +20,10 @@ export default function HeaderScrollClient() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 transition-shadow duration-300"
-      style={{ boxShadow: isScrolled ? "0 8px 24px rgba(0,0,0,0.25)" : "none" }}
+      className={cn(
+        "pointer-events-none absolute inset-0 transition-shadow duration-300",
+        isScrolled ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]" : "shadow-none"
+      )}
     />
   );
 }

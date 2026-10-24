@@ -1,4 +1,4 @@
-import { getPropertyTestimonials, getApprovedTestimonials, getAggregateRating } from '@/lib/queries/testimonials';
+import { getPropertyTestimonials, getCachedApprovedTestimonials, getAggregateRatingStatic } from '@/lib/queries/testimonials';
 import { generateAggregateRatingSchema, generateReviewsSchema } from '@/lib/seo/generate-schema';
 
 interface PropertyReviewSchemaProps {
@@ -20,8 +20,8 @@ export async function PropertyReviewSchema({ propertyId }: PropertyReviewSchemaP
     if (testimonials.length === 0) {
       // Fall back to site-wide ratings so every property page satisfies Google's requirement
       const [siteTestimonials, siteRating] = await Promise.all([
-        getApprovedTestimonials(),
-        getAggregateRating()
+        getCachedApprovedTestimonials(),
+        getAggregateRatingStatic()
       ]);
       testimonials = siteTestimonials;
       averageRating = siteRating.averageRating;

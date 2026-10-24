@@ -116,28 +116,28 @@ export default function ContactForm({
   };
 
   const baseInput =
-    "block w-full rounded-md border bg-white text-[16px] leading-[1.5] transition duration-200 placeholder:text-gray-400 text-[#2d3748]";
+    "block w-full rounded-xl border bg-white text-[16px] leading-[1.5] transition duration-200 placeholder:text-gray-400 text-charcoal";
   const inputPadding = "px-4 py-3"; // ~12px 16px
-  const inputBorderDefault = "border-[#e5e7eb]";
+  const inputBorderDefault = "border-gray-300";
   const inputFocus =
-    "focus:outline-none focus:border-2 focus:border-[#d4af37] focus:ring-0 focus:[box-shadow:0_0_0_3px_rgba(212,175,55,0.1)]";
+    "focus:outline-none focus:border-2 focus:border-accent focus:ring-0 focus:[box-shadow:0_0_0_3px_rgba(212,175,55,0.1)]";
   const inputError = "border-[#ef4444] bg-[#fef2f2]";
   const inputDisabled = "disabled:bg-[#f9fafb] disabled:text-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-60";
 
-  const labelBase = "mb-2 block text-sm font-medium text-[#1a2642]";
+  const labelBase = "mb-2 block text-sm font-medium text-primary";
   const helperText = "mt-1 text-[13px] text-[#6b7280]";
   const errorText = "mt-1 flex items-center gap-1 text-[13px] text-[#ef4444]";
 
   const buttonBase =
-    "inline-flex items-center justify-center gap-2 rounded-md px-6 py-3 text-white transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+    "inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 font-semibold text-primary shadow-gold transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
   const buttonGold =
-    "bg-[#d4af37] hover:bg-[#c29d2f] focus-visible:ring-[#d4af37] disabled:bg-[#9ca3af]";
+    "bg-accent hover:bg-accent-light focus-visible:ring-accent disabled:bg-[#9ca3af]";
 
   return (
     <form
       aria-label="Форма за контакт"
       onSubmit={handleSubmit(onLocalSubmit)}
-      className={cn("rounded-md bg-white p-6 md:p-8 shadow-subtle", className)}
+      className={cn("rounded-card bg-white p-5 shadow-card sm:p-8", className)}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setServerError(null);
@@ -194,11 +194,11 @@ export default function ContactForm({
 
       {/* Name */}
       <div>
-        <label htmlFor="full_name" className={labelBase}>
-          Име и фамилия <span className="text-[#d4af37]" aria-hidden="true">*</span>
+        <label htmlFor="contact-full_name" className={labelBase}>
+          Име и фамилия <span className="text-accent" aria-hidden="true">*</span>
         </label>
         <input
-          id="full_name"
+          id="contact-full_name"
           type="text"
           inputMode="text"
           aria-required="true"
@@ -225,11 +225,11 @@ export default function ContactForm({
 
       {/* Email */}
       <div className="mt-5">
-        <label htmlFor="email" className={labelBase}>
-          Имейл адрес <span className="text-[#d4af37]" aria-hidden="true">*</span>
+        <label htmlFor="contact-email" className={labelBase}>
+          Имейл адрес <span className="text-accent" aria-hidden="true">*</span>
         </label>
         <input
-          id="email"
+          id="contact-email"
           type="email"
           inputMode="email"
           aria-required="true"
@@ -257,13 +257,13 @@ export default function ContactForm({
       {/* Phone */}
       <div className="mt-5">
         <div className="flex items-baseline justify-between gap-2">
-          <label htmlFor="phone" className={labelBase}>
+          <label htmlFor="contact-phone" className={labelBase}>
             Телефон
           </label>
           <span className={helperText}>(Незадължително. Формат: +359 XXX XXX XXX)</span>
         </div>
         <input
-          id="phone"
+          id="contact-phone"
           type="tel"
           inputMode="tel"
           aria-required="false"
@@ -290,11 +290,11 @@ export default function ContactForm({
 
       {/* Message */}
       <div className="mt-5">
-        <label htmlFor="message" className={labelBase}>
-          Съобщение <span className="text-[#d4af37]" aria-hidden="true">*</span>
+        <label htmlFor="contact-message" className={labelBase}>
+          Съобщение <span className="text-accent" aria-hidden="true">*</span>
         </label>
         <textarea
-          id="message"
+          id="contact-message"
           rows={5}
           aria-required="true"
           aria-invalid={!!errors.message || undefined}
@@ -327,7 +327,7 @@ export default function ContactForm({
       <div className="mt-6">
         <button
           type="submit"
-          className={cn(buttonBase, buttonGold, "w-full sm:w-auto")}
+          className={cn(buttonBase, buttonGold, "w-full")}
           disabled={!isValid || isSubmitting}
           aria-disabled={!isValid || isSubmitting}
         >

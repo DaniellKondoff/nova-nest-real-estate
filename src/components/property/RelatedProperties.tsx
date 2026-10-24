@@ -4,6 +4,7 @@ import { getStaticServerClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database.generated";
 import type { PropertyWithDetails } from "@/types/property";
 import PropertyCard from "@/components/property/PropertyCard";
+import { LISTING_SELECT } from "@/lib/queries/listing-select";
 
 interface RelatedPropertiesProps {
   currentPropertyId: number;
@@ -17,22 +18,24 @@ async function fetchRelated(
   neighborhoodId: number
 ): Promise<PropertyWithDetails[]> {
   const supabase = getStaticServerClient();
+  type ListingRow = Record<string, unknown> & {
+    id: number;
+    neighborhood?: Tables<"neighborhoods"> | null;
+    category?: Tables<"property_categories"> | null;
+    images?: Tables<"property_images">[] | null;
+  };
 
   // First try: same category + same neighborhood
-  let { data } = await supabase
+  const { data: sameArea } = await supabase
     .from("properties")
-    .select(`
-      *,
-      images:property_images(id, url, is_primary, sort_order, alt_text_bg),
-      neighborhood:neighborhoods(*),
-      category:property_categories(*)
-    `)
+    .select(LISTING_SELECT)
     .eq("category_id", categoryId)
     .eq("neighborhood_id", neighborhoodId)
     .eq("status", "available")
     .neq("id", currentPropertyId)
     .order("created_at", { ascending: false })
     .limit(3);
+  let data = (sameArea ?? []) as unknown as ListingRow[];
 
   // Fallback: same category only
   if (!data || data.length < 3) {
@@ -41,26 +44,21 @@ async function fetchRelated(
 
     const { data: fallback } = await supabase
       .from("properties")
-      .select(`
-        *,
-        images:property_images(id, url, is_primary, sort_order, alt_text_bg),
-        neighborhood:neighborhoods(*),
-        category:property_categories(*)
-      `)
+      .select(LISTING_SELECT)
       .eq("category_id", categoryId)
       .eq("status", "available")
       .not("id", "in", `(${existingIds.join(",")})`)
       .order("created_at", { ascending: false })
       .limit(needed);
 
-    data = [...(data ?? []), ...(fallback ?? [])];
+    data = [...data, ...((fallback ?? []) as unknown as ListingRow[])];
   }
 
-  return (data ?? []).map((row) => ({
+  return data.map((row) => ({
     property: row as unknown as Tables<"properties">,
-    neighborhood: (row.neighborhood as Tables<"neighborhoods"> | null) ?? null,
-    category: (row.category as Tables<"property_categories"> | null) ?? null,
-    images: (row.images as Tables<"property_images">[]) ?? [],
+    neighborhood: row.neighborhood ?? null,
+    category: row.category ?? null,
+    images: row.images ?? [],
   }));
 }
 
@@ -81,16 +79,19 @@ export default async function RelatedProperties({
   if (related.length === 0) return null;
 
   return (
-    <section className="mt-12">
-      <h2 className="text-[#1a2642] font-bold text-2xl mb-8 flex items-center gap-3">
-        <div className="h-1 w-8 bg-[#d4af37] rounded-full"></div>
+    <section aria-labelledby="related-title" className="mt-12 md:mt-16">
+      <h2 id="related-title" className="mb-6 flex items-center gap-3 text-xl font-bold text-primary sm:text-2xl">
+        <span aria-hidden="true" className="h-1 w-8 rounded-full bg-accent" />
         Подобни имоти
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Mobile: swipeable row with the next card peeking in; lg+: 3-column grid */}
+      <ul className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 no-scrollbar sm:mx-0 sm:px-0 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible">
         {related.map((prop) => (
-          <PropertyCard key={prop.property.id} property={prop} />
+          <li key={prop.property.id} className="w-[85%] shrink-0 snap-start sm:w-[45%] lg:w-auto">
+            <PropertyCard property={prop} sizes="(min-width: 1024px) 400px, (min-width: 640px) 45vw, 85vw" />
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 }

@@ -1,15 +1,8 @@
 import React from "react";
 import type { PropertyWithDetails } from "@/types/property";
-import { Square, BedDouble, Bed, Bath, Building2, Calendar, MapPin, Layers, Building, Eye, Tag, Navigation } from "lucide-react";
+import { Bath, Bed, BedDouble, Building, Building2, Calendar, Layers, MapPin, Navigation, Square } from "lucide-react";
 import { formatArea, formatFloor, formatYear } from "./utils";
-
-function formatViewCount(count: number | null): string {
-  if (!count || count === 0) return "0 прегледа";
-  if (count === 1) return "1 преглед";
-  if (count < 1000) return `${count} прегледа`;
-  if (count < 1000000) return `${(count / 1000).toFixed(1)}K прегледа`;
-  return `${(count / 1000000).toFixed(1)}M прегледа`;
-}
+import DetailSection from "./DetailSection";
 
 export interface PropertyDetailsProps {
   property: PropertyWithDetails;
@@ -19,22 +12,7 @@ interface DetailItemProps {
   label: string;
   value: string;
   icon: React.ComponentType<{ className?: string }>;
-}
-
-function DetailItem({ label, value, icon: Icon }: DetailItemProps) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 p-4 sm:p-6 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-[#d4af37]/10 rounded-lg">
-          <Icon className="h-6 w-6 text-[#d4af37]" aria-hidden />
-        </div>
-        <div>
-          <div className="text-gray-600 text-sm font-medium">{label}</div>
-          <div className="text-[#1a2642] text-lg font-semibold mt-1">{value}</div>
-        </div>
-      </div>
-    </div>
-  );
+  wide?: boolean;
 }
 
 export default function PropertyDetails({ property }: PropertyDetailsProps): React.ReactElement | null {
@@ -45,50 +23,40 @@ export default function PropertyDetails({ property }: PropertyDetailsProps): Rea
 
   const items: DetailItemProps[] = [];
 
-  // Building Type from categories - Make this more prominent by putting it first
   if (c?.name_bg) items.push({ label: "Тип имот", value: c.name_bg, icon: Building });
-  
-  // Building Type Features - Look for buildingType category features
-  const buildingTypeFeatures = features.filter(f => f.category === "buildingType");
-  buildingTypeFeatures.forEach(feature => {
-    items.push({ label: feature.name_bg, value: "Да", icon: Building2 });
-  });
-  
-  // Basic property details
+  features
+    .filter((f) => f.category === "buildingType")
+    .forEach((feature) => items.push({ label: "Конструкция", value: feature.name_bg, icon: Building2 }));
+
   if (typeof p.area_sqm === "number") items.push({ label: "Площ", value: formatArea(p.area_sqm), icon: Square });
   if (typeof p.rooms === "number") items.push({ label: "Стаи", value: String(p.rooms), icon: BedDouble });
   if (typeof p.bedrooms === "number") items.push({ label: "Спални", value: String(p.bedrooms), icon: Bed });
   if (typeof p.bathrooms === "number") items.push({ label: "Бани", value: String(p.bathrooms), icon: Bath });
-  
-  // Building information - very important for customers
-  if (typeof p.floor === "number") items.push({ label: "Етаж", value: formatFloor(p.floor, p.total_floors ?? null), icon: Building2 });
-  if (typeof p.total_floors === "number") items.push({ label: "Общо етажи", value: `${p.total_floors} етажа`, icon: Layers });
+  if (typeof p.floor === "number") items.push({ label: "Етаж", value: formatFloor(p.floor, p.total_floors ?? null), icon: Layers });
   if (typeof p.year_built === "number") items.push({ label: "Година на строеж", value: formatYear(p.year_built), icon: Calendar });
-  
-  // Location
   if (n?.name_bg) items.push({ label: "Квартал", value: n.name_bg, icon: MapPin });
-  if (p.address_bg) items.push({ label: "Адрес", value: p.address_bg, icon: Navigation });
-
-  // View count - show if available
-  if (typeof p.view_count === "number") {
-    items.push({ label: "Прегледи", value: formatViewCount(p.view_count), icon: Eye });
-  }
+  if (p.address_bg) items.push({ label: "Адрес", value: p.address_bg, icon: Navigation, wide: true });
 
   if (items.length === 0) return null;
 
   return (
-    <section>
-      <h2 className="text-[#1a2642] font-bold text-2xl mb-8 flex items-center gap-3">
-        <div className="h-1 w-8 bg-[#d4af37] rounded-full"></div>
-        Детайли на имота
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((item, idx) => (
-          <DetailItem key={idx} {...item} />
+    <DetailSection title="Детайли на имота" id="details">
+      <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+        {items.map(({ label, value, icon: Icon, wide }, idx) => (
+          <div
+            key={`${label}-${idx}`}
+            className={`flex gap-2 rounded-xl border border-border p-3 sm:p-4 ${wide ? "col-span-2 flex-row items-center gap-3 md:col-span-3" : "flex-col min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-3"}`}
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 sm:h-10 sm:w-10">
+              <Icon className="h-5 w-5 text-accent-dark" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <dt className="text-xs font-medium text-charcoal/60 sm:text-sm">{label}</dt>
+              <dd className="mt-0.5 font-semibold leading-snug text-primary">{value}</dd>
+            </div>
+          </div>
         ))}
-      </div>
-    </section>
+      </dl>
+    </DetailSection>
   );
 }
-
-

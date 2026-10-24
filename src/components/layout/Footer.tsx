@@ -1,125 +1,135 @@
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin, Phone, Mail, MapPin, Home, Building2, Star, Users } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { site } from "@/config/site";
+import { containerClass } from "@/components/ui/section";
+import { getCachedNeighborhoods } from "@/lib/queries/neighborhoods";
+import { cn } from "@/lib/utils";
 import FooterBackToTopClient from "./FooterBackToTopClient";
 
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+const QUICK_LINKS: FooterLink[] = [
+  { label: "Начало", href: "/" },
+  { label: "Всички имоти", href: "/properties/" },
+  { label: "Имоти за продажба", href: "/properties/?operation=sale" },
+  { label: "Имоти под наем", href: "/properties/?operation=rent" },
+  { label: "За нас", href: "/#about" },
+  { label: "Услуги", href: "/#services" },
+  { label: "Контакти", href: "/#contact" },
+];
+
+async function getNeighborhoodLinks(): Promise<FooterLink[]> {
+  try {
+    const neighborhoods = await getCachedNeighborhoods();
+    return neighborhoods.slice(0, 8).map((n) => ({ label: n.name_bg, href: `/${n.slug}/` }));
+  } catch {
+    return [];
+  }
+}
+
+function FooterLinkColumn({ title, links }: { title: string; links: FooterLink[] }) {
+  return (
+    <div>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-accent md:mb-4">{title}</h2>
+      <ul>
+        {links.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className="inline-flex min-h-11 items-center text-[15px] text-white/75 transition-colors hover:text-accent md:min-h-9"
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /**
- * Footer – Nova Nest Real Estate
- * - Gradient background with gold accents, white text
- * - Responsive grid: 1 col (mobile) → 2 cols (tablet) → 4 cols (desktop)
- * - Accessible markup with semantic <footer>, headings, and focus styles
+ * Footer – Nova Nest Real Estate (server component)
+ * - Brand + contact block, quick links and neighborhood links (internal links for SEO)
+ * - Mobile-first: two compact link columns side by side; contact rows are large tap targets
  */
-export default function Footer() {
-  const quickLinks: { label: string; href: `/${string}` | "/" | `#${string}` }[] = [
-    { label: "Начало", href: "/" },
-    { label: "За нас", href: "/#about" },
-    { label: "Услуги", href: "/#services" },
-    { label: "Обяви", href: "/properties" },
-    { label: "Контакти", href: "/#contact" },
-  ];
-
-  const services: { label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { label: "Продажба на имоти", icon: Home },
-    { label: "Купуване на имоти", icon: Building2 },
-    { label: "Наемане", icon: Star },
-    { label: "Оценка на имоти", icon: Users },
-  ];
-
+export default async function Footer() {
+  const neighborhoodLinks = await getNeighborhoodLinks();
   const currentYear = new Date().getFullYear();
 
+  const contactRows = [
+    { icon: Phone, label: site.contact.phoneDisplay, href: `tel:${site.contact.phone}` },
+    { icon: Mail, label: site.contact.email, href: `mailto:${site.contact.email}` },
+    { icon: MapPin, label: site.contact.address, href: undefined },
+  ];
+
   return (
-    <footer className="bg-gradient-to-br from-[#1a2642] to-[#2c3e50] text-white" aria-label="Долна част на сайта">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div>
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f0d78c] bg-clip-text text-transparent mb-2">
-                Nova Nest
-              </h3>
-              <p className="text-sm text-white/80 -mt-1">Real Estate</p>
-            </div>
-            <p className="text-white/90 mb-6 leading-relaxed">
-              Професионални услуги в областта на недвижимите имоти в Стара Загора.
-              Вашият доверен партньор за намиране на перфектното гнездо.
+    <footer className="bg-primary text-white" aria-labelledby="footer-heading">
+      <h2 id="footer-heading" className="sr-only">Информация за Nova Nest</h2>
+
+      {/* Gold hairline */}
+      <div aria-hidden="true" className="h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent" />
+
+      <div className={cn(containerClass, "pt-12 pb-[calc(2rem+env(safe-area-inset-bottom))] md:pt-16")}>
+        <div className="grid gap-10 md:grid-cols-2 md:gap-8 lg:grid-cols-12">
+          {/* Brand + contact */}
+          <div className="lg:col-span-5">
+            <p className="text-2xl font-bold tracking-tight">
+              Nova Nest <span className="text-accent">Real Estate</span>
             </p>
-          </div>
+            <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-white/75">
+              Професионални услуги в областта на недвижимите имоти в {site.city}. Вашият доверен партньор за
+              намиране на перфектното гнездо.
+            </p>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6 text-[#d4af37]">Бързи връзки</h4>
-            <ul className="space-y-3">
-              {quickLinks.map((link, index) => (
-                <li key={index}>
-                  <Link
-                    href={link.href}
-                    className="text-white/80 hover:text-[#d4af37] transition-colors duration-200 text-sm block py-1"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Services */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6 text-[#d4af37]">Услуги</h4>
-            <ul className="space-y-3">
-              {services.map((service, index) => {
-                const Icon = service.icon;
+            <ul className="mt-6 space-y-1">
+              {contactRows.map(({ icon: Icon, label, href }) => {
+                const content = (
+                  <>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10">
+                      <Icon className="h-[18px] w-[18px] text-accent" aria-hidden="true" />
+                    </span>
+                    <span className="text-[15px] text-white/85">{label}</span>
+                  </>
+                );
                 return (
-                  <li key={index} className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
-                    <span className="text-white/80 text-sm">{service.label}</span>
+                  <li key={label}>
+                    {href ? (
+                      <a
+                        href={href}
+                        className="-mx-2 flex min-h-12 items-center gap-3 rounded-xl px-2 transition-colors hover:bg-white/5 hover:text-accent"
+                      >
+                        {content}
+                      </a>
+                    ) : (
+                      <div className="-mx-2 flex min-h-12 items-center gap-3 px-2">{content}</div>
+                    )}
                   </li>
                 );
               })}
+              <li className="-mx-2 flex min-h-12 items-center gap-3 px-2">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10">
+                  <Clock className="h-[18px] w-[18px] text-accent" aria-hidden="true" />
+                </span>
+                <span className="text-[15px] text-white/85">
+                  Пон–Пет {site.contact.businessHours.weekdays} · Съб {site.contact.businessHours.saturday}
+                </span>
+              </li>
             </ul>
           </div>
 
-          {/* Contact Info */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6 text-[#d4af37]">Контакти</h4>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-[#d4af37] flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-white/90 text-sm">
-                    {site.contact.address}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
-                <div className="text-sm">
-                  <p className="text-white/80">{site.contact.phoneDisplay}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
-                <div className="text-sm">
-                  <p className="text-white/90">{site.contact.email}</p>
-                </div>
-              </div>
-            </div>
+          {/* Link columns: side by side even on mobile (short lists, big tap targets) */}
+          <div className="grid grid-cols-2 gap-6 lg:col-span-6 lg:col-start-7">
+            <FooterLinkColumn title="Бързи връзки" links={QUICK_LINKS} />
+            {neighborhoodLinks.length > 0 && <FooterLinkColumn title="Квартали" links={neighborhoodLinks} />}
           </div>
         </div>
 
-        <hr className="my-8 bg-white/20 border-0 h-px" />
-
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-white/80">
-            © {currentYear} Nova Nest Real Estate. Всички права запазени.
-          </div>
-          <div className="flex gap-6 text-sm">
-            <span className="text-white/80">
-              Политика за поверителност
-            </span>
-            <span className="text-white/80">
-              Условия за ползване
-            </span>
-          </div>
+        <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
+          <p>© {currentYear} Nova Nest Real Estate. Всички права запазени.</p>
+          <p>Недвижими имоти в {site.city}</p>
         </div>
       </div>
 

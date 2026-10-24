@@ -3,8 +3,6 @@
  * Centralized, typed tokens for consistent styling across the app.
  */
 
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 
 /**
  * Colors – includes brand palettes and semantic colors.
@@ -117,10 +115,9 @@ export type Shadows = typeof shadows;
 
 /**
  * Utility: Merge conditional class names in a Tailwind-aware manner.
+ * Re-exported from @/lib/utils so there is a single, token-aware implementation.
  */
-export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "@/lib/utils";
 
 /**
  * Get a semantic color value by name.

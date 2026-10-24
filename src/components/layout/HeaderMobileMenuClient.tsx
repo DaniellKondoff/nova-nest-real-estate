@@ -110,7 +110,7 @@ export default function HeaderMobileMenuClient({ navItems }: { navItems: NavLink
           aria-label={isMobileMenuOpen ? "Затвори меню" : "Отвори меню"}
           aria-expanded={isMobileMenuOpen}
           aria-controls="mobile-menu"
-          className="h-12 w-12 p-2 rounded-lg bg-transparent hover:bg-[#d4af37]/10 transition-all duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+          className="h-11 w-11 p-2 rounded-xl bg-transparent hover:bg-accent/10 transition-all duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
         >
           <span className="relative flex h-full w-full flex-col items-center justify-center gap-[5px]" aria-hidden="true">
             <span className={`block h-0.5 w-6 rounded-full bg-white transition-all duration-300 ease-in-out ${isMobileMenuOpen ? "translate-y-[7px] rotate-45" : "translate-y-0 rotate-0"}`} />
@@ -135,14 +135,14 @@ export default function HeaderMobileMenuClient({ navItems }: { navItems: NavLink
                 exit="exit"
                 variants={overlayVariants}
                 className={[
-                  "fixed inset-0 z-40 lg:hidden overflow-auto",
-                  "bg-[#1a2642]/[0.98] backdrop-blur-[8px]",
+                  "fixed inset-x-0 bottom-0 top-[var(--header-h)] z-40 lg:hidden overflow-y-auto overscroll-contain",
+                  "bg-primary/[0.98] backdrop-blur-md",
                   "origin-top will-change-transform will-change-opacity transform-gpu",
                 ].join(" ")}
               >
-                <div className="mx-auto h-full max-w-[400px] px-6 pt-8 flex flex-col justify-between">
+                <div className="mx-auto flex min-h-full max-w-md flex-col justify-between px-4 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                   {/* Navigation links */}
-                  <nav aria-label="Mobile navigation" className="mt-20">
+                  <nav aria-label="Мобилна навигация">
                     <motion.ul
                       variants={linksContainerVariants}
                       initial="hidden"
@@ -152,9 +152,9 @@ export default function HeaderMobileMenuClient({ navItems }: { navItems: NavLink
                       {navItems.map((item) => {
                         const active = isActive(item.href);
                         const baseLink =
-                          "block w-full text-2xl font-semibold rounded-xl px-5 py-4 text-white border-l-4 border-transparent transition-all duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]";
-                        const hoverLink = "hover:bg-[#d4af37]/10 hover:translate-x-2 hover:scale-[1.02]";
-                        const activeLink = active ? "bg-[#d4af37]/15 text-[#d4af37] border-[#d4af37]" : "";
+                          "flex min-h-14 w-full items-center text-xl font-semibold rounded-xl px-5 py-3 text-white border-l-4 border-transparent transition-all duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary";
+                        const hoverLink = "hover:bg-accent/10 active:bg-accent/15";
+                        const activeLink = active ? "bg-accent/15 text-accent border-accent" : "";
                         return (
                           <motion.li
                             key={item.href}
@@ -177,7 +177,7 @@ export default function HeaderMobileMenuClient({ navItems }: { navItems: NavLink
 
                   {/* Divider */}
                   <motion.hr
-                    className="my-8 w-full border-t border-[#d4af37]/20 origin-center"
+                    className="my-8 w-full border-t border-accent/20 origin-center"
                     initial="hidden"
                     animate="visible"
                     variants={dividerVariants}
@@ -186,25 +186,25 @@ export default function HeaderMobileMenuClient({ navItems }: { navItems: NavLink
 
                   {/* Contact info & CTA */}
                   <motion.div
-                    className="pb-8 will-change-transform will-change-opacity transform-gpu"
+                    className="will-change-transform will-change-opacity transform-gpu"
                     initial="hidden"
                     animate="visible"
                     variants={contactVariants}
                   >
                     <a
                       href={`tel:${site.contact.phone}`}
-                      className="mb-4 inline-flex items-center gap-3 text-white text-lg font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+                      className="mb-4 flex min-h-12 items-center gap-3 rounded-xl px-1 text-white text-lg font-medium outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
                       aria-label="Позвънете на нашия телефон"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Phone className="w-6 h-6 text-[#d4af37]" aria-hidden="true" />
+                      <Phone className="w-6 h-6 text-accent" aria-hidden="true" />
                       <span>{site.contact.phoneDisplay}</span>
                     </a>
                     <div>
                       <Link
                         href="/#contact"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#c49b33] py-4 text-lg font-semibold text-[#1a2642] shadow-lg transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2642]"
+                        className="inline-flex w-full items-center justify-center rounded-xl bg-accent py-4 text-lg font-semibold text-primary shadow-lg transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
                         aria-label="Свържете се с нас"
                       >
                         Свържете се
