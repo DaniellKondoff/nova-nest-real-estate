@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { generateNeighborhoodStructuredData } from "@/lib/seo/neighborhood-metadata";
-import { getNeighborhoodBreadcrumbs } from "@/lib/seo/neighborhood-breadcrumbs";
+import { getNeighborhoodBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { generateNeighborhoodMetadata } from "@/lib/seo/neighborhood-metadata";
 import {
   getCachedNeighborhoods,
@@ -18,9 +18,15 @@ import { Button } from "@/components/ui/button";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { buildPropertiesHref } from "@/lib/search/params";
 
-const PAGE_LIMIT = 12;
 import Link from "next/link";
 import { site } from "@/config/site";
+import { getLandingData } from "@/lib/queries/landing-data";
+import { filterListings, neighborhoodCategoryPath } from "@/lib/seo/landing";
+
+const PAGE_LIMIT = 12;
+
+// ISR: listing counts change only on admin writes, which also purge this page
+export const revalidate = 3600;
 
 interface NeighborhoodPageProps {
   params: Promise<{
@@ -56,10 +62,7 @@ export async function generateMetadata({
     const neighborhood = await getNeighborhoodBySlug(resolvedParams["neighborhood-slug"]);
     
     if (!neighborhood) {
-      return {
-        title: "Квартал не е намерен | Nova Nest",
-        description: "Търсеният квартал не е намерен.",
-      };
+      return { title: "Кварталът не е намерен", robots: { index: false, follow: true } };
     }
 
     const propertyCount = await getPropertyCountByNeighborhood(neighborhood.id);
@@ -67,10 +70,7 @@ export async function generateMetadata({
     return generateNeighborhoodMetadata(neighborhood, propertyCount);
   } catch (error) {
     console.error("Error generating metadata for neighborhood:", error);
-    return {
-      title: "Грешка | Nova Nest",
-      description: "Възникна грешка при зареждането на страницата.",
-    };
+    return { title: "Имоти в Стара Загора", robots: { index: false, follow: true } };
   }
 }
 
@@ -84,13 +84,17 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
   // Only a missing neighborhood is a 404 – other errors surface to the error boundary
   if (!neighborhood) notFound();
 
-  const [properties, propertyCount] = await Promise.all([
+  const [properties, propertyCount, landing] = await Promise.all([
     getCachedPropertiesByNeighborhood(neighborhood.id, PAGE_LIMIT),
     getPropertyCountByNeighborhood(neighborhood.id),
+    getLandingData(),
   ]);
+  const categoryLinks = landing.categories
+    .map((c) => ({ c, count: filterListings(landing.listings, { neighborhoodId: neighborhood.id, categoryId: c.id }).length }))
+    .filter(({ count }) => count > 0);
 
   const breadcrumbs = getNeighborhoodBreadcrumbs(neighborhood.name_bg, neighborhood.slug);
-  const structuredData = generateNeighborhoodStructuredData(neighborhood, propertyCount);
+  const structuredData = generateNeighborhoodStructuredData(neighborhood);
   const allHref = buildPropertiesHref({ neighborhoodId: neighborhood.id });
 
   return (
@@ -123,6 +127,24 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
             </Button>
           )}
         </div>
+
+        {categoryLinks.length > 0 && (
+          <nav aria-label={`Имоти в ${neighborhood.name_bg} по вид`} className="-mt-2 mb-6">
+            <ul className="flex flex-wrap gap-2">
+              {categoryLinks.map(({ c, count }) => (
+                <li key={c.id}>
+                  <Link
+                    href={neighborhoodCategoryPath(neighborhood, c)}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-white px-4 text-sm font-medium text-primary transition-colors hover:border-accent hover:bg-accent/5"
+                  >
+                    {c.plural} в {neighborhood.name_bg}
+                    <span className="rounded-full bg-gray-light px-2 py-0.5 text-xs font-semibold text-charcoal/70">{count}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
 
         <PropertyGrid
           properties={properties}

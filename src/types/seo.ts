@@ -35,35 +35,12 @@ export interface SEOConfig {
 }
 
 export interface PageMetadata {
+  /** Page title without the brand – the root layout template appends it */
   title: string;
   description: string;
   path: string;
-  keywords?: string[];
   image?: string;
   noIndex?: boolean;
-}
-
-export interface OpenGraphMetadata {
-  title: string;
-  description: string;
-  url: string;
-  siteName: string;
-  locale: string;
-  type: 'website' | 'article';
-  images: Array<{
-    url: string;
-    width: number;
-    height: number;
-    alt: string;
-  }>;
-}
-
-export interface TwitterCardMetadata {
-  card: 'summary' | 'summary_large_image' | 'app' | 'player';
-  site?: string;
-  creator?: string;
-  title: string;
-  description: string;
-  image?: string;
-  imageAlt?: string;
+  /** Use the title verbatim (it already carries its own brand suffix) */
+  absoluteTitle?: boolean;
 }

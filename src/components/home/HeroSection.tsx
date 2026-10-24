@@ -53,13 +53,15 @@ export default async function HeroSection({ id }: HeroSectionProps): Promise<Rea
       <div className={cn(containerClass, "grid items-center gap-8 py-8 sm:py-14 lg:min-h-[calc(100svh-var(--header-h))] lg:grid-cols-[1.1fr_1fr] lg:gap-16 lg:py-20")}>
         {/* Copy */}
         <div className="text-center animate-hero-fade-in lg:text-left">
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 backdrop-blur sm:text-sm">
-            <MapPin className="h-4 w-4 text-accent" aria-hidden="true" />
-            Агенция за недвижими имоти · {site.city}
-          </p>
-
+          {/* The keyword line is part of the H1 so the heading says what the page is about */}
           <h1 id="hero-title" className="text-display font-bold tracking-tight text-white text-balance">
-            Открийте своето <span className="text-accent">ново гнездо</span> в Стара Загора
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium tracking-normal text-white/85 backdrop-blur sm:text-sm">
+              <MapPin className="h-4 w-4 text-accent" aria-hidden="true" />
+              Агенция за недвижими имоти · {site.city}
+            </span>
+            <span className="block">
+              Открийте своето <span className="text-accent">ново гнездо</span> в Стара Загора
+            </span>
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg lg:mx-0 lg:text-xl">

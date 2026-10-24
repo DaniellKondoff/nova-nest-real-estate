@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
 import { deletePropertyImagesByUrls } from "@/lib/storage";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -97,6 +98,8 @@ export async function POST(request: NextRequest) {
         failedIds.push(propertyId);
       }
     }
+
+    if (deletedCount > 0) revalidatePublicPages();
 
     // Return results
     if (failedIds.length === 0) {

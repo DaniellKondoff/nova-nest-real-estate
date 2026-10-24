@@ -1,27 +1,17 @@
 import { generateMetadata as buildMetadata } from "@/lib/seo/metadata";
-import { FAQSchema } from "@/components/seo/StructuredData";
-import { SEO_CONFIG } from "@/lib/seo/config";
+import { ORGANIZATION_ID } from "@/lib/seo/config";
 import HeroSection from "@/components/home/HeroSection";
 import AboutSection from "@/components/home/AboutSection";
 import ServicesSection, { SERVICES_DATA } from "@/components/home/ServicesSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
-import WhyChooseUsSection, { advantages } from "@/components/home/WhyChooseUsSection";
+import WhyChooseUsSection from "@/components/home/WhyChooseUsSection";
 import ContactCTASection from "@/components/home/ContactCTASection";
 
 export const metadata = buildMetadata({
-  title: "Имоти в Стара Загора",
+  title: "Недвижими имоти в Стара Загора – продажба и наем",
   description:
-    "Открийте най-добрите имоти в Стара Загора — апартаменти, къщи, офиси за продажба и под наем. Персонализирано обслужване от Nova Nest Real Estate.",
+    "Агенция за недвижими имоти в Стара Загора. Апартаменти, къщи, офиси и парцели за продажба и под наем – актуални обяви, оценка и пълно съдействие до сделката.",
   path: "/",
-  keywords: [
-    "имоти Стара Загора",
-    "апартаменти за продажба Стара Загора",
-    "къщи под наем Стара Загора",
-    "агенция недвижими имоти Стара Загора",
-    "Nova Nest Real Estate",
-    "офиси Стара Загора",
-    "недвижими имоти Стара Загора",
-  ],
 });
 
 const offerCatalogSchema = {
@@ -29,7 +19,7 @@ const offerCatalogSchema = {
   "@type": "OfferCatalog",
   name: "Услуги за недвижими имоти - Nova Nest Real Estate",
   provider: {
-    "@id": `${SEO_CONFIG.siteUrl}#organization`,
+    "@id": ORGANIZATION_ID,
   },
   itemListElement: SERVICES_DATA.map((service, index) => ({
     "@type": "Offer",
@@ -39,16 +29,11 @@ const offerCatalogSchema = {
       name: service.title,
       description: service.description,
       provider: {
-        "@id": `${SEO_CONFIG.siteUrl}#organization`,
+        "@id": ORGANIZATION_ID,
       },
     },
   })),
 };
-
-const faqItems = advantages.map((a) => ({
-  question: `Защо да изберете Nova Nest — ${a.title}?`,
-  answer: a.description,
-}));
 
 export default function Home(): React.ReactElement {
   return (
@@ -57,7 +42,6 @@ export default function Home(): React.ReactElement {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(offerCatalogSchema, null, 0) }}
       />
-      <FAQSchema faqs={faqItems} />
       <HeroSection id="home" />
       <AboutSection />
       <ServicesSection id="services" />

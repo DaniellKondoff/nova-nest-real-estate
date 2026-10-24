@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { site } from "@/config/site";
 import { containerClass } from "@/components/ui/section";
-import { getCachedNeighborhoods } from "@/lib/queries/neighborhoods";
+import { getLandingData } from "@/lib/queries/landing-data";
+import { countByNeighborhood } from "@/lib/queries/listing-index";
+import { OPERATION_LANDINGS, filterListings, neighborhoodPath, operationCategoryPath, operationPath } from "@/lib/seo/landing";
 import { cn } from "@/lib/utils";
 import FooterBackToTopClient from "./FooterBackToTopClient";
 
@@ -14,19 +16,37 @@ interface FooterLink {
 const QUICK_LINKS: FooterLink[] = [
   { label: "Начало", href: "/" },
   { label: "Всички имоти", href: "/properties/" },
-  { label: "Имоти за продажба", href: "/properties/?operation=sale" },
-  { label: "Имоти под наем", href: "/properties/?operation=rent" },
   { label: "За нас", href: "/#about" },
   { label: "Услуги", href: "/#services" },
   { label: "Контакти", href: "/#contact" },
 ];
 
-async function getNeighborhoodLinks(): Promise<FooterLink[]> {
+/**
+ * Site-wide internal links to the keyword landing pages and the busiest neighborhoods.
+ * Only pages that currently have listings are linked (empty ones are 404/noindex).
+ */
+async function getSeoLinks(): Promise<{ searches: FooterLink[]; neighborhoods: FooterLink[] }> {
   try {
-    const neighborhoods = await getCachedNeighborhoods();
-    return neighborhoods.slice(0, 8).map((n) => ({ label: n.name_bg, href: `/${n.slug}/` }));
+    const { categories, neighborhoods, listings } = await getLandingData();
+    const searches: FooterLink[] = [];
+    for (const operation of ["sale", "rent"] as const) {
+      if (filterListings(listings, { operationType: operation }).length === 0) continue;
+      searches.push({ label: `${OPERATION_LANDINGS[operation].title}`, href: operationPath(operation) });
+      for (const c of categories) {
+        if (filterListings(listings, { operationType: operation, categoryId: c.id }).length > 0) {
+          searches.push({ label: `${c.plural} ${OPERATION_LANDINGS[operation].label}`, href: operationCategoryPath(operation, c) });
+        }
+      }
+    }
+    const counts = countByNeighborhood(listings);
+    const topNeighborhoods = neighborhoods
+      .filter((n) => (counts.get(n.id) ?? 0) > 0)
+      .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+      .slice(0, 8)
+      .map((n) => ({ label: `Имоти в ${n.name_bg}`, href: neighborhoodPath(n) }));
+    return { searches: searches.slice(0, 8), neighborhoods: topNeighborhoods };
   } catch {
-    return [];
+    return { searches: [], neighborhoods: [] };
   }
 }
 
@@ -56,7 +76,7 @@ function FooterLinkColumn({ title, links }: { title: string; links: FooterLink[]
  * - Mobile-first: two compact link columns side by side; contact rows are large tap targets
  */
 export default async function Footer() {
-  const neighborhoodLinks = await getNeighborhoodLinks();
+  const { searches, neighborhoods: neighborhoodLinks } = await getSeoLinks();
   const currentYear = new Date().getFullYear();
 
   const contactRows = [
@@ -121,8 +141,9 @@ export default async function Footer() {
           </div>
 
           {/* Link columns: side by side even on mobile (short lists, big tap targets) */}
-          <div className="grid grid-cols-2 gap-6 lg:col-span-6 lg:col-start-7">
+          <div className="grid grid-cols-2 gap-6 lg:col-span-7 lg:col-start-6 lg:grid-cols-3">
             <FooterLinkColumn title="Бързи връзки" links={QUICK_LINKS} />
+            {searches.length > 0 && <FooterLinkColumn title="Популярни търсения" links={searches} />}
             {neighborhoodLinks.length > 0 && <FooterLinkColumn title="Квартали" links={neighborhoodLinks} />}
           </div>
         </div>

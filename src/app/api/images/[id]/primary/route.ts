@@ -4,6 +4,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import { ok, fail, notFound, unauthorized } from "@/lib/api";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 /**
  * Promote an image to primary for its property
@@ -48,6 +49,8 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
       .eq("id", imageId)
       .maybeSingle();
     if (refetchErr || !updated) throw new DatabaseError("Неуспешно извличане на обновено изображение.");
+
+    revalidatePublicPages();
 
     const body: SuccessResponse<typeof updated> = { data: updated as any };
     return ok(body.data);

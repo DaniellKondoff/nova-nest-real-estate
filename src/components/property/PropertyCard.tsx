@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Building2, BedDouble, Layers, MapPin, Ruler } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Tables } from "@/types/database.generated";
-import { getPropertyUrlSlug } from "@/lib/seo/property-slug";
+import { propertyPath } from "@/lib/seo/property-slug";
 import { cn } from "@/lib/utils";
 import { formatPrice, isNewProperty } from "./utils";
 
@@ -34,7 +34,7 @@ export function getPrimaryImage(property: PropertyWithDetails): { url: string | 
 }
 
 export function getPropertyHref(p: Pick<Tables<"properties">, "id" | "slug">): string {
-  return p.slug ? `/properties/${getPropertyUrlSlug(p.id, p.slug)}/` : `/properties/${String(p.id)}/`;
+  return propertyPath(p.id, p.slug);
 }
 
 function pluralRooms(n: number): string {

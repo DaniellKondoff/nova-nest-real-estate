@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePublicPages } from "@/lib/revalidate";
 import { getServerClient } from "@/lib/supabase/server";
 import { AdminPropertySchema } from "@/lib/validations";
 import { syncPropertyEmbedding } from "@/lib/embeddings/sync";
@@ -118,8 +118,7 @@ export async function PUT(
       }
     }
 
-    // Purge the ISR cache for this property page
-    revalidatePath(`/properties/${propertyId}`);
+    revalidatePublicPages();
 
     try {
       await syncPropertyEmbedding(propertyId);
@@ -235,8 +234,7 @@ export async function DELETE(
       );
     }
 
-    // Purge the ISR cache for this property page
-    revalidatePath(`/properties/${propertyId}`);
+    revalidatePublicPages();
 
     return NextResponse.json(
       { message: "Имотът е изтрит успешно" },

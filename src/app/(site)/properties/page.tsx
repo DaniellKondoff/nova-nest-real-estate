@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { generateMetadata as buildMetadata } from "@/lib/seo/metadata";
-import { SEO_CONFIG } from "@/lib/seo/config";
+import { getPropertiesBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
+import { filterListings, landingPathFor } from "@/lib/seo/landing";
+import { getLandingData } from "@/lib/queries/landing-data";
 import { searchPropertyListings } from "@/lib/queries/property-listings";
 import { getCachedPropertyCategories } from "@/lib/queries/categories";
 import { getCachedNeighborhoods } from "@/lib/queries/neighborhoods";
@@ -61,26 +63,24 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
   const { neighborhoods } = await getFilterOptions();
   const title = buildTitle(filters, neighborhoods) + (page > 1 ? ` – страница ${page}` : "");
 
-  const metadata = buildMetadata({
-    title,
-    description:
-      "Разгледайте актуални оферти за продажба и наем на имоти в Стара Загора. Апартаменти, къщи, офиси и търговски площи с професионално обслужване.",
-    path: "/properties/",
-    keywords: ["имоти Стара Загора", "продажба имоти Стара Загора", "наем имоти Стара Загора", "апартаменти за продажба", "къщи под наем"],
-  });
-
   const indexable = isIndexable(filters);
   const canonicalFilters: PropertySearchFilters = indexable
     ? { operationType: filters.operationType, neighborhoodId: filters.neighborhoodId, categoryId: filters.categoryId }
     : {};
-  const canonical = `${SEO_CONFIG.siteUrl}${buildPropertiesHref(canonicalFilters, indexable ? page : 1)}`;
+  // Filter combinations that have a (non-empty) keyword landing page point search engines there instead
+  const landing = await getLandingData();
+  const landingPath =
+    indexable && page === 1 && filterListings(landing.listings, canonicalFilters).length > 0
+      ? landingPathFor(canonicalFilters, landing.categories, landing.neighborhoods)
+      : null;
 
-  return {
-    ...metadata,
-    alternates: { ...metadata.alternates, canonical },
-    // Deep filter combinations: keep crawling links but don't index the page
-    robots: indexable ? metadata.robots : { index: false, follow: true },
-  };
+  return buildMetadata({
+    title,
+    description: `${buildTitle(filters, neighborhoods)} – актуални обяви за апартаменти, къщи, офиси и парцели със снимки, цени и директен контакт с консултант на Nova Nest.`,
+    // Canonical drops ranges/sort; deep filter combinations keep crawling links but aren't indexed
+    path: landingPath ?? buildPropertiesHref(canonicalFilters, indexable ? page : 1),
+    noIndex: !indexable,
+  });
 }
 
 export default async function PropertiesPage({ searchParams }: { searchParams: SearchParams }) {
@@ -103,10 +103,7 @@ export default async function PropertiesPage({ searchParams }: { searchParams: S
 
   const activeCount = countActiveFilters(filters);
   const title = buildTitle(filters, options.neighborhoods);
-  const breadcrumbs = [
-    { name: "Начало", url: `${SEO_CONFIG.siteUrl}/`, position: 1 },
-    { name: "Имоти", url: `${SEO_CONFIG.siteUrl}/properties/`, position: 2 },
-  ];
+  const breadcrumbs = getPropertiesBreadcrumbs();
   const resultLabel =
     result.total === 1 ? "1 имот" : `${new Intl.NumberFormat("bg-BG").format(result.total)} имота`;
 

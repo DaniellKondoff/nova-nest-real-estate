@@ -5,6 +5,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
 import { ok, fail, notFound, unauthorized } from "@/lib/api";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 /**
  * Delete a property image by ID
@@ -67,6 +68,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
+    revalidatePublicPages();
     return ok(true);
   } catch (err) {
     const status = err instanceof AuthError ? 401 : err instanceof ValidationError ? 400 : 500;

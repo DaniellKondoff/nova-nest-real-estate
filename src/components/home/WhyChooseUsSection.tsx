@@ -8,7 +8,7 @@ interface Advantage {
   description: string;
 }
 
-export const advantages: Advantage[] = [
+const advantages: Advantage[] = [
   {
     icon: MapPin,
     title: "Местна експертиза",

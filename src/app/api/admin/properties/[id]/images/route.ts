@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 interface ImageRecord {
   property_id: number;
@@ -100,6 +101,7 @@ export async function POST(
       );
     }
 
+    revalidatePublicPages();
     return NextResponse.json({ images: insertedImages }, { status: 201 });
   } catch (error) {
     console.error("Error saving images:", error);
@@ -169,6 +171,7 @@ export async function DELETE(
       );
     }
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error deleting images:", error);

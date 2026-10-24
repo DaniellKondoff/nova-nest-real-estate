@@ -147,21 +147,27 @@ export async function GET(
 
 ### 5. SEO Implementation
 
-**Structured Data** (`src/components/seo/`):
-- `OrganizationSchema` - Schema.org Organization with aggregate ratings
-- `WebsiteSchema` - Schema.org WebSite
-- `BreadcrumbSchema` - Breadcrumb navigation
-- `ProductSchema` - Property listings (Product schema)
-- `PropertyReviewSchema` - Property-specific reviews
+**Rules (keep these or rankings break)**:
+- Every absolute URL (canonical, og:url, breadcrumbs, JSON-LD) goes through `absoluteUrl()` in `src/lib/seo/config.ts` (canonical host + trailing slash). Property URLs: `propertyPath(id, slug)` from `property-slug.ts`.
+- Page titles never contain the brand – the root template appends `| Nova Nest`. Use `generateMetadata()` from `lib/seo/metadata.ts`.
+- Never attach testimonials/reviews to listings (Google review-snippet policy). Listing schema = `RealEstateListing` (+ `Product` only when priced), availability from `status`.
+- Pages without listings and without real text are thin content: 404 (landing combos) or `noindex,follow` + left out of the sitemap (neighborhoods, see `isNeighborhoodIndexable`).
+- Admin listing mutations must call `revalidatePublicPages()` (`src/lib/revalidate.ts`) – public pages are ISR.
+- NAP (name/address/phone/email) comes from `src/config/site.ts`; schema reuses it – keep it identical to the Google Business Profile.
 
-**Metadata Generation** (`src/lib/seo/`):
-- `metadata.ts` - Next.js Metadata object generation
-- `generate-schema.ts` - JSON-LD schema generation
-- `config.ts` - SEO configuration constants
+**Keyword landing pages** (`src/lib/seo/landing.ts`, ISR):
+- `/imoti-za-prodazhba/[category]/`, `/imoti-pod-naem/[category]/` (`(site)/_landing/operation-landing.tsx`), `/{neighborhood}/{category}/`
+- Category URL slugs are plural (`apartamenti`, `kashti`…) mapped from DB slugs in `CATEGORY_LANDING_NAMES`.
+- `/properties/` canonicalizes to the matching landing page (`landingPathFor`). Counts/stats come from `getCachedListingIndex()` (`lib/queries/listing-index.ts`) via `getLandingData()`.
+
+**Structured Data** (`src/components/seo/`): `OrganizationSchema`/`WebsiteSchema` (root layout), `BreadcrumbSchema` (one per page), `PropertySchema`, `ItemListSchema` (landing pages), `FAQSchema` (only for FAQs visible on the page).
+
+**Metadata/Schema generation** (`src/lib/seo/`): `metadata.ts`, `property-metadata.ts`, `neighborhood-metadata.ts`, `property-schema.ts`, `generate-schema.ts`, `breadcrumb-helpers.ts`, `og-image.tsx` (next/og with bundled Inter in `src/assets/fonts` for Cyrillic).
 
 **Dynamic Routes**:
-- `src/app/sitemap.ts` - Dynamic XML sitemap generation
-- `src/app/robots.ts` - Dynamic robots.txt
+- `src/app/sitemap.ts` - revalidated hourly; only indexable 200 URLs
+- `src/app/robots.ts` - never disallow `/_next/`
+- `src/app/opengraph-image.tsx`, `(site)/properties/[id]/opengraph-image.tsx` - PNG social cards
 
 ### 6. Bulgarian Localization
 

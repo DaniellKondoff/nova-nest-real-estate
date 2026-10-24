@@ -114,11 +114,18 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // Old to new SEO-friendly structures
-      // Removed redirects to allow `/imoti` to resolve to its page
-      { source: "/apartamenti/centrum", destination: "/apartamenti-centrum-stara-zagora", permanent: true },
-      { source: "/apartamenti/centar", destination: "/apartamenti-centrum-stara-zagora", permanent: true },
-      { source: "/kusti/samara", destination: "/kushi-samara-stara-zagora", permanent: true },
+      // Legacy URLs (old routes and the unused seo_pages slugs, once listed in the sitemap) → keyword landing pages
+      { source: "/landing-home", destination: "/", permanent: true },
+      { source: "/imoti-stara-zagora", destination: "/properties/", permanent: true },
+      { source: "/apartamenti-centrum-stara-zagora", destination: "/centar/apartamenti/", permanent: true },
+      { source: "/apartamenti/centrum", destination: "/centar/apartamenti/", permanent: true },
+      { source: "/apartamenti/centar", destination: "/centar/apartamenti/", permanent: true },
+      { source: "/kushi-samara-stara-zagora", destination: "/samara-1/", permanent: true },
+      { source: "/kusti/samara", destination: "/samara-1/", permanent: true },
+      // Pages that never existed but were listed in the old sitemap
+      { source: "/about", destination: "/#about", permanent: true },
+      { source: "/services", destination: "/#services", permanent: true },
+      { source: "/contact", destination: "/#contact", permanent: true },
       // Normalize trailing slash
       { source: "/en", destination: "/", permanent: false },
     ];

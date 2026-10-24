@@ -131,3 +131,16 @@ export function extractSlugFromUrlSlug(urlSlug: string): string {
   return match ? match[1] : '';
 }
 
+
+/**
+ * Site-relative canonical path of a property page (with trailing slash)
+ *
+ * @example
+ * ```typescript
+ * propertyPath(11, 'apartamenti-3-stai-centur') // '/properties/11-apartamenti-3-stai-centur/'
+ * propertyPath(11, null)                        // '/properties/11/'
+ * ```
+ */
+export function propertyPath(id: number, slug: string | null | undefined): string {
+  return `/properties/${slug ? getPropertyUrlSlug(id, slug) : String(id)}/`;
+}

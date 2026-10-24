@@ -14,6 +14,11 @@ type NeighborhoodsRow = Tables<'neighborhoods'>;
 export interface Neighborhood extends NeighborhoodsRow {
 }
 
+/** Admin-entered names sometimes carry stray whitespace ("Село Землен ") that leaks into titles */
+function normalizeNeighborhood<T extends { name_bg: string }>(row: T): T {
+  return { ...row, name_bg: row.name_bg.trim() };
+}
+
 /**
  * Get all neighborhoods from the database
  * @returns Promise<Neighborhood[]> - Array of neighborhoods ordered by name_bg
@@ -44,7 +49,7 @@ export async function getAllNeighborhoods(): Promise<Neighborhood[]> {
     throw error;
   }
 
-  return data || [];
+  return (data || []).map(normalizeNeighborhood);
 }
 
 /**
@@ -83,7 +88,7 @@ export async function getNeighborhoodBySlug(slug: string): Promise<Neighborhood 
     throw error;
   }
 
-  return data;
+  return data ? normalizeNeighborhood(data) : null;
 }
 
 /**
@@ -172,7 +177,7 @@ export const getCachedNeighborhoods = unstable_cache(
       `)
       .order("name_bg", { ascending: true });
     if (error) throw error;
-    return data || [];
+    return (data || []).map(normalizeNeighborhood);
   },
   ["all-neighborhoods"],
   { tags: ["neighborhoods"] }
