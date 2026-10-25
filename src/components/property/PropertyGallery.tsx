@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { Camera, Home, Images } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, Home, Images } from "lucide-react";
 import type { PropertyImage as PropertyImageType } from "@/types/property";
 import { cn } from "@/lib/utils";
 import PropertyGalleryLightbox from "./PropertyGalleryLightbox";
@@ -28,7 +28,8 @@ function bentoClasses(total: number): { grid: string; item: (idx: number) => str
 
 /**
  * Property gallery – server component.
- * - Mobile/tablet: full-bleed, swipeable CSS scroll-snap strip (works without JS), per-slide counter
+ * - Mobile/tablet: full-bleed, swipeable CSS scroll-snap strip (works without JS), one photo per flick,
+ *   per-slide counter; prev/next arrows only for mouse/trackpad
  * - lg+: bento grid (1 large + 4 small) with a "+N снимки" tile
  * - Tapping any image opens the lightbox (client island via event delegation)
  */
@@ -69,7 +70,7 @@ export default function PropertyGallery({ images, propertyTitle, priority = fals
               <li
                 key={img.id}
                 className={cn(
-                  "relative aspect-[4/3] w-full shrink-0 snap-center sm:w-[85%] md:w-[70%] lg:aspect-auto lg:w-auto",
+                  "relative aspect-[4/3] w-full shrink-0 snap-center snap-always sm:w-[85%] md:w-[70%] lg:aspect-auto lg:w-auto",
                   total === 1 && "sm:w-full md:w-full lg:aspect-[21/9]",
                   idx >= BENTO_COUNT && "lg:hidden",
                   bento.item(idx)
@@ -110,6 +111,27 @@ export default function PropertyGallery({ images, propertyTitle, priority = fals
             );
           })}
         </ul>
+
+        {/* Strip arrows for mouse/trackpad below lg (touch users swipe) */}
+        {total > 1 &&
+          (["prev", "next"] as const).map((dir) => (
+            <button
+              key={dir}
+              type="button"
+              data-gallery-scroll={dir}
+              aria-label={dir === "prev" ? "Предишна снимка" : "Следваща снимка"}
+              className={cn(
+                "absolute top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-primary shadow-lift transition-colors hover:bg-white pointer-fine:max-lg:flex",
+                dir === "prev" ? "left-3" : "right-3"
+              )}
+            >
+              {dir === "prev" ? (
+                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <ChevronRight className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          ))}
 
         {total > 1 && (
           <button
