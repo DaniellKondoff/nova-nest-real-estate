@@ -2,9 +2,8 @@ import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { site } from "@/config/site";
 import { containerClass } from "@/components/ui/section";
-import { getLandingData } from "@/lib/queries/landing-data";
-import { countByNeighborhood } from "@/lib/queries/listing-index";
-import { OPERATION_LANDINGS, filterListings, neighborhoodPath, operationCategoryPath, operationPath } from "@/lib/seo/landing";
+import { OPERATION_LANDINGS } from "@/lib/seo/landing";
+import { getSiteNavLinks } from "@/lib/seo/nav-links";
 import { cn } from "@/lib/utils";
 import FooterBackToTopClient from "./FooterBackToTopClient";
 
@@ -26,28 +25,15 @@ const QUICK_LINKS: FooterLink[] = [
  * Only pages that currently have listings are linked (empty ones are 404/noindex).
  */
 async function getSeoLinks(): Promise<{ searches: FooterLink[]; neighborhoods: FooterLink[] }> {
-  try {
-    const { categories, neighborhoods, listings } = await getLandingData();
-    const searches: FooterLink[] = [];
-    for (const operation of ["sale", "rent"] as const) {
-      if (filterListings(listings, { operationType: operation }).length === 0) continue;
-      searches.push({ label: `${OPERATION_LANDINGS[operation].title}`, href: operationPath(operation) });
-      for (const c of categories) {
-        if (filterListings(listings, { operationType: operation, categoryId: c.id }).length > 0) {
-          searches.push({ label: `${c.plural} ${OPERATION_LANDINGS[operation].label}`, href: operationCategoryPath(operation, c) });
-        }
-      }
-    }
-    const counts = countByNeighborhood(listings);
-    const topNeighborhoods = neighborhoods
-      .filter((n) => (counts.get(n.id) ?? 0) > 0)
-      .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-      .slice(0, 8)
-      .map((n) => ({ label: `Имоти в ${n.name_bg}`, href: neighborhoodPath(n) }));
-    return { searches: searches.slice(0, 8), neighborhoods: topNeighborhoods };
-  } catch {
-    return { searches: [], neighborhoods: [] };
-  }
+  const { operations, neighborhoods } = await getSiteNavLinks();
+  const searches = operations.flatMap((op) => [
+    { label: op.label, href: op.href },
+    ...op.categories.map((c) => ({ label: `${c.label} ${OPERATION_LANDINGS[op.operation].label}`, href: c.href })),
+  ]);
+  return {
+    searches: searches.slice(0, 8),
+    neighborhoods: neighborhoods.map((n) => ({ label: `Имоти в ${n.label}`, href: n.href })),
+  };
 }
 
 function FooterLinkColumn({ title, links }: { title: string; links: FooterLink[] }) {

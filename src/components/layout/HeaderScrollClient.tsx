@@ -1,29 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef } from "react";
 
 /**
- * Adds a scroll-based box-shadow to the containing <header> element.
- * Renders an absolutely-positioned overlay so the RSC <header> stays server-rendered.
+ * Toggles `data-scrolled` on the containing <header> so the RSC header can style
+ * its scrolled state with `data-scrolled:` variants (solid background + shadow).
  */
 export default function HeaderScrollClient() {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    const header = ref.current?.closest("header");
+    if (!header) return;
+    const handleScroll = () => header.toggleAttribute("data-scrolled", window.scrollY > 10);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  return (
-    <div
-      aria-hidden="true"
-      className={cn(
-        "pointer-events-none absolute inset-0 transition-shadow duration-300",
-        isScrolled ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]" : "shadow-none"
-      )}
-    />
-  );
+  return <span ref={ref} hidden />;
 }
