@@ -1,94 +1,64 @@
 import React from "react";
 import type { PropertyWithDetails } from "@/types/property";
-import { Square, BedDouble, Bed, Bath, Building2, Calendar, MapPin, Layers, Building, Eye, Tag, Navigation } from "lucide-react";
-import { formatArea, formatFloor, formatYear } from "./utils";
-
-function formatViewCount(count: number | null): string {
-  if (!count || count === 0) return "0 прегледа";
-  if (count === 1) return "1 преглед";
-  if (count < 1000) return `${count} прегледа`;
-  if (count < 1000000) return `${(count / 1000).toFixed(1)}K прегледа`;
-  return `${(count / 1000000).toFixed(1)}M прегледа`;
-}
+import { formatPrice } from "./utils";
+import DetailSection from "./DetailSection";
 
 export interface PropertyDetailsProps {
   property: PropertyWithDetails;
 }
 
-interface DetailItemProps {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
+/** Reduce "град Стара Загора, Кв.Казански " to "казански" for duplicate checks */
+function placeKey(value: string): string {
+  return value
+    .toLocaleLowerCase("bg")
+    .replace(/стара загора|град|гр\.|село|с\.|кв\.|квартал/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
 }
 
-function DetailItem({ label, value, icon: Icon }: DetailItemProps) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 p-4 sm:p-6 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-[#d4af37]/10 rounded-lg">
-          <Icon className="h-6 w-6 text-[#d4af37]" aria-hidden />
-        </div>
-        <div>
-          <div className="text-gray-600 text-sm font-medium">{label}</div>
-          <div className="text-[#1a2642] text-lg font-semibold mt-1">{value}</div>
-        </div>
-      </div>
-    </div>
-  );
+/** Address only when it says more than the neighborhood (admins often repeat the district or the city) */
+function usefulAddress(address: string | null, neighborhood: string | null | undefined): string | null {
+  const clean = address?.replace(/\s+/g, " ").trim();
+  if (!clean) return null;
+  const a = placeKey(clean);
+  const n = neighborhood ? placeKey(neighborhood) : "";
+  if (!a || (n && (a.includes(n) || n.includes(a)))) return null;
+  return clean;
 }
 
+/**
+ * Spec table for everything not already in the key-facts strip – server component.
+ * Plain <dl> rows read well on mobile and are easy for crawlers to parse.
+ */
 export default function PropertyDetails({ property }: PropertyDetailsProps): React.ReactElement | null {
   const p = property.property;
   const n = property.neighborhood;
-  const c = property.category;
-  const features = property.features || [];
+  const isVillage = /^(село|с\.)/i.test(n?.name_bg ?? "");
 
-  const items: DetailItemProps[] = [];
-
-  // Building Type from categories - Make this more prominent by putting it first
-  if (c?.name_bg) items.push({ label: "Тип имот", value: c.name_bg, icon: Building });
-  
-  // Building Type Features - Look for buildingType category features
-  const buildingTypeFeatures = features.filter(f => f.category === "buildingType");
-  buildingTypeFeatures.forEach(feature => {
-    items.push({ label: feature.name_bg, value: "Да", icon: Building2 });
-  });
-  
-  // Basic property details
-  if (typeof p.area_sqm === "number") items.push({ label: "Площ", value: formatArea(p.area_sqm), icon: Square });
-  if (typeof p.rooms === "number") items.push({ label: "Стаи", value: String(p.rooms), icon: BedDouble });
-  if (typeof p.bedrooms === "number") items.push({ label: "Спални", value: String(p.bedrooms), icon: Bed });
-  if (typeof p.bathrooms === "number") items.push({ label: "Бани", value: String(p.bathrooms), icon: Bath });
-  
-  // Building information - very important for customers
-  if (typeof p.floor === "number") items.push({ label: "Етаж", value: formatFloor(p.floor, p.total_floors ?? null), icon: Building2 });
-  if (typeof p.total_floors === "number") items.push({ label: "Общо етажи", value: `${p.total_floors} етажа`, icon: Layers });
-  if (typeof p.year_built === "number") items.push({ label: "Година на строеж", value: formatYear(p.year_built), icon: Calendar });
-  
-  // Location
-  if (n?.name_bg) items.push({ label: "Квартал", value: n.name_bg, icon: MapPin });
-  if (p.address_bg) items.push({ label: "Адрес", value: p.address_bg, icon: Navigation });
-
-  // View count - show if available
-  if (typeof p.view_count === "number") {
-    items.push({ label: "Прегледи", value: formatViewCount(p.view_count), icon: Eye });
+  const rows: Array<[string, string]> = [];
+  if (property.category?.name_bg) rows.push(["Тип имот", property.category.name_bg]);
+  rows.push(["Сделка", p.operation_type === "rent" ? "Наем" : "Продажба"]);
+  if (!isVillage && n?.name_bg) rows.push(["Квартал", n.name_bg]);
+  if (isVillage && n?.name_bg) rows.push(["Населено място", n.name_bg.replace(/^(село|с\.)\s*/i, "")]);
+  const address = usefulAddress(p.address_bg, n?.name_bg);
+  if (address) rows.push(["Адрес", address]);
+  if (typeof p.bedrooms === "number" && p.bedrooms > 0) rows.push(["Спални", String(p.bedrooms)]);
+  if (typeof p.bathrooms === "number" && p.bathrooms > 0) rows.push(["Бани", String(p.bathrooms)]);
+  if (typeof p.total_floors === "number" && typeof p.floor !== "number") rows.push(["Етажност", String(p.total_floors)]);
+  if (p.operation_type !== "rent" && typeof p.price_eur === "number" && p.price_eur > 0 && p.area_sqm) {
+    rows.push(["Цена на m²", formatPrice(Math.round(p.price_eur / p.area_sqm))]);
   }
 
-  if (items.length === 0) return null;
-
   return (
-    <section>
-      <h2 className="text-[#1a2642] font-bold text-2xl mb-8 flex items-center gap-3">
-        <div className="h-1 w-8 bg-[#d4af37] rounded-full"></div>
-        Детайли на имота
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((item, idx) => (
-          <DetailItem key={idx} {...item} />
+    <DetailSection title="Детайли на имота" id="details">
+      <dl className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-baseline justify-between gap-4 border-b border-border py-3">
+            <dt className="text-charcoal/65">{label}</dt>
+            <dd className="text-right font-semibold text-primary">{value}</dd>
+          </div>
         ))}
-      </div>
-    </section>
+      </dl>
+    </DetailSection>
   );
 }
-
-

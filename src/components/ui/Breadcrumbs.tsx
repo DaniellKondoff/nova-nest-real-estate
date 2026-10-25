@@ -4,6 +4,7 @@
  */
 
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
 import type { BreadcrumbItem } from '@/lib/seo/breadcrumb-schema';
 
@@ -67,7 +68,7 @@ export function Breadcrumbs({
 
   return (
     <nav
-      className={`flex items-center gap-2 text-sm text-gray-600 min-w-0 overflow-hidden ${className}`}
+      className={cn('flex items-center gap-2 text-sm text-gray-600 min-w-0 overflow-hidden', className)}
       aria-label="Breadcrumb navigation"
     >
       {sortedItems.map((item, index) => {
@@ -80,14 +81,14 @@ export function Breadcrumbs({
             {isLink ? (
               <Link
                 href={href}
-                className="text-[#1a2642] hover:text-[#d4af37] transition-colors duration-200 font-medium"
+                className="text-primary hover:text-accent-dark transition-colors duration-200 font-medium"
                 title={item.name}
               >
                 {item.name}
               </Link>
             ) : (
               <span 
-                className="text-[#1a2642] font-medium truncate" 
+                className="text-primary font-medium truncate" 
                 title={item.name}
               >
                 {item.name}
@@ -144,13 +145,13 @@ export function CompactBreadcrumbs({ items, className = '' }: BreadcrumbsProps) 
             {!isLast ? (
               <Link
                 href={href}
-                className="text-[#1a2642] hover:text-[#d4af37] transition-colors duration-200"
+                className="text-primary hover:text-accent-dark transition-colors duration-200"
                 title={item.name}
               >
                 {item.name}
               </Link>
             ) : (
-              <span className="text-[#1a2642] font-medium truncate" title={item.name}>
+              <span className="text-primary font-medium truncate" title={item.name}>
                 {item.name}
               </span>
             )}
@@ -205,7 +206,7 @@ export function BreadcrumbsWithHome({ items, className = '' }: BreadcrumbsProps)
             {!isLast ? (
               <Link
                 href={href}
-                className="text-[#1a2642] hover:text-[#d4af37] transition-colors duration-200 font-medium flex items-center gap-1"
+                className="text-primary hover:text-accent-dark transition-colors duration-200 font-medium flex items-center gap-1"
                 title={item.name}
               >
                 {isFirst && (
@@ -228,7 +229,7 @@ export function BreadcrumbsWithHome({ items, className = '' }: BreadcrumbsProps)
               </Link>
             ) : (
               <span 
-                className="text-[#1a2642] font-medium truncate flex items-center gap-1" 
+                className="text-primary font-medium truncate flex items-center gap-1" 
                 title={item.name}
               >
                 {isFirst && (

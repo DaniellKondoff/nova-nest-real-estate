@@ -1,66 +1,82 @@
 import React from "react";
 import { MapPin } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
+import { displayTitle, neighborhoodLabel, propertyHeadline } from "@/lib/seo/property-metadata";
 import { formatPrice, isNewProperty } from "./utils";
-import Logo from "@/components/layout/Logo";
 import ShareButton from "@/components/property/ShareButton";
 
 export interface PropertyHeaderProps {
   property: PropertyWithDetails;
 }
 
+const dateFormat = new Intl.DateTimeFormat("bg-BG", { day: "numeric", month: "long", year: "numeric" });
+
+/**
+ * Summary header – server component.
+ * Fact-based H1 (matches the <title>), the admin headline as a subtitle, location, listing meta and price.
+ * Mobile: stacked under the gallery. lg+: title left, price right, above the gallery.
+ */
 export default function PropertyHeader({ property }: PropertyHeaderProps): React.ReactElement {
   const p = property.property;
-  const neighborhood = property.neighborhood;
-
-  const price = formatPrice(p.price_eur ?? null);
-  const op = p.operation_type === "rent" ? "Наем" : "Продажба";
-  const isNew = isNewProperty(p.created_at);
+  const isRent = p.operation_type === "rent";
+  const isNew = p.is_new || isNewProperty(p.created_at);
+  const hasPrice = typeof p.price_eur === "number" && p.price_eur > 0;
+  const pricePerSqm =
+    !isRent && hasPrice && typeof p.area_sqm === "number" && p.area_sqm > 0 ? Math.round(p.price_eur! / p.area_sqm) : null;
+  const headline = propertyHeadline(property);
+  const subtitle = displayTitle(p.title_bg);
+  const nbh = neighborhoodLabel(property.neighborhood?.name_bg);
+  const updated = p.updated_at ?? p.created_at;
 
   return (
-    <header>
-      {/* Brand Logo - Subtle but visible for brand recognition */}
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="inline-flex items-center rounded-full bg-[#d4af37] px-4 py-2 text-white text-sm font-medium">{op}</span>
-            {isNew && <span className="inline-flex items-center rounded-full bg-[#1a2642] px-4 py-2 text-white text-sm font-semibold">НОВО</span>}
-          </div>
-          
-          <h1 className="text-[#1a2642] font-bold leading-tight text-xl md:text-3xl lg:text-4xl mb-3 break-words">{p.title_bg}</h1>
-        </div>
-        
-        {/* Logo positioned in top-right for brand visibility */}
-        <div className="hidden sm:block ml-4 flex-shrink-0">
-          <Logo 
-            width={100} 
-            height={32} 
-            className="opacity-80 hover:opacity-100 transition-opacity duration-200"
-            ariaLabel="Nova Nest Real Estate - Вашият доверен партньор за недвижими имоти"
-          />
-        </div>
-      </div>
-      
-      {/* Building Type - Make it more prominent */}
-      {property.category?.name_bg && (
-        <div className="mb-3">
-          <span className="inline-flex items-center rounded-lg bg-[#1a2642]/10 px-3 py-1.5 text-[#1a2642] text-sm font-semibold">
-            {property.category.name_bg}
+    <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+      <div className="min-w-0">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+            {isRent ? "Под наем" : "За продажба"}
           </span>
+          {isNew && (
+            <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">Ново</span>
+          )}
         </div>
-      )}
-      
-      <div className="flex items-center gap-2 text-gray-600 text-base md:text-lg mb-4 min-w-0">
-        <MapPin className="h-5 w-5 text-[#1a2642] flex-shrink-0" aria-hidden />
-        <span className="min-w-0 truncate" title={neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}>{neighborhood?.name_bg ? `${neighborhood.name_bg}, Стара Загора` : "Стара Загора"}</span>
+
+        <h1 className="text-[clamp(1.5rem,1.15rem+1.5vw,2.25rem)] font-bold leading-tight text-primary text-balance break-words">
+          {headline}
+        </h1>
+        {subtitle.toLowerCase() !== headline.toLowerCase() && (
+          <p className="mt-1.5 text-base text-charcoal/80 sm:text-lg">{subtitle}</p>
+        )}
+
+        <p className="mt-3 flex min-w-0 items-center gap-1.5 text-charcoal/75">
+          <MapPin className="h-5 w-5 shrink-0 text-accent-dark" aria-hidden="true" />
+          <span className="truncate">{nbh ? `${nbh}, Стара Загора` : "Стара Загора"}</span>
+        </p>
+        <p className="mt-1 text-sm text-charcoal/60">
+          Обява № {p.id}
+          {updated && (
+            <>
+              {" · "}Обновена <time dateTime={updated}>{dateFormat.format(new Date(updated))}</time>
+            </>
+          )}
+        </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <div className="text-[#1a2642] font-bold text-2xl md:text-4xl lg:text-5xl">{price}</div>
-        <ShareButton title={p.title_bg} />
+      <div className="flex shrink-0 items-end justify-between gap-4 border-t border-border pt-4 lg:flex-col lg:items-end lg:border-0 lg:pt-0 lg:text-right">
+        <div>
+          <p className="text-3xl font-bold text-primary sm:text-4xl">
+            {hasPrice ? formatPrice(p.price_eur) : "Цена при запитване"}
+            {isRent && hasPrice && <span className="text-lg font-medium text-charcoal/60"> / месец</span>}
+          </p>
+          {(pricePerSqm || p.price_bgn) && (
+            <p className="mt-1 text-sm text-charcoal/60">
+              {pricePerSqm && <>{new Intl.NumberFormat("bg-BG").format(pricePerSqm)} €/m²</>}
+              {pricePerSqm && p.price_bgn ? " · " : null}
+              {p.price_bgn ? <>{new Intl.NumberFormat("bg-BG").format(p.price_bgn)} лв.</> : null}
+            </p>
+          )}
+        </div>
+        <ShareButton title={headline} />
       </div>
     </header>
   );
 }
-
-

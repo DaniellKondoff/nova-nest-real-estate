@@ -5,299 +5,149 @@
 
 import type { Metadata } from 'next';
 import type { PropertyWithDetails } from '@/types/property';
-import { SEO_CONFIG, DEFAULT_OG_IMAGE } from './config';
-import { generateOpenGraphMetadata, generateTwitterCardMetadata } from './metadata';
+import { formatPrice } from '@/components/property/utils';
+import { SEO_CONFIG, absoluteUrl } from './config';
+import { INDEX_ROBOTS, NOINDEX_FOLLOW_ROBOTS, TITLE_TEMPLATE, toMetaDescription } from './metadata';
+import { propertyPath } from './property-slug';
 
-/**
- * Formats price using Bulgarian locale with EUR currency
- * @param priceEur - Price in EUR
- * @returns Formatted price string (e.g., "120,000 EUR")
- */
-export function formatPrice(priceEur: number): string {
-  if (!priceEur || priceEur <= 0) {
-    return 'Цена по договаряне';
-  }
+/** Length of the brand suffix the root template appends */
+const SUFFIX_LENGTH = TITLE_TEMPLATE.replace('%s', '').length;
+/** Google truncates titles at roughly 60 characters */
+const MAX_TITLE_LENGTH = 65;
 
-  return new Intl.NumberFormat('bg-BG', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(priceEur);
+/** Sold or rented listings stay reachable for visitors, but leave the index */
+export function isClosedListing(status: string | null | undefined): boolean {
+  return status === 'sold' || status === 'rented';
+}
+
+function hasPrice(price: number | null | undefined): price is number {
+  return typeof price === 'number' && price > 0;
+}
+
+/** "кв. Казански" for city districts, "село Обручище" for villages (stored as neighborhoods) */
+export function neighborhoodLabel(name: string | null | undefined): string | null {
+  const clean = name?.replace(/\s+/g, ' ').trim();
+  if (!clean) return null;
+  const village = clean.match(/^(?:село|с\.)\s*(.+)$/i);
+  return village ? `село ${village[1]}` : `кв. ${clean}`;
+}
+
+/** Normalizes shouted admin headlines ("ПРОДАВА 2-СТАЕН") to sentence case; mixed-case titles stay as typed */
+export function displayTitle(title: string): string {
+  const clean = title.replace(/\s+/g, ' ').trim();
+  if (/[a-zа-я]/.test(clean)) return clean;
+  const lower = clean.toLocaleLowerCase('bg');
+  return lower.charAt(0).toLocaleUpperCase('bg') + lower.slice(1);
+}
+
+function headlineParts(property: PropertyWithDetails) {
+  const { property: prop, neighborhood, category } = property;
+  const kind = `${category?.name_bg ?? 'Имот'} ${prop.operation_type === 'rent' ? 'под наем' : 'за продажба'}`;
+  const area = prop.area_sqm ? `, ${prop.area_sqm} м²` : '';
+  const nbh = neighborhoodLabel(neighborhood?.name_bg);
+  const where = nbh ? `, ${nbh}` : '';
+  return { kind, area, where };
 }
 
 /**
- * Auto-generates Bulgarian keywords from property data
- * @param property - Property with details
- * @returns Array of 5-8 relevant keywords
+ * Fact-based H1: "Апартамент за продажба, 53 м², кв. Опълченски".
+ * Room adjectives (двустаен…) are left out on purpose – admins count the kitchen inconsistently.
  */
-export function generatePropertyKeywords(property: PropertyWithDetails): string[] {
-  const keywords: string[] = [];
-  const { property: prop, category, neighborhood } = property;
-
-  // Category name (lowercase)
-  if (category?.name_bg) {
-    const categoryLower = category.name_bg.toLowerCase();
-    keywords.push(categoryLower);
-  }
-
-  // Category + neighborhood combination
-  if (category?.name_bg && neighborhood?.name_bg) {
-    keywords.push(`${category.name_bg.toLowerCase()} ${neighborhood.name_bg.toLowerCase()}`);
-  }
-
-  // Category + city combination
-  if (category?.name_bg) {
-    keywords.push(`${category.name_bg.toLowerCase()} стара загора`);
-  }
-
-  // Operation type
-  if (prop.operation_type === 'sale') {
-    keywords.push('продажба');
-  } else if (prop.operation_type === 'rent') {
-    keywords.push('наем');
-  }
-
-  // Neighborhood name
-  if (neighborhood?.name_bg) {
-    keywords.push(neighborhood.name_bg.toLowerCase());
-  }
-
-  // Imoti + neighborhood
-  if (neighborhood?.name_bg) {
-    keywords.push(`имоти ${neighborhood.name_bg.toLowerCase()}`);
-  }
-
-  // Add area-based keywords if available
-  if (prop.area_sqm) {
-    if (prop.area_sqm <= 50) {
-      keywords.push('малък имот');
-    } else if (prop.area_sqm >= 100) {
-      keywords.push('голям имот');
-    }
-  }
-
-  // Add room-based keywords if available
-  if (prop.rooms) {
-    if (prop.rooms === 1) {
-      keywords.push('едностаен');
-    } else if (prop.rooms === 2) {
-      keywords.push('двустаен');
-    } else if (prop.rooms === 3) {
-      keywords.push('тристаен');
-    } else if (prop.rooms >= 4) {
-      keywords.push('многостаен');
-    }
-  }
-
-  // Remove duplicates and limit to 8 keywords
-  return [...new Set(keywords)].slice(0, 8);
+export function propertyHeadline(property: PropertyWithDetails): string {
+  const { kind, area, where } = headlineParts(property);
+  return `${kind}${area}${where}`;
 }
 
 /**
- * Generates property page title
- * @param property - Property with details
- * @returns Formatted title string
+ * "Апартамент за продажба, 53 м², кв. Опълченски – 79 990 €" (the root template appends "| Nova Nest").
+ * Mirrors the H1; an explicit admin seo_title wins when it fits.
  */
 function generatePropertyTitle(property: PropertyWithDetails): string {
-  const { property: prop, neighborhood } = property;
-  
-  const neighborhoodName = neighborhood?.name_bg || 'Стара Загора';
-  return `${prop.title_bg} - ${neighborhoodName}, Стара Загора | Nova Nest`;
+  const { property: prop } = property;
+  const { kind, area, where } = headlineParts(property);
+  const price = hasPrice(prop.price_eur) ? ` – ${formatPrice(prop.price_eur)}` : '';
+  const seoTitle = prop.seo_title?.replace(/\s+/g, ' ').trim();
+
+  const candidates = [
+    ...(seoTitle ? [seoTitle] : []),
+    `${kind}${area}${where}${price}`,
+    `${kind}${where}${price}`,
+    `${kind}${area}${where}`,
+  ];
+  return candidates.find((c) => c.length + SUFFIX_LENGTH <= MAX_TITLE_LENGTH) ?? `${kind}${where}`;
 }
 
 /**
- * Generates property page description
- * @param property - Property with details
- * @returns Formatted description string
+ * "Апартамент за продажба в Аязмото, Стара Загора: 68 м², 2 стаи, етаж 5/8. Цена 89 000 € (1 309 €/м²). …"
  */
 function generatePropertyDescription(property: PropertyWithDetails): string {
   const { property: prop, category, neighborhood } = property;
 
-  // Use custom SEO description if available
-  if (prop.seo_description) {
-    return prop.seo_description;
+  if (prop.seo_description) return toMetaDescription(prop.seo_description);
+
+  const operation = prop.operation_type === 'rent' ? 'под наем' : 'за продажба';
+  const nbh = neighborhoodLabel(neighborhood?.name_bg);
+  const where = nbh ? `в ${nbh}, Стара Загора` : 'в Стара Загора';
+  const facts: string[] = [];
+  if (prop.area_sqm) facts.push(`${prop.area_sqm} м²`);
+  if (prop.rooms) facts.push(prop.rooms === 1 ? '1 стая' : `${prop.rooms} стаи`);
+  if (typeof prop.floor === 'number') facts.push(`етаж ${prop.floor}${prop.total_floors ? `/${prop.total_floors}` : ''}`);
+
+  let text = `${category?.name_bg ?? 'Имот'} ${operation} ${where}${facts.length ? `: ${facts.join(', ')}` : ''}.`;
+  if (hasPrice(prop.price_eur)) {
+    const perSqm = prop.area_sqm && prop.operation_type !== 'rent'
+      ? ` (${formatPrice(Math.round(prop.price_eur / prop.area_sqm))}/м²)`
+      : '';
+    text += ` Цена ${formatPrice(prop.price_eur)}${perSqm}.`;
   }
+  if (prop.description_bg) text += ` ${prop.description_bg}`;
 
-  // Auto-generate description
-  const parts: string[] = [];
-
-  // Category name
-  if (category?.name_bg) {
-    parts.push(category.name_bg);
-  }
-
-  // Neighborhood
-  if (neighborhood?.name_bg) {
-    parts.push(`в ${neighborhood.name_bg}`);
-  }
-
-  // Area
-  if (prop.area_sqm) {
-    parts.push(`${prop.area_sqm} кв.м`);
-  }
-
-  // Rooms
-  if (prop.rooms) {
-    parts.push(`${prop.rooms} стаи`);
-  }
-
-  // Price
-  if (prop.price_eur) {
-    parts.push(formatPrice(prop.price_eur));
-  }
-
-  // Add description excerpt
-  if (prop.description_bg) {
-    const descriptionExcerpt = prop.description_bg.slice(0, 100).trim();
-    if (descriptionExcerpt) {
-      parts.push(`${descriptionExcerpt}...`);
-    }
-  }
-
-  return parts.join(', ');
+  return toMetaDescription(text);
 }
 
 /**
- * Gets property images for OpenGraph
- * @param property - Property with details
- * @returns Array of image objects for OpenGraph
- */
-function getPropertyImages(property: PropertyWithDetails) {
-  const { property: prop, images } = property;
-
-  if (!images || images.length === 0) {
-    // Use default image if no property images
-    return [{
-      url: DEFAULT_OG_IMAGE.url,
-      width: DEFAULT_OG_IMAGE.width,
-      height: DEFAULT_OG_IMAGE.height,
-      alt: DEFAULT_OG_IMAGE.alt,
-    }];
-  }
-
-  // Prioritize primary image, then use first available
-  const primaryImage = images.find(img => img.is_primary) || images[0];
-  
-  return [{
-    url: primaryImage.url,
-    width: 1200,
-    height: 630,
-    alt: primaryImage.alt_text_bg || prop.title_bg,
-  }];
-}
-
-/**
- * Generates comprehensive metadata for property detail pages
+ * Generates comprehensive metadata for property detail pages.
+ * The OG image comes from the route's opengraph-image.tsx (file-based metadata wins).
  * @param property - Property with details
  * @returns Next.js Metadata object optimized for SEO
  */
 export function generatePropertyMetadata(property: PropertyWithDetails): Metadata {
   const { property: prop } = property;
-  
-  const title = generatePropertyTitle(property);
-  const description = generatePropertyDescription(property);
-  const url = `${SEO_CONFIG.siteUrl}/properties/${prop.id}`;
-  const images = getPropertyImages(property);
-  
-  // Use custom SEO keywords if available, otherwise auto-generate
-  const customKeywords = prop.seo_keywords ? prop.seo_keywords.split(',').map(k => k.trim()) : [];
-  const autoKeywords = generatePropertyKeywords(property);
-  const keywords = customKeywords.length > 0 ? customKeywords : autoKeywords;
 
-  const metadata: Metadata = {
+  const title = generatePropertyTitle(property);
+  const socialTitle = TITLE_TEMPLATE.replace('%s', title);
+  const description = generatePropertyDescription(property);
+  const url = absoluteUrl(propertyPath(prop.id, prop.slug));
+
+  return {
     title,
     description,
-    keywords,
-    authors: [{ name: SEO_CONFIG.siteName }],
-    creator: SEO_CONFIG.siteName,
-    publisher: SEO_CONFIG.siteName,
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
+    robots: isClosedListing(prop.status) ? NOINDEX_FOLLOW_ROBOTS : INDEX_ROBOTS,
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       url,
       siteName: SEO_CONFIG.siteName,
       locale: SEO_CONFIG.locale,
       type: 'website',
-      images,
     },
     twitter: {
       card: 'summary_large_image',
-      site: '@novanest_bg',
-      creator: '@novanest_bg',
-      title,
+      title: socialTitle,
       description,
-      images: images.map(img => img.url),
     },
-    alternates: {
-      canonical: url,
-      languages: {
-        'bg-BG': url,
-      },
-    },
-    verification: {
-      google: 'google-site-verification-placeholder',
-    },
-    category: 'real estate',
-    classification: 'Business',
-    other: {
-      'geo.region': 'BG-24',
-      'geo.placename': SEO_CONFIG.location.city,
-      'geo.position': `${SEO_CONFIG.location.coordinates.lat};${SEO_CONFIG.location.coordinates.lng}`,
-      'ICBM': `${SEO_CONFIG.location.coordinates.lat}, ${SEO_CONFIG.location.coordinates.lng}`,
-      'contact:phone_number': SEO_CONFIG.contact.phone,
-      'contact:email': SEO_CONFIG.contact.email,
-      'contact:country_name': SEO_CONFIG.location.country,
-      'contact:locality': SEO_CONFIG.location.city,
-      'contact:region': SEO_CONFIG.location.region,
-      // Property-specific structured data hints
-      'property:type': property.category?.name_bg || '',
-      'property:operation': prop.operation_type === 'sale' ? 'продажба' : 'наем',
-      'property:price': prop.price_eur ? formatPrice(prop.price_eur) : '',
-      'property:area': prop.area_sqm ? `${prop.area_sqm} кв.м` : '',
-      'property:rooms': prop.rooms ? `${prop.rooms} стаи` : '',
-    }
+    alternates: { canonical: url },
   };
-
-  return metadata;
 }
 
 /**
  * Generates metadata for property not found case
- * @param propertyId - The property ID that was not found
  * @returns Default metadata for 404 case
  */
-export function generatePropertyNotFoundMetadata(propertyId: string): Metadata {
+export function generatePropertyNotFoundMetadata(): Metadata {
   return {
-    title: 'Имот не е намерен | Nova Nest Real Estate',
+    title: 'Имотът не е намерен',
     description: 'Търсеният имот не е намерен. Разгледайте нашите други предложения за недвижими имоти в Стара Загора.',
-    robots: {
-      index: false,
-      follow: false,
-    },
-    openGraph: {
-      title: 'Имот не е намерен | Nova Nest Real Estate',
-      description: 'Търсеният имот не е намерен. Разгледайте нашите други предложения за недвижими имоти в Стара Загора.',
-      url: `${SEO_CONFIG.siteUrl}/properties/${propertyId}`,
-      siteName: SEO_CONFIG.siteName,
-      locale: SEO_CONFIG.locale,
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary',
-      title: 'Имот не е намерен | Nova Nest Real Estate',
-      description: 'Търсеният имот не е намерен. Разгледайте нашите други предложения за недвижими имоти в Стара Загора.',
-    },
+    robots: { index: false, follow: true },
   };
 }

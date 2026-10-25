@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
 import { AdminPropertySchema } from "@/lib/validations";
 import { syncPropertyEmbedding } from "@/lib/embeddings/sync";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
       console.error(`Failed to sync embedding for property ${property.id}:`, err);
     }
 
+    revalidatePublicPages();
     return NextResponse.json({ property }, { status: 201 });
   } catch (error) {
     console.error("Error creating property:", error);

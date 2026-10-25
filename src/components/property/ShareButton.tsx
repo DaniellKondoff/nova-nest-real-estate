@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Share2, Copy, Check } from "lucide-react";
+import { Share2, Check } from "lucide-react";
 
 interface ShareButtonProps {
   title: string;
@@ -37,7 +37,7 @@ export default function ShareButton({ title, url }: ShareButtonProps): React.Rea
     <button
       onClick={handleShare}
       aria-label="Споделете имота"
-      className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 hover:border-[#d4af37] hover:text-[#d4af37] transition-colors duration-200"
+      className="inline-flex h-11 items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-primary transition-colors hover:border-primary"
     >
       {copied ? (
         <>

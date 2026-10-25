@@ -1,9 +1,9 @@
-import { getBrowserClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/types/database.generated";
 import type { PropertyWithDetails } from "@/types/property";
 import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
+import { LISTING_SELECT } from "@/lib/queries/listing-select";
 
 type NeighborhoodsRow = Tables<'neighborhoods'>;
 
@@ -14,12 +14,17 @@ type NeighborhoodsRow = Tables<'neighborhoods'>;
 export interface Neighborhood extends NeighborhoodsRow {
 }
 
+/** Admin-entered names sometimes carry stray whitespace ("Село Землен ") that leaks into titles */
+function normalizeNeighborhood<T extends { name_bg: string }>(row: T): T {
+  return { ...row, name_bg: row.name_bg.trim() };
+}
+
 /**
  * Get all neighborhoods from the database
  * @returns Promise<Neighborhood[]> - Array of neighborhoods ordered by name_bg
  */
 export async function getAllNeighborhoods(): Promise<Neighborhood[]> {
-  const supabase = getBrowserClient();
+  const supabase = getNeighborhoodsStaticClient();
   
   const { data, error } = await supabase
     .from("neighborhoods")
@@ -44,7 +49,7 @@ export async function getAllNeighborhoods(): Promise<Neighborhood[]> {
     throw error;
   }
 
-  return data || [];
+  return (data || []).map(normalizeNeighborhood);
 }
 
 /**
@@ -53,7 +58,7 @@ export async function getAllNeighborhoods(): Promise<Neighborhood[]> {
  * @returns Promise<Neighborhood | null> - The neighborhood or null if not found
  */
 export async function getNeighborhoodBySlug(slug: string): Promise<Neighborhood | null> {
-  const supabase = getBrowserClient();
+  const supabase = getNeighborhoodsStaticClient();
   
   const { data, error } = await supabase
     .from("neighborhoods")
@@ -83,7 +88,7 @@ export async function getNeighborhoodBySlug(slug: string): Promise<Neighborhood 
     throw error;
   }
 
-  return data;
+  return data ? normalizeNeighborhood(data) : null;
 }
 
 /**
@@ -96,20 +101,11 @@ export async function getPropertiesByNeighborhood(
   neighborhoodId: number, 
   limit: number = 20
 ): Promise<PropertyWithDetails[]> {
-  const supabase = getBrowserClient();
+  const supabase = getNeighborhoodsStaticClient();
   
   const { data, error } = await supabase
     .from("properties")
-    .select(`
-      *,
-      images:property_images(id, url, is_primary, sort_order, alt_text_bg),
-      features:property_property_features(
-        feature_id,
-        property_features(id, name_bg, name_en, category)
-      ),
-      neighborhood:neighborhoods(id, name_bg, name_en, slug),
-      category:property_categories(id, name_bg, name_en, slug)
-    `)
+    .select(LISTING_SELECT)
     .eq("neighborhood_id", neighborhoodId)
     .eq("status", "available")
     .order("is_featured", { ascending: false })
@@ -125,14 +121,11 @@ export async function getPropertiesByNeighborhood(
 
   // Transform the data to match PropertyWithDetails interface
   return data.map((property: any) => {
-    const transformedFeatures = property.features?.map((pf: any) => pf.property_features).filter(Boolean) || [];
-    
     return {
       property: property,
       neighborhood: property.neighborhood,
       category: property.category,
       images: property.images || [],
-      features: transformedFeatures,
     } as PropertyWithDetails;
   });
 }
@@ -143,11 +136,11 @@ export async function getPropertiesByNeighborhood(
  * @returns Promise<number> - Count of available properties
  */
 export async function getPropertyCountByNeighborhood(neighborhoodId: number): Promise<number> {
-  const supabase = getBrowserClient();
+  const supabase = getNeighborhoodsStaticClient();
   
   const { count, error } = await supabase
     .from("properties")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("neighborhood_id", neighborhoodId)
     .eq("status", "available");
 
@@ -184,7 +177,7 @@ export const getCachedNeighborhoods = unstable_cache(
       `)
       .order("name_bg", { ascending: true });
     if (error) throw error;
-    return data || [];
+    return (data || []).map(normalizeNeighborhood);
   },
   ["all-neighborhoods"],
   { tags: ["neighborhoods"] }

@@ -1,177 +1,210 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /*
   Nova Nest Real Estate – Global Styles & Design System
+  - Single source of truth for design tokens (Tailwind v4 @theme)
+  - Light theme only; mobile-first
   - Inter as primary font via next/font sets --font-inter
-  - CSS custom properties enable dynamic theming and component variants
 */
 
 :root {
-  /* Brand Palette (balanced usage guidance in comments) */
-  --nn-color-navy: #1a2642; /* ~40% usage: headers, hero, key sections */
-  --nn-color-gold: #d4af37; /* ~15% usage: CTAs, accents, hover */
-  --nn-color-white: #ffffff; /* ~35% usage: content areas, cards */
-  --nn-color-charcoal: #2d3748; /* ~8% usage: text on white */
-  --nn-color-gray-light: #f8f9fa; /* ~2% usage: subtle backgrounds */
+  color-scheme: light;
+
+  /* Brand Palette */
+  --nn-color-navy: #1a2642;
+  --nn-color-navy-light: #2c3e50;
+  --nn-color-navy-dark: #0f172a;
+  --nn-color-gold: #d4af37;
+  --nn-color-gold-light: #f0d78c;
+  --nn-color-gold-dark: #b8960e;
+  --nn-color-white: #ffffff;
+  --nn-color-charcoal: #2d3748;
+  --nn-color-gray-light: #f8f9fa;
 
   /* Typography */
   --nn-font-sans: var(--font-inter, Inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --nn-font-weight-light: 300;
-  --nn-font-weight-normal: 400;
-  --nn-font-weight-medium: 500;
-  --nn-font-weight-semibold: 600;
 
-  /* Minimalist type scale */
-  --nn-text-xs: 0.75rem;
-  --nn-text-sm: 0.875rem;
-  --nn-text-base: 1rem;
-  --nn-text-lg: 1.125rem;
-  --nn-text-xl: 1.25rem;
-  --nn-text-2xl: 1.5rem;
-  --nn-text-3xl: 1.875rem;
-  --nn-text-4xl: 2.25rem;
-  --nn-text-5xl: 3rem;
-
-  /* Spacing – generous white space */
-  --nn-space-0: 0rem;
-  --nn-space-1: 0.25rem; /* 4px */
-  --nn-space-2: 0.5rem; /* 8px */
-  --nn-space-3: 0.75rem; /* 12px */
-  --nn-space-4: 1rem; /* 16px */
-  --nn-space-6: 1.5rem; /* 24px */
-  --nn-space-8: 2rem; /* 32px */
-  --nn-space-10: 2.5rem; /* 40px */
-  --nn-space-12: 3rem; /* 48px */
-  --nn-space-16: 4rem; /* 64px */
-  --nn-space-20: 5rem; /* 80px */
-  --nn-space-24: 6rem; /* 96px */
-  --nn-space-28: 7rem; /* 112px */
-  --nn-space-32: 8rem; /* 128px */
-  --nn-space-40: 10rem; /* 160px */
-  --nn-space-48: 12rem; /* 192px */
-  --nn-space-56: 14rem; /* 224px */
-  --nn-space-64: 16rem; /* 256px */
-
-  /* Radii */
-  --nn-radius: 0.5rem; /* 8px standard */
-  --nn-radius-sm: 0.375rem;
-  --nn-radius-md: 0.75rem;
-  --nn-radius-lg: 1rem;
-  --nn-radius-xl: 1.25rem;
-  --nn-radius-2xl: 1.5rem;
-
-  /* Shadows */
-  --nn-shadow-subtle: 0 1px 2px 0 rgba(26, 38, 66, 0.05);
-  --nn-shadow-soft: 0 4px 14px rgba(26, 38, 66, 0.08);
-  --nn-shadow-lift: 0 8px 28px rgba(26, 38, 66, 0.12);
-  --nn-shadow-card: 0 10px 30px rgba(26, 38, 66, 0.10);
-  --nn-shadow-gold: 0 4px 16px rgba(212, 175, 55, 0.25);
-
-  /* Section defaults (overridable per variant) */
-  --section-bg: var(--nn-color-white);
-  --section-fg: var(--nn-color-charcoal);
-  --section-link: var(--nn-color-navy);
-  --section-accent: var(--nn-color-gold);
+  /* Layout */
+  --header-h: 4rem; /* 64px on mobile */
+  /* Space reserved under floating buttons (chat, back-to-top) */
+  --fab-offset: env(safe-area-inset-bottom, 0px);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (min-width: 1024px) {
   :root {
-    /* Gentle dark mode tilt for reading without rebranding */
-    --section-bg: #0a0f17;
-    --section-fg: #e6e9ed;
+    --header-h: 5rem; /* 80px on desktop */
+  }
+}
+
+/* Pages with a fixed mobile bottom bar (e.g. property detail) lift the floating buttons above it */
+@media (max-width: 1279px) {
+  :root:has([data-mobile-bottom-bar]) {
+    --fab-offset: calc(4.5rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
 @theme inline {
-  /* Map CSS vars to Tailwind design tokens used by utility classes */
-  --color-navy: var(--nn-color-navy);
-  --color-gold: var(--nn-color-gold);
+  /* Brand colors */
+  --color-primary: var(--nn-color-navy);
+  --color-primary-light: var(--nn-color-navy-light);
+  --color-primary-dark: var(--nn-color-navy-dark);
+  --color-accent: var(--nn-color-gold);
+  --color-accent-light: var(--nn-color-gold-light);
+  --color-accent-dark: var(--nn-color-gold-dark);
   --color-charcoal: var(--nn-color-charcoal);
   --color-gray-light: var(--nn-color-gray-light);
+
+  /* Legacy aliases – kept so older class names keep rendering */
+  --color-navy: var(--nn-color-navy);
+  --color-gold: var(--nn-color-gold);
+  --color-brand: var(--nn-color-navy);
+  --color-nova-blue: var(--nn-color-navy);
+  --color-nova-gold: var(--nn-color-gold);
+  --color-nova-gray-dark: var(--nn-color-charcoal);
+  --color-lightGray: var(--nn-color-gray-light);
+
+  /* Semantic neutrals */
+  --color-background: #ffffff;
+  --color-foreground: #0e141b;
+  --color-muted: #f8f9fa;
+  --color-muted-foreground: #6b7280;
+  --color-card: #ffffff;
+  --color-card-foreground: #0e141b;
+  --color-border: #e5e7eb;
+  --color-ring: var(--nn-color-gold);
+
   --font-sans: var(--nn-font-sans);
+
+  /* Fluid type for headings */
+  --text-display: clamp(2rem, 1rem + 5vw, 3.75rem);
+  --text-display--line-height: 1.1;
+  --text-h2: clamp(1.625rem, 1.1rem + 2.4vw, 2.5rem);
+  --text-h2--line-height: 1.2;
+  --text-h3: clamp(1.25rem, 1rem + 1vw, 1.5rem);
+  --text-h3--line-height: 1.3;
+
+  /* Radii & shadows */
+  --radius-card: 1rem;
+  --shadow-subtle: 0 1px 2px 0 rgba(26, 38, 66, 0.05);
+  --shadow-soft: 0 4px 14px rgba(26, 38, 66, 0.08);
+  --shadow-lift: 0 8px 28px rgba(26, 38, 66, 0.12);
+  --shadow-card: 0 1px 3px rgba(26, 38, 66, 0.06), 0 8px 24px rgba(26, 38, 66, 0.06);
+  --shadow-gold: 0 4px 16px rgba(212, 175, 55, 0.25);
+
+  /* Animations */
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-gradient-x: gradient-x 3s ease infinite;
+  --animate-hero-fade-in: hero-fade-in 0.8s ease-out both;
+  --animate-hero-fade-in-delayed: hero-fade-in 0.8s ease-out 0.2s both;
+  --animate-fade-up: fade-up 0.6s ease-out both;
+  --animate-shimmer-slide: shimmer-slide var(--speed, 3s) ease-in-out infinite alternate;
+  --animate-spin-around: spin-around calc(var(--speed, 1.5s) * 2) infinite linear;
 }
 
-html, body {
-  height: 100%;
-  overflow-x: hidden;
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-33.333%); }
 }
 
-body {
-  background-color: var(--section-bg);
-  color: var(--section-fg);
-  font-family: var(--nn-font-sans);
-  font-weight: var(--nn-font-weight-normal);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
-/* Typography defaults */
-h1, .h1 { font-size: var(--nn-text-5xl); line-height: 1.1; font-weight: var(--nn-font-weight-semibold); }
-h2, .h2 { font-size: var(--nn-text-4xl); line-height: 1.2; font-weight: var(--nn-font-weight-semibold); }
-h3, .h3 { font-size: var(--nn-text-3xl); line-height: 1.25; font-weight: var(--nn-font-weight-medium); }
-h4, .h4 { font-size: var(--nn-text-2xl); line-height: 1.3; font-weight: var(--nn-font-weight-medium); }
-p { font-size: var(--nn-text-base); line-height: 1.6; }
+@keyframes hero-fade-in {
+  from { opacity: 0; transform: translateY(1.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-/* Components and utilities */
-@layer components {
-  /* Section wrapper */
-  .section {
-    padding-top: var(--nn-space-24);
-    padding-bottom: var(--nn-space-24);
-  }
-  @media (min-width: 640px) {
-    .section { padding-top: var(--nn-space-28); padding-bottom: var(--nn-space-28); }
-  }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  .container-narrow {
-    max-width: 72rem;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: var(--nn-space-4);
-    padding-right: var(--nn-space-4);
-  }
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
 
-  /* Alternating section variants */
-  .section--navy {
-    --section-bg: var(--nn-color-navy);
-    --section-fg: var(--nn-color-white);
-    --section-link: var(--nn-color-gold);
-    background-color: var(--section-bg);
-    color: var(--section-fg);
+@keyframes shimmer-slide {
+  to { transform: translate(calc(100cqw - 100%), 0); }
+}
+
+@keyframes spin-around {
+  0% { transform: translateZ(0) rotate(0); }
+  15%, 35% { transform: translateZ(0) rotate(90deg); }
+  65%, 85% { transform: translateZ(0) rotate(270deg); }
+  100% { transform: translateZ(0) rotate(360deg); }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
   }
 
-  .section--white {
-    --section-bg: var(--nn-color-white);
-    --section-fg: var(--nn-color-charcoal);
-    --section-link: var(--nn-color-navy);
-    background-color: var(--section-bg);
-    color: var(--section-fg);
-  }
-
-  .card {
-    background: var(--nn-color-white);
+  body {
+    min-height: 100%;
+    overflow-x: clip;
+    background-color: var(--nn-color-white);
     color: var(--nn-color-charcoal);
-    border-radius: var(--nn-radius);
-    box-shadow: var(--nn-shadow-card);
+    font-family: var(--nn-font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .interactive {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter;
-    transition-duration: 300ms;
-    transition-timing-function: ease-out;
+  /* Typography defaults – in the base layer so utilities can override them */
+  h1 { font-size: var(--text-display); line-height: 1.1; font-weight: 700; }
+  h2 { font-size: var(--text-h2); line-height: 1.2; font-weight: 700; }
+  h3 { font-size: var(--text-h3); line-height: 1.3; font-weight: 600; }
+  h4 { font-size: 1.125rem; line-height: 1.4; font-weight: 600; }
+  p { line-height: 1.6; }
+
+  /* Prevent iOS focus-zoom: form controls are at least 16px on small screens */
+  @media (max-width: 639px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select,
+    textarea {
+      font-size: max(1rem, 1em);
+    }
   }
 
-  a { color: var(--section-link); }
-  a:hover { color: var(--nn-color-gold); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .prose a { color: var(--nn-color-navy); text-decoration-color: var(--nn-color-gold); }
+  .prose a:hover { color: var(--nn-color-gold-dark); }
 }
 
 @layer utilities {
-  .shadow-subtle { box-shadow: var(--nn-shadow-subtle); }
-  .shadow-soft { box-shadow: var(--nn-shadow-soft); }
-  .shadow-lift { box-shadow: var(--nn-shadow-lift); }
-  .shadow-gold { box-shadow: var(--nn-shadow-gold); }
-  .radius { border-radius: var(--nn-radius); }
+  /* Scroll-reveal without JS: content is always visible; the fade only runs where
+     scroll-driven animations are supported and the user hasn't asked for reduced motion. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      /* Fill "forwards" only: before entering the viewport the element is fully visible
+         (no hidden off-screen content for full-page renderers/crawlers). */
+      .reveal {
+        animation: fade-up linear forwards;
+        animation-timeline: view();
+        animation-range: entry 0% entry 40%;
+      }
+    }
+  }
+
+  .radius { border-radius: var(--radius-card); }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pt-safe { padding-top: env(safe-area-inset-top); }
 }
-
-

@@ -1,5 +1,17 @@
 import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { extendTailwindMerge } from "tailwind-merge"
+
+// Teach tailwind-merge about custom @theme tokens (src/styles/globals.css) so
+// e.g. `text-h2` is treated as a font size and not as a text color.
+const twMerge = extendTailwindMerge({
+  extend: {
+    theme: {
+      text: ["display", "h2", "h3"],
+      radius: ["card"],
+      shadow: ["subtle", "soft", "lift", "card", "gold"],
+    },
+  },
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

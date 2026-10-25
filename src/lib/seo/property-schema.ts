@@ -1,282 +1,106 @@
 /**
  * Property Schema.org structured data generator for Nova Nest Real Estate
- * Generates Product schema for individual property listings to enable rich search results
+ * A listing page is a RealEstateListing about an Accommodation; it is also typed as a Product
+ * when it has a real price, so Google can show the price in the search snippet.
  */
 
-import { SEO_CONFIG } from './config';
+import { SEO_CONFIG, ORGANIZATION_ID, absoluteUrl } from './config';
+import { propertyPath } from './property-slug';
 import type { PropertyWithDetails } from '@/types/property';
 
-/**
- * Type definitions for Property Schema.org structured data
- */
-export interface PropertyValue {
-  '@type': 'PropertyValue';
-  name: string;
-  value: string | number;
-  unitCode?: string;
+const SCHEMA_AVAILABILITY: Record<string, string> = {
+  available: 'https://schema.org/InStock',
+  under_offer: 'https://schema.org/LimitedAvailability',
+  sold: 'https://schema.org/SoldOut',
+  rented: 'https://schema.org/SoldOut',
+  archived: 'https://schema.org/Discontinued',
+};
+
+/** Maps our category slugs to the closest Schema.org Accommodation subtype */
+function accommodationType(categorySlug: string | null | undefined): string {
+  if (!categorySlug) return 'Accommodation';
+  if (categorySlug.startsWith('apartament')) return 'Apartment';
+  if (categorySlug === 'kshta') return 'House';
+  return 'Accommodation';
 }
 
-export interface PostalAddress {
-  '@type': 'PostalAddress';
-  streetAddress: string;
-  addressLocality: string;
-  addressRegion: string;
-  postalCode: string;
-  addressCountry: string;
-}
-
-export interface GeoCoordinates {
-  '@type': 'GeoCoordinates';
-  latitude: number;
-  longitude: number;
-}
-
-export interface Brand {
-  '@type': 'Brand';
-  name: string;
-}
-
-export interface Offer {
-  '@type': 'Offer';
-  price: number;
-  priceCurrency: string;
-  availability: string;
-  priceValidUntil: string;
-  url: string;
-  seller: {
-    '@type': 'RealEstateAgent';
-    name: string;
-  };
-  hasMerchantReturnPolicy: {
-    '@type': 'MerchantReturnPolicy';
-    returnPolicyCategory: string;
-  };
-  shippingDetails: {
-    '@type': 'OfferShippingDetails';
-    doesNotShip: boolean;
-  };
-}
-
-export interface ProductSchema {
-  '@context': string;
-  '@type': 'Product';
-  '@id': string;
-  name: string;
-  description: string;
-  image: string[];
-  brand: Brand;
-  offers: Offer;
-  additionalProperty: PropertyValue[];
-  address: PostalAddress;
-  geo?: GeoCoordinates;
-}
-
-/**
- * Truncates description to specified length for SEO optimization
- */
 function truncateDescription(description: string | null | undefined, maxLength: number = 500): string {
   if (!description) return '';
-  return description.length > maxLength 
-    ? description.substring(0, maxLength).trim() + '...'
-    : description;
+  return description.length > maxLength ? `${description.substring(0, maxLength).trim()}…` : description;
+}
+
+/** Drops undefined/null values so the JSON-LD stays clean */
+function compact<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== '')) as Partial<T>;
 }
 
 /**
- * Generates comprehensive Product schema for individual property listings
- * Enables rich search results with price, images, location, and features
- * 
+ * Generates the listing structured data for a property detail page
  * @param property - PropertyWithDetails object containing all property information
- * @returns ProductSchema object for JSON-LD structured data
  */
-export function generatePropertySchema(property: PropertyWithDetails): ProductSchema {
+export function generatePropertySchema(property: PropertyWithDetails) {
   const { property: prop, neighborhood, category, images } = property;
-  
-  // Extract image URLs from property images
-  const imageUrls = (images || [])
-    .map(img => img.url)
+  const url = absoluteUrl(propertyPath(prop.id, prop.slug));
+  const hasPrice = typeof prop.price_eur === 'number' && prop.price_eur > 0;
+  const isRent = prop.operation_type === 'rent';
+
+  const imageUrls = [...(images || [])]
+    .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((img) => img.url)
     .filter(Boolean);
 
-  // Build additional property details array
-  const additionalProperties: PropertyValue[] = [];
-
-  // Property type
-  if (category?.name_bg) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Тип имот',
-      value: category.name_bg
-    });
-  }
-
-  // Neighborhood
-  if (neighborhood?.name_bg) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Квартал',
-      value: neighborhood.name_bg
-    });
-  }
-
-  // Area
-  if (prop.area_sqm) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Площ',
-      value: `${prop.area_sqm} кв.м`,
-      unitCode: 'MTK'
-    });
-  }
-
-  // Rooms
-  if (prop.rooms) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Брой стаи',
-      value: prop.rooms
-    });
-  }
-
-  // Bedrooms
-  if (prop.bedrooms) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Спални',
-      value: prop.bedrooms
-    });
-  }
-
-  // Bathrooms
-  if (prop.bathrooms) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Бани',
-      value: prop.bathrooms
-    });
-  }
-
-  // Floor
-  if (prop.floor) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Етаж',
-      value: prop.floor
-    });
-  }
-
-  // Operation type
-  if (prop.operation_type) {
-    additionalProperties.push({
-      '@type': 'PropertyValue',
-      name: 'Тип операция',
-      value: prop.operation_type === 'sale' ? 'Продажба' : 'Наем'
-    });
-  }
-
-  // Build the schema object
-  const schema: ProductSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    '@id': `${SEO_CONFIG.siteUrl}/properties/${prop.id}`,
+  const accommodation = compact({
+    '@type': accommodationType(category?.slug),
     name: prop.title_bg,
-    description: truncateDescription(prop.description_bg),
-    image: imageUrls,
-    brand: {
-      '@type': 'Brand',
-      name: 'Nova Nest Real Estate'
-    },
-    offers: {
-      '@type': 'Offer',
-      price: prop.price_eur || 0,
-      priceCurrency: 'EUR',
-      availability: 'https://schema.org/InStock',
-      priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
-      url: `${SEO_CONFIG.siteUrl}/properties/${prop.id}`,
-      seller: {
-        '@type': 'RealEstateAgent',
-        name: 'Nova Nest Real Estate'
-      },
-      hasMerchantReturnPolicy: {
-        '@type': 'MerchantReturnPolicy',
-        returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted'
-      },
-      shippingDetails: {
-        '@type': 'OfferShippingDetails',
-        doesNotShip: true
-      }
-    },
-    additionalProperty: additionalProperties,
-    address: {
+    floorSize: prop.area_sqm ? { '@type': 'QuantitativeValue', value: prop.area_sqm, unitCode: 'MTK' } : undefined,
+    numberOfRooms: prop.rooms ?? undefined,
+    numberOfBedrooms: prop.bedrooms ?? undefined,
+    numberOfBathroomsTotal: prop.bathrooms ?? undefined,
+    floorLevel: typeof prop.floor === 'number' ? String(prop.floor) : undefined,
+    yearBuilt: prop.year_built ?? undefined,
+    address: compact({
       '@type': 'PostalAddress',
-      streetAddress: prop.address_bg || '',
-      addressLocality: 'Стара Загора',
-      addressRegion: 'Стара Загора',
-      postalCode: '6000',
-      addressCountry: 'BG'
-    }
-  };
-
-  // Add geo coordinates if available
-  if (prop.latitude && prop.longitude) {
-    schema.geo = {
-      '@type': 'GeoCoordinates',
-      latitude: prop.latitude,
-      longitude: prop.longitude
-    };
-  }
-
-  return schema;
-}
-
-/**
- * Generates a simplified property schema for property listing pages
- * Used when you need a lighter version for property grids
- */
-export function generatePropertyListSchema(properties: PropertyWithDetails[]): any {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    name: 'Недвижими имоти в Стара Загора',
-    description: 'Списък с налични недвижими имоти за продажба и наем в Стара Загора',
-    numberOfItems: properties.length,
-    itemListElement: properties.map((property, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      item: generatePropertySchema(property)
-    }))
-  };
-}
-
-/**
- * Generates breadcrumb schema for property detail pages
- */
-export function generatePropertyBreadcrumbSchema(property: PropertyWithDetails): any {
-  const { property: prop, category } = property;
-  
-  const items = [
-    { name: 'Начало', url: SEO_CONFIG.siteUrl },
-    { name: 'Имоти', url: `${SEO_CONFIG.siteUrl}/properties` }
-  ];
-
-  if (category?.name_bg) {
-    items.push({
-      name: category.name_bg,
-      url: `${SEO_CONFIG.siteUrl}/properties?category=${category.id}`
-    });
-  }
-
-  items.push({
-    name: prop.title_bg,
-    url: `${SEO_CONFIG.siteUrl}/properties/${prop.id}`
+      streetAddress: prop.address_bg ?? undefined,
+      addressLocality: SEO_CONFIG.location.city,
+      addressRegion: SEO_CONFIG.location.region,
+      addressCountry: 'BG',
+    }),
+    geo: prop.latitude && prop.longitude
+      ? { '@type': 'GeoCoordinates', latitude: prop.latitude, longitude: prop.longitude }
+      : undefined,
+    containedInPlace: neighborhood?.slug
+      ? { '@type': 'Place', name: `${neighborhood.name_bg}, ${SEO_CONFIG.location.city}`, url: absoluteUrl(`/${neighborhood.slug}`) }
+      : undefined,
   });
 
-  return {
+  const offer = hasPrice
+    ? compact({
+        '@type': 'Offer',
+        url,
+        price: prop.price_eur,
+        priceCurrency: 'EUR',
+        availability: SCHEMA_AVAILABILITY[prop.status ?? 'available'] ?? SCHEMA_AVAILABILITY.available,
+        businessFunction: isRent ? 'http://purl.org/goodrelations/v1#LeaseOut' : 'http://purl.org/goodrelations/v1#Sell',
+        priceSpecification: isRent
+          ? { '@type': 'UnitPriceSpecification', price: prop.price_eur, priceCurrency: 'EUR', unitCode: 'MON' }
+          : undefined,
+        seller: { '@id': ORGANIZATION_ID },
+      })
+    : undefined;
+
+  return compact({
     '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      item: item.url
-    }))
-  };
+    // Product rich results require an offer with a price
+    '@type': hasPrice ? ['RealEstateListing', 'Product'] : 'RealEstateListing',
+    '@id': `${url}#listing`,
+    url,
+    name: prop.title_bg,
+    description: truncateDescription(prop.description_bg),
+    image: imageUrls.length ? imageUrls : undefined,
+    datePosted: prop.created_at ?? undefined,
+    dateModified: prop.updated_at ?? undefined,
+    category: category?.name_bg,
+    about: accommodation,
+    offers: offer,
+  });
 }

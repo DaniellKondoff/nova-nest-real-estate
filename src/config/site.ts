@@ -1,6 +1,6 @@
 export const site = {
   name: "Nova Nest",
-  url: "https://example.com",
+  url: "https://novanest.bg",
   locale: "bg",
   city: "Стара Загора",
   brand: {

@@ -7,8 +7,8 @@ import type { MetadataRoute } from 'next';
 import { SEO_CONFIG } from '@/lib/seo/config';
 
 /**
- * Generates robots.txt configuration for search engines
- * Controls which pages can be crawled and provides sitemap location
+ * Generates robots.txt configuration for search engines.
+ * /_next/ must stay crawlable – Google needs the CSS/JS chunks to render pages.
  * @returns Robots configuration object
  */
 export default function robots(): MetadataRoute.Robots {
@@ -17,16 +17,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: [
-          '/admin/',
-          '/api/',
-          '/_next/',
-          '/admin/*',
-          '/api/*',
-          '/_next/*',
-        ],
+        disallow: ['/admin/', '/api/'],
       },
     ],
     sitemap: `${SEO_CONFIG.siteUrl}/sitemap.xml`,
+    host: SEO_CONFIG.siteUrl,
   };
 }

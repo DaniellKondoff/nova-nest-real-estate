@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 
 type ContainerElement = "div" | "section" | "main";
 
@@ -10,7 +10,7 @@ const containerVariants = cva("mx-auto w-full", {
       sm: "max-w-screen-sm",
       md: "max-w-screen-md",
       lg: "max-w-screen-lg",
-      xl: "max-w-screen-xl",
+      xl: "max-w-7xl",
       full: "max-w-full",
     },
     padding: {

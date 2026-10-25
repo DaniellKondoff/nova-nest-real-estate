@@ -1,203 +1,164 @@
-"use client";
-
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Square, BedDouble, Building2 } from "lucide-react";
+import { Building2, BedDouble, Layers, MapPin, Ruler } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Tables } from "@/types/database.generated";
-import { getPropertyUrlSlug } from "@/lib/seo/property-slug";
+import { propertyPath } from "@/lib/seo/property-slug";
+import { displayTitle } from "@/lib/seo/property-metadata";
+import { cn } from "@/lib/utils";
+import { formatPrice, isNewProperty } from "./utils";
 
-// New API props
 export interface PropertyCardProps {
   property: PropertyWithDetails;
-  priority?: boolean; // For Next/Image LCP optimization
-}
-
-// Legacy props for backward compatibility (used by older components)
-interface LegacyPropertyCardProps {
-  id: string;
-  title_bg: string;
-  price_eur: number;
-  operation_type: "sale" | "rent";
-  address_bg: string;
-  neighborhood: { name_bg: string };
-  area_sqm?: number;
-  rooms?: number;
-  bedrooms?: number;
-  primary_image: { image_url: string; alt_text_bg?: string };
-  is_new?: boolean;
-  created_at: string;
-  href?: string;
+  /** For Next/Image LCP optimization (first row of a listing) */
+  priority?: boolean;
+  /** Heading level for the title (h2 on listing pages, h3 inside sections) */
+  headingLevel?: "h2" | "h3";
+  /** Override image `sizes` when the card is rendered in a different layout */
+  sizes?: string;
   className?: string;
 }
 
-function isLegacyProps(p: PropertyCardProps | LegacyPropertyCardProps): p is LegacyPropertyCardProps {
-  return (p as PropertyCardProps).property === undefined;
-}
-
-// Helpers
-export function isNewProperty(createdAt: string): boolean {
-  const created = new Date(createdAt).getTime();
-  if (!Number.isFinite(created)) return false;
-  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-  return Date.now() - created <= sevenDaysMs;
-}
+const DEFAULT_SIZES = "(min-width: 1280px) 400px, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
 
 export function getOperationTypeLabel(type: "sale" | "rent"): string {
   return type === "sale" ? "Продажба" : "Наем";
 }
 
-export function getPrimaryImage(property: PropertyWithDetails): { url: string; alt: string } {
-  const primary = property.images.find((img) => (img as Tables<"property_images">).is_primary) || property.images[0];
-  const imageUrl = (primary as Tables<"property_images"> | undefined)?.url || "/images/window.svg";
-  const imageAlt = (primary as Tables<"property_images"> | undefined)?.alt_text_bg || property.property.title_bg || "Имот";
-  return { url: imageUrl, alt: imageAlt };
+export function getPrimaryImage(property: PropertyWithDetails): { url: string | null; alt: string } {
+  const primary = property.images.find((img) => img.is_primary) || property.images[0];
+  return {
+    url: primary?.url || null,
+    alt: primary?.alt_text_bg || property.property.title_bg || "Имот",
+  };
 }
 
-export function formatPropertyDetails(property: PropertyWithDetails): string[] {
-  const p = property.property as Tables<"properties">;
-  const details: string[] = [];
-  if (typeof p.area_sqm === "number" && p.area_sqm > 0) details.push(`${p.area_sqm} m²`);
-  if (typeof p.rooms === "number" && p.rooms > 0) details.push(`${p.rooms} стаи`);
-  if (typeof p.floor === "number" && p.floor > 0) details.push(`Етаж ${p.floor}`);
-  return details;
+export function getPropertyHref(p: Pick<Tables<"properties">, "id" | "slug">): string {
+  return propertyPath(p.id, p.slug);
 }
 
-function formatPriceEUR(value: number): string {
-  return new Intl.NumberFormat("bg-BG", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value);
+function pluralRooms(n: number): string {
+  return n === 1 ? "1 стая" : `${n} стаи`;
 }
 
-export default function PropertyCard(props: PropertyCardProps | LegacyPropertyCardProps): React.ReactElement {
-  // Normalize props to PropertyWithDetails
-  let property: PropertyWithDetails;
-  let priority = false;
-
-  if (isLegacyProps(props)) {
-    const p = props;
-    const propRow = {
-      id: p.id as unknown as Tables<"properties">["id"],
-      title_bg: p.title_bg as Tables<"properties">["title_bg"],
-      price_eur: p.price_eur as Tables<"properties">["price_eur"],
-      operation_type: p.operation_type as unknown as Tables<"properties">["operation_type"],
-      address_bg: p.address_bg as Tables<"properties">["address_bg"],
-      area_sqm: (p.area_sqm ?? null) as Tables<"properties">["area_sqm"],
-      rooms: (p.rooms ?? null) as Tables<"properties">["rooms"],
-      bedrooms: (p.bedrooms ?? null) as Tables<"properties">["bedrooms"],
-      is_new: (p.is_new ?? null) as Tables<"properties">["is_new"],
-      created_at: p.created_at as Tables<"properties">["created_at"],
-    } as unknown as Tables<"properties">;
-
-    const images: Tables<"property_images">[] = [
-      {
-        id: 0 as unknown as Tables<"property_images">["id"],
-        url: p.primary_image?.image_url,
-        alt_text_bg: (p.primary_image?.alt_text_bg ?? null) as Tables<"property_images">["alt_text_bg"],
-        alt_text_en: null as Tables<"property_images">["alt_text_en"],
-        is_primary: true as Tables<"property_images">["is_primary"],
-        property_id: 0 as unknown as Tables<"property_images">["property_id"],
-        sort_order: 0 as unknown as Tables<"property_images">["sort_order"],
-        file_size: null as Tables<"property_images">["file_size"],
-        filename: null as Tables<"property_images">["filename"],
-        height: null as Tables<"property_images">["height"],
-        width: null as Tables<"property_images">["width"],
-        created_at: new Date().toISOString() as Tables<"property_images">["created_at"],
-      },
-    ];
-
-    property = {
-      property: propRow,
-      neighborhood: { name_bg: p.neighborhood?.name_bg } as unknown as Tables<"neighborhoods">,
-      category: null as unknown as Tables<"property_categories">,
-      images,
-    };
-    // Optional href/className are ignored in new API
-  } else {
-    property = props.property;
-    priority = Boolean(props.priority);
-  }
-
-  const p = property.property as Tables<"properties">;
-  const op: "sale" | "rent" = (p.operation_type as unknown as string) === "rent" ? "rent" : "sale";
-  const price = typeof p.price_eur === "number" ? p.price_eur : 0;
+/**
+ * PropertyCard – server component.
+ * Whole card is clickable via a stretched title link (one accessible link per card).
+ */
+export default function PropertyCard({
+  property,
+  priority = false,
+  headingLevel = "h3",
+  sizes = DEFAULT_SIZES,
+  className,
+}: PropertyCardProps): React.ReactElement {
+  const p = property.property;
+  const op: "sale" | "rent" = (p.operation_type as string) === "rent" ? "rent" : "sale";
   const { url, alt } = getPrimaryImage(property);
-  const createdAt = String(p.created_at || "");
-  const showNew = isNewProperty(createdAt);
-  const neighborhoodName = (property.neighborhood as Tables<"neighborhoods"> | null)?.name_bg || "";
-  const hasArea = typeof p.area_sqm === "number" && p.area_sqm > 0;
-  const rooms = p.rooms;
-  const floor = p.floor;
+  const showNew = p.is_new || isNewProperty(p.created_at);
+  const neighborhoodName = property.neighborhood?.name_bg;
+  const categoryName = property.category?.name_bg;
+  const href = getPropertyHref(p);
+  const Heading = headingLevel;
 
-  // Generate SEO-friendly URL with slug if available
-  const href = p.slug 
-    ? `/properties/${getPropertyUrlSlug(p.id, p.slug)}`
-    : `/properties/${String(p.id)}`;
+  const stats = [
+    typeof p.area_sqm === "number" && p.area_sqm > 0
+      ? { icon: Ruler, value: `${p.area_sqm} m²`, label: "Площ" }
+      : null,
+    typeof p.rooms === "number" && p.rooms > 0
+      ? { icon: BedDouble, value: pluralRooms(p.rooms), label: "Стаи" }
+      : null,
+    typeof p.floor === "number" && p.floor > 0
+      ? {
+          icon: Layers,
+          value: typeof p.total_floors === "number" && p.total_floors > 0 ? `${p.floor}/${p.total_floors} ет.` : `${p.floor} ет.`,
+          label: "Етаж",
+        }
+      : null,
+  ].filter(Boolean) as Array<{ icon: typeof Ruler; value: string; label: string }>;
 
   return (
-    <Link
-      href={href}
-      prefetch
-      aria-label={`${p.title_bg} – ${getOperationTypeLabel(op)}`}
-      className="block h-full overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow duration-300 hover:shadow-md cursor-pointer"
+    <article
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-white shadow-card",
+        "transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lift active:scale-[0.99]",
+        "focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2",
+        className
+      )}
     >
-      {/* Image section */}
-      <div className="relative w-full aspect-[4/3]">
-        <Image
-          src={url}
-          alt={alt}
-          fill
-          priority={priority}
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
-        {/* Operation type badge */}
-        <span className="absolute top-4 right-4 rounded bg-white/90 px-2 py-1 text-xs font-medium text-[#1a2642] backdrop-blur-sm">
-          {getOperationTypeLabel(op)}
-        </span>
-        {/* New badge */}
-        {showNew ? (
-          <span className="absolute top-4 left-4 rounded-md bg-[#d4af37] px-3 py-1 text-xs font-semibold uppercase text-white">НОВО</span>
-        ) : null}
+      {/* Image */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+        {url ? (
+          <Image
+            src={url}
+            alt={alt}
+            fill
+            priority={priority}
+            sizes={sizes}
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary to-primary-light">
+            <Building2 className="h-12 w-12 text-accent/70" aria-hidden="true" />
+          </div>
+        )}
+
+        {/* Bottom gradient for price legibility */}
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/65 to-transparent" />
+
+        {/* Badges */}
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          <span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+            {getOperationTypeLabel(op)}
+          </span>
+          {showNew && (
+            <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
+              Ново
+            </span>
+          )}
+        </div>
+
+        {/* Price */}
+        <p className="absolute bottom-3 left-4 right-4 text-xl font-bold text-white drop-shadow sm:text-2xl">
+          {typeof p.price_eur === "number" && p.price_eur > 0 ? formatPrice(p.price_eur) : "Цена при запитване"}
+          {op === "rent" && typeof p.price_eur === "number" && p.price_eur > 0 && (
+            <span className="text-sm font-medium text-white/85"> / месец</span>
+          )}
+        </p>
       </div>
 
       {/* Content */}
-      <div className="p-4 sm:p-6">
-        {/* Price */}
-        <div className="mt-4 mb-2 text-xl sm:text-2xl font-semibold text-[#1a2642]">{formatPriceEUR(price)}</div>
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <p className="flex min-w-0 items-center gap-1.5 text-sm text-charcoal/70">
+          <MapPin className="h-4 w-4 shrink-0 text-accent-dark" aria-hidden="true" />
+          <span className="truncate">
+            {neighborhoodName ? `кв. ${neighborhoodName}` : "Стара Загора"}
+            {categoryName ? ` · ${categoryName}` : ""}
+          </span>
+        </p>
 
-        {/* Title */}
-        <h3 className="mb-3 line-clamp-2 text-base sm:text-lg font-medium text-[#2d3748]">{p.title_bg}</h3>
+        <Heading className="mt-1.5 line-clamp-2 text-base font-semibold leading-snug text-primary sm:text-[17px]">
+          <Link
+            href={href}
+            className="outline-none after:absolute after:inset-0 after:content-[''] hover:text-primary-light"
+          >
+            {displayTitle(p.title_bg)}
+          </Link>
+        </Heading>
 
-        {/* Details row */}
-        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-          {hasArea ? (
-            <div className="flex items-center gap-1.5">
-              <Square className="w-4 h-4" aria-hidden />
-              <span>{p.area_sqm} m²</span>
-            </div>
-          ) : null}
-          {typeof rooms === "number" && rooms > 0 ? (
-            <div className="flex items-center gap-1.5">
-              <BedDouble className="w-4 h-4" aria-hidden />
-              <span>{rooms} стаи</span>
-            </div>
-          ) : null}
-          {typeof floor === "number" && floor > 0 ? (
-            <div className="flex items-center gap-1.5">
-              <Building2 className="w-4 h-4" aria-hidden />
-              <span>Етаж {floor}</span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Neighborhood */}
-        <div className="mt-2 flex items-center gap-1.5 text-sm text-gray-600">
-          <MapPin className="w-4 h-4" aria-hidden />
-          <span>{neighborhoodName ? `Квартал ${neighborhoodName}` : "Стара Загора"}</span>
-        </div>
+        {stats.length > 0 && (
+          <dl className="mt-auto flex items-center gap-4 border-t border-border pt-3 text-sm text-charcoal/80 [&:not(:first-child)]:mt-4">
+            {stats.map(({ icon: Icon, value, label }) => (
+              <div key={label} className="flex min-w-0 items-center gap-1.5">
+                <dt className="sr-only">{label}</dt>
+                <Icon className="h-4 w-4 shrink-0 text-primary/50" aria-hidden="true" />
+                <dd className="truncate font-medium">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </div>
-    </Link>
+    </article>
   );
 }
-
-

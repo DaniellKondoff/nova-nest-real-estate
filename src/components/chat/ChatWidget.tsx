@@ -28,8 +28,8 @@ const COUNTER_THRESHOLD = 400;
 const MAX_MESSAGES = 50;
 const REQUEST_TIMEOUT_MS = 30_000;
 
-export function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = {}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -184,9 +184,9 @@ export function ChatWidget() {
             className={cn(
               "fixed z-50",
               // Mobile: full-screen panel
-              "inset-0 sm:inset-auto",
+              "inset-0 h-dvh sm:h-auto sm:inset-auto",
               // Desktop: fixed 380×560, anchored bottom-right
-              "sm:bottom-[6.5rem] sm:right-4",
+              "sm:bottom-[calc(6.5rem+var(--fab-offset))] sm:right-4",
               "sm:w-[380px] sm:h-[560px]",
               "flex flex-col overflow-hidden",
               "bg-gradient-to-b from-white to-[#f5f7ff] sm:rounded-2xl border border-primary/10"
@@ -196,12 +196,12 @@ export function ChatWidget() {
             aria-modal="false"
           >
             {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3.5 bg-[#1a2642]/95 backdrop-blur-[8px] sm:rounded-t-2xl flex-shrink-0 border-b border-white/10 relative overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3.5 bg-primary/95 backdrop-blur-[8px] sm:rounded-t-2xl flex-shrink-0 border-b border-white/10 relative overflow-hidden">
               {/* Subtle gold shimmer line at bottom — mirrors site header accent */}
               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-70" />
               {/* Logo-style icon badge — gold gradient circle matching site CTA */}
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-[#c49b33] flex items-center justify-center shadow-gold flex-shrink-0">
-                <MessageCircle className="w-4 h-4 text-[#1a2642]" aria-hidden="true" />
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center shadow-gold flex-shrink-0">
+                <MessageCircle className="w-4 h-4 text-primary" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-semibold text-sm leading-tight tracking-wide">Nova Nest Асистент</p>
@@ -212,7 +212,7 @@ export function ChatWidget() {
               </div>
               <button
                 onClick={handleToggle}
-                className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
                 aria-label="Затвори чата"
               >
                 <X className="w-4 h-4" />
@@ -257,7 +257,7 @@ export function ChatWidget() {
                     <button
                       key={s}
                       onClick={() => sendMessage(s)}
-                      className="text-left text-sm sm:text-xs text-[#1a2642] font-medium bg-white hover:bg-[#fffdf4] border border-[#1a2642]/20 hover:border-accent/40 rounded-xl px-3 py-2.5 transition-all duration-200 shadow-subtle hover:shadow-gold active:bg-[#fffdf4] active:shadow-gold relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-accent before:to-accent/60 before:rounded-l-xl"
+                      className="text-left text-sm sm:text-xs text-primary font-medium bg-white hover:bg-[#fffdf4] border border-primary/20 hover:border-accent/40 rounded-xl px-3 py-2.5 transition-all duration-200 shadow-subtle hover:shadow-gold active:bg-[#fffdf4] active:shadow-gold relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-accent before:to-accent/60 before:rounded-l-xl"
                     >
                       {s}
                     </button>
@@ -270,7 +270,7 @@ export function ChatWidget() {
 
             {/* Input row */}
             <div className="flex-shrink-0 px-3 pt-2 border-t border-primary/8" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}>
-              <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-[#1a2642]/20 focus-within:border-[#d4af37] focus-within:shadow-gold transition-all duration-200 overflow-hidden">
+              <div className="flex items-end gap-2 bg-white rounded-xl px-3 py-2 border border-primary/20 focus-within:border-accent focus-within:shadow-gold transition-all duration-200 overflow-hidden">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -282,17 +282,17 @@ export function ChatWidget() {
                   rows={1}
                   disabled={isBusy}
                   maxLength={MAX_CHARS}
-                  className="flex-1 min-w-0 bg-transparent text-sm text-[#1a2642] font-medium placeholder:text-[#1a2642]/50 resize-none outline-none leading-6 min-h-[2rem] sm:min-h-[1.5rem] max-h-24 overflow-y-auto"
+                  className="flex-1 min-w-0 bg-transparent text-base sm:text-sm text-primary font-medium placeholder:text-primary/50 resize-none outline-none leading-6 min-h-[2rem] sm:min-h-[1.5rem] max-h-24 overflow-y-auto"
                   aria-label="Съобщение до асистента"
                 />
                 <button
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || isBusy}
                   className={cn(
-                    "flex-shrink-0 w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all",
+                    "flex-shrink-0 w-11 h-11 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition-all",
                     input.trim() && !isBusy
-                      ? "bg-[#d4af37] text-white shadow-gold"
-                      : "bg-[#e8eaf2] text-[#1a2642]/40 cursor-not-allowed border border-[#1a2642]/10"
+                      ? "bg-accent text-white shadow-gold"
+                      : "bg-[#e8eaf2] text-primary/40 cursor-not-allowed border border-primary/10"
                   )}
                   aria-label="Изпрати съобщение"
                 >
@@ -314,7 +314,7 @@ export function ChatWidget() {
                 </p>
               )}
 
-              <p className="text-center text-[#1a2642]/60 tracking-wide text-[11px] mt-1.5 font-medium">
+              <p className="text-center text-primary/60 tracking-wide text-[11px] mt-1.5 font-medium">
                 Nova Nest Real Estate Assistant — помага ви да намерите идеалния имот в Стара Загора.
               </p>
             </div>
@@ -323,7 +323,7 @@ export function ChatWidget() {
       </AnimatePresence>
 
       {/* ── FAB toggle button ─────────────────────────────────────────── */}
-      <div className={cn("fixed bottom-20 right-3 sm:right-4 z-50", isOpen && "hidden sm:flex")}>
+      <div className={cn("fixed bottom-[calc(5rem+var(--fab-offset))] right-3 sm:right-4 z-50", isOpen && "hidden sm:flex")}>
         <button
           onClick={handleToggle}
           aria-label={isOpen ? "Затвори чата" : "Отвори AI асистент"}

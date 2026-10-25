@@ -1,9 +1,7 @@
-"use client";
-
 import * as React from "react";
 import Image from "next/image";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 
 /**
  * Card – Base card component with subtle variants and padding options.
@@ -12,12 +10,12 @@ import { cn } from "@/lib/design-tokens";
  * <Card variant="elevated" hoverable onClick={handleClick}>...</Card>
  */
 const cardStyles = cva(
-  "relative rounded-md bg-white transition-shadow duration-200",
+  "relative rounded-card bg-white transition-shadow duration-200",
   {
     variants: {
       variant: {
-        default: "border border-[#e5e7eb]", // subtle border
-        elevated: "border border-[#e5e7eb] shadow-subtle hover:shadow-card",
+        default: "border border-border",
+        elevated: "border border-border shadow-card",
         outlined: "border-2 border-primary/20",
       },
       padding: {
@@ -27,7 +25,7 @@ const cardStyles = cva(
         lg: "p-6",
       },
       hoverable: {
-        true: "hover:shadow-card",
+        true: "hover:shadow-lift",
         false: "",
       },
       clickable: {
@@ -68,7 +66,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         onClick={onClick}
         role={clickable ? "button" : undefined}
         tabIndex={clickable ? 0 : undefined}
-        onKeyDown={handleKeyDown}
+        onKeyDown={clickable ? handleKeyDown : undefined}
         {...props}
       >
         {children}

@@ -86,11 +86,12 @@ Required environment variables in `.env.local`:
 - Some query files have `-client.ts` variants for browser components
 - Example: `testimonials-client.ts` for client-side testimonial fetching
 
+**Public listing search (SSR)**:
+- `/properties` is a server component that reads `searchParams` and calls `searchPropertyListings()` (`src/lib/queries/property-listings.ts`, cookie-free static client). `POST /api/properties/search` is a thin wrapper around the same function.
+- URL contract helpers live in `src/lib/search/params.ts` (`urlParamsToFilters`, `buildPropertiesHref`, `PROPERTIES_PAGE_SIZE`). Filters/sort/pagination are real links or native GET forms, enhanced via `PropertiesNavigationProvider` (transition + dimmed results).
+- Shared listing select clause: `src/lib/queries/listing-select.ts` (no `select *`).
+
 **Custom Hooks** (`src/hooks/`):
-- `usePropertySearch.ts` - Search with debouncing, filters, pagination
-- `usePropertyCategories.ts` - Category and feature data
-- `usePropertyFeatures.ts` - Property features data
-- `useNeighborhoods.ts` - Neighborhood data
 - `useAuth.ts` - Authentication state
 - `usePropertyViewTracking.ts` - Property view analytics
 
@@ -146,21 +147,28 @@ export async function GET(
 
 ### 5. SEO Implementation
 
-**Structured Data** (`src/components/seo/`):
-- `OrganizationSchema` - Schema.org Organization with aggregate ratings
-- `WebsiteSchema` - Schema.org WebSite
-- `BreadcrumbSchema` - Breadcrumb navigation
-- `ProductSchema` - Property listings (Product schema)
-- `PropertyReviewSchema` - Property-specific reviews
+**Rules (keep these or rankings break)**:
+- Every absolute URL (canonical, og:url, breadcrumbs, JSON-LD) goes through `absoluteUrl()` in `src/lib/seo/config.ts` (canonical host + trailing slash). Property URLs: `propertyPath(id, slug)` from `property-slug.ts`.
+- Page titles never contain the brand – the root template appends `| Nova Nest`. Use `generateMetadata()` from `lib/seo/metadata.ts`.
+- Property H1, `<title>` and breadcrumb use the fact-based `propertyHeadline()` ("Апартамент за продажба, 53 м², кв. Опълченски"); the admin `title_bg` is only a subtitle, shown via `displayTitle()` (sentence-cases ALL-CAPS). Use `neighborhoodLabel()` for "кв. X" / "село X".
+- Never attach testimonials/reviews to listings (Google review-snippet policy). Listing schema = `RealEstateListing` (+ `Product` only when priced), availability from `status`.
+- Pages without listings and without real text are thin content: 404 (landing combos) or `noindex,follow` + left out of the sitemap (neighborhoods, see `isNeighborhoodIndexable`).
+- Admin listing mutations must call `revalidatePublicPages()` (`src/lib/revalidate.ts`) – public pages are ISR.
+- NAP (name/address/phone/email) comes from `src/config/site.ts`; schema reuses it – keep it identical to the Google Business Profile.
 
-**Metadata Generation** (`src/lib/seo/`):
-- `metadata.ts` - Next.js Metadata object generation
-- `generate-schema.ts` - JSON-LD schema generation
-- `config.ts` - SEO configuration constants
+**Keyword landing pages** (`src/lib/seo/landing.ts`, ISR):
+- `/imoti-za-prodazhba/[category]/`, `/imoti-pod-naem/[category]/` (`(site)/_landing/operation-landing.tsx`), `/{neighborhood}/{category}/`
+- Category URL slugs are plural (`apartamenti`, `kashti`…) mapped from DB slugs in `CATEGORY_LANDING_NAMES`.
+- `/properties/` canonicalizes to the matching landing page (`landingPathFor`). Counts/stats come from `getCachedListingIndex()` (`lib/queries/listing-index.ts`) via `getLandingData()`.
+
+**Structured Data** (`src/components/seo/`): `OrganizationSchema`/`WebsiteSchema` (root layout), `BreadcrumbSchema` (one per page), `PropertySchema`, `ItemListSchema` (landing pages), `FAQSchema` (only for FAQs visible on the page).
+
+**Metadata/Schema generation** (`src/lib/seo/`): `metadata.ts`, `property-metadata.ts`, `neighborhood-metadata.ts`, `property-schema.ts`, `generate-schema.ts`, `breadcrumb-helpers.ts`, `og-image.tsx` (next/og with bundled Inter in `src/assets/fonts` for Cyrillic).
 
 **Dynamic Routes**:
-- `src/app/sitemap.ts` - Dynamic XML sitemap generation
-- `src/app/robots.ts` - Dynamic robots.txt
+- `src/app/sitemap.ts` - revalidated hourly; only indexable 200 URLs
+- `src/app/robots.ts` - never disallow `/_next/`
+- `src/app/opengraph-image.tsx`, `(site)/properties/[id]/opengraph-image.tsx` - PNG social cards
 
 ### 6. Bulgarian Localization
 
@@ -177,16 +185,24 @@ export async function GET(
 
 ### 7. Design System
 
-**Colors** (defined in `src/app/globals.css` and `tailwind.config.ts`):
-- Primary Navy: `#1a2642` → `bg-primary` / `--brand-navy`
-- Accent Gold: `#d4af37` → `bg-accent` / `--brand-gold`
+**Tokens** – single source: `@theme` in `src/styles/globals.css` (Tailwind v4, there is no tailwind.config). Light theme only.
+- Primary Navy: `#1a2642` → `bg-primary` / `text-primary` (+ `-light`, `-dark`)
+- Accent Gold: `#d4af37` → `bg-accent` / `text-accent` (+ `-light`, `-dark` for hover/text on white)
+- `rounded-card`, `shadow-card|soft|lift|gold`, fluid type `text-display|h2|h3`, `.reveal` (CSS-only scroll fade), `--header-h`
+- Never hardcode hex values in components; use the tokens. `cn()` in `@/lib/utils` knows the custom tokens.
+
+**Public pages are server-first & mobile-first**:
+- Public routes live in the `src/app/(site)/` route group (server Header/Footer in `(site)/layout.tsx`); admin is outside it.
+- Keep client components as small leaf islands; prefer links/anchors and native forms over onClick handlers.
+- Design at 360–430px first: 44px min tap targets, 16px inputs, `svh/dvh`, safe-area insets, scroll-snap rows instead of JS carousels.
+- Layout primitives: `Section`, `SectionHeading`, `containerClass` (`ui/section.tsx`), `Button` with `asChild` (`ui/button.tsx`).
 
 **Components** (`src/components/`):
 - `ui/` - Base UI primitives (Button, Input, Card, Typography, etc.)
 - `property/` - Property listing components (Card, Grid, Filters, etc.)
 - `layout/` - Layout components (Header, Footer, Container, etc.)
 - `admin/` - Admin panel components
-- `forms/` - Form components (InquiryForm, SearchForm, etc.)
+- `forms/` - Form components (ContactForm, HeroSearchForm)
 - `seo/` - SEO structured data components
 
 **Spacing**: 8px grid system (use Tailwind's numeric scale)
@@ -205,7 +221,7 @@ Key property attributes for Bulgarian market:
 
 ### 9. Neighborhood Landing Pages
 
-**Route**: `src/app/[neighborhood-slug]/page.tsx`
+**Route**: `src/app/(site)/[neighborhood-slug]/page.tsx`
 
 Dynamic neighborhood pages with SEO optimization:
 - Breadcrumb structured data
@@ -368,7 +384,7 @@ Placeholder directories for MCP-fetched components:
 2. Use React Hook Form with `@hookform/resolvers/zod`
 3. Create form component in `src/components/forms/`
 4. Use Bulgarian/English bilingual error messages
-5. Follow existing form patterns (e.g., `InquiryForm`, `SearchForm`)
+5. Follow existing form patterns (e.g., `ContactForm`, `PropertyInquiryForm`)
 
 ### Creating DB Changes
 1. When you change Database Schema always create migration script below scripts\migrations

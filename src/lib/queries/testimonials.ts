@@ -3,7 +3,7 @@
  * Handles fetching approved testimonials and calculating aggregate ratings
  */
 
-import { getServerClient } from '@/lib/supabase/server';
+import { getServerClient, getStaticServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.generated';
 import { env } from '@/lib/env';
@@ -184,7 +184,8 @@ export async function getAggregateRating(): Promise<AggregateRating> {
  */
 export async function getPropertyTestimonials(propertyId: number): Promise<Testimonial[]> {
   try {
-    const supabase = await getServerClient();
+    // Public, published rows only – the cookie-free client keeps pages that render this statically cacheable
+    const supabase = getStaticServerClient();
     
     const { data, error } = await supabase
       .from('testimonials')

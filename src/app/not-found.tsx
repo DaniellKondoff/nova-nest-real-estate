@@ -1,13 +1,16 @@
-import Link from "next/link";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import NotFoundContent from "@/components/layout/NotFoundContent";
 
+// Unmatched URLs render outside the (site) layout, so the chrome is added here.
 export default function NotFound() {
   return (
-    <main className="mx-auto max-w-6xl px-6 py-20 text-center">
-      <h1 className="text-3xl font-medium text-brand">Страницата не е намерена</h1>
-      <p className="mt-3 text-foreground/70">Моля, върнете се към началната страница.</p>
-      <Link href="/" className="inline-block mt-6 text-accent border-b border-accent/40">Начало</Link>
-    </main>
+    <div className="flex min-h-svh flex-col">
+      <Header />
+      <main id="main" className="flex-1">
+        <NotFoundContent />
+      </main>
+      <Footer />
+    </div>
   );
 }
-
-

@@ -36,12 +36,12 @@ export default function FooterBackToTopClient() {
       aria-label="Върни се в началото"
       className={[
         "fixed z-40",
-        "right-5 bottom-5 lg:right-8 lg:bottom-8",
+        "right-3 sm:right-4 bottom-[calc(1rem+var(--fab-offset))]",
         "rounded-full border border-white/20 shadow-lg",
-        "bg-[#d4af37] text-white",
+        "bg-accent text-primary",
         "transition-all duration-300 ease-out",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#d4af37]",
-        "w-11 h-11 lg:w-12 lg:h-12",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent",
+        "w-12 h-12",
         showBackToTop ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none",
         "hover:-translate-y-1 hover:shadow-xl active:scale-95 active:opacity-80 active:-translate-y-0.5 active:shadow-md",
       ].join(" ")}

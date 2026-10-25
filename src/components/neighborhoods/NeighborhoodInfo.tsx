@@ -1,18 +1,7 @@
-"use client";
-
 import React from "react";
-import { 
-  School, 
-  ShoppingBag, 
-  Hospital, 
-  Bus, 
-  Car, 
-  Footprints,
-  MapPin,
-  Clock,
-  Users
-} from "lucide-react";
+import { Bus, Car, Clock, Footprints, Hospital, MapPin, School, ShoppingBag, Users } from "lucide-react";
 import type { Neighborhood } from "@/lib/queries/neighborhoods";
+import { Section, SectionHeading } from "@/components/ui/section";
 
 interface NeighborhoodInfoProps {
   neighborhood: Neighborhood;
@@ -24,195 +13,112 @@ interface Amenities {
   medical?: string[];
   transport?: {
     bus_lines?: string[];
-    parking?: 'free' | 'paid' | 'mixed';
-    walkability?: 'high' | 'medium' | 'low';
+    parking?: "free" | "paid" | "mixed";
+    walkability?: "high" | "medium" | "low";
   };
 }
 
-/**
- * Neighborhood information component displaying amenities and local details
- */
+const WALKABILITY: Record<string, string> = {
+  high: "Висока пешеходна достъпност",
+  medium: "Средна пешеходна достъпност",
+  low: "Ниска пешеходна достъпност",
+};
+const PARKING: Record<string, string> = {
+  free: "Безплатно паркиране",
+  paid: "Платено паркиране",
+  mixed: "Смесено паркиране",
+};
+
+const LIVING = [
+  { icon: MapPin, title: "Стратегическо местоположение", text: "Лесен достъп до центъра на града и основните транспортни артерии." },
+  { icon: Users, title: "Спокойна среда", text: "Подходящо място за семейства с деца – спокойствие и безопасност." },
+  { icon: Clock, title: "Бърз достъп", text: "Близо до училища, магазини и медицински заведения." },
+];
+
+/** Neighborhood details (about, amenities, living) – server component. */
 export default function NeighborhoodInfo({ neighborhood }: NeighborhoodInfoProps) {
   const amenities: Amenities = (neighborhood.amenities as Amenities) || {};
   const transport = amenities.transport || {};
 
-  const getWalkabilityText = (level?: string) => {
-    switch (level) {
-      case 'high': return 'Висока пешеходна достъпност';
-      case 'medium': return 'Средна пешеходна достъпност';
-      case 'low': return 'Ниска пешеходна достъпност';
-      default: return 'Добра пешеходна достъпност';
-    }
-  };
-
-  const getParkingText = (type?: string) => {
-    switch (type) {
-      case 'free': return 'Безплатно паркиране';
-      case 'paid': return 'Платено паркиране';
-      case 'mixed': return 'Смесено паркиране';
-      default: return 'Паркиране на разположение';
-    }
-  };
+  const lists = [
+    { key: "schools", title: "Училища", icon: School, items: amenities.schools },
+    { key: "shopping", title: "Търговски центрове", icon: ShoppingBag, items: amenities.shopping },
+    { key: "medical", title: "Медицински заведения", icon: Hospital, items: amenities.medical },
+  ].filter((l) => l.items && l.items.length > 0);
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* About Section */}
-        <section className="mb-16">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-[#1a2642] mb-6">
-              За квартал {neighborhood.name_bg}
-            </h2>
-            <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-              {neighborhood.description ? (
-                <p>{neighborhood.description}</p>
-              ) : (
-                <p>
-                  Квартал {neighborhood.name_bg} е един от най-привлекателните райони в Стара Загора. 
-                  Той предлага отлична комбинация от удобства, транспортна свързаност и спокойна жилищна среда.
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Amenities Grid */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-[#1a2642] mb-8 text-center">
-            Удобства и услуги
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Schools */}
-            {amenities.schools && amenities.schools.length > 0 && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <School className="h-8 w-8 text-[#d4af37] mr-3" />
-                  <h3 className="text-xl font-semibold text-[#1a2642]">Училища</h3>
+    <Section aria-labelledby="neighborhood-about">
+      <div className="grid gap-8 lg:grid-cols-5 lg:gap-12">
+        <div className="lg:col-span-2">
+          <SectionHeading
+            id="neighborhood-about"
+            eyebrow="За квартала"
+            title={`Живот в ${neighborhood.name_bg}`}
+            align="left"
+            className="mb-4 md:mb-6"
+          />
+          <p className="leading-relaxed text-charcoal/80 sm:text-lg">
+            {neighborhood.description ||
+              `Квартал ${neighborhood.name_bg} е един от привлекателните райони в Стара Загора, с добра комбинация от удобства, транспортна свързаност и спокойна жилищна среда.`}
+          </p>
+          <ul className="mt-6 space-y-4">
+            {LIVING.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15">
+                  <Icon className="h-5 w-5 text-accent-dark" aria-hidden="true" />
+                </span>
+                <div>
+                  <h3 className="font-semibold text-primary">{title}</h3>
+                  <p className="text-sm text-charcoal/70">{text}</p>
                 </div>
-                <ul className="space-y-2">
-                  {amenities.schools.map((school, index) => (
-                    <li key={index} className="text-gray-700 flex items-center">
-                      <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                      {school}
-                    </li>
-                  ))}
-                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:col-span-3">
+          {lists.map(({ key, title, icon: Icon, items }) => (
+            <div key={key} className="rounded-card border border-border bg-white p-5 shadow-card">
+              <h3 className="mb-3 flex items-center gap-2 font-semibold text-primary">
+                <Icon className="h-5 w-5 text-accent-dark" aria-hidden="true" />
+                {title}
+              </h3>
+              <ul className="space-y-1.5 text-charcoal/80">
+                {items!.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <MapPin className="mt-1 h-3.5 w-3.5 shrink-0 text-charcoal/40" aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div className="rounded-card border border-border bg-white p-5 shadow-card">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-primary">
+              <Bus className="h-5 w-5 text-accent-dark" aria-hidden="true" />
+              Транспорт
+            </h3>
+            {transport.bus_lines && transport.bus_lines.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-1.5" aria-label="Автобусни линии">
+                {transport.bus_lines.map((line, i) => (
+                  <span key={i} className="rounded-full bg-accent/15 px-2.5 py-0.5 text-sm font-medium text-primary">
+                    {line}
+                  </span>
+                ))}
               </div>
             )}
-
-            {/* Shopping */}
-            {amenities.shopping && amenities.shopping.length > 0 && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <ShoppingBag className="h-8 w-8 text-[#d4af37] mr-3" />
-                  <h3 className="text-xl font-semibold text-[#1a2642]">Търговски центрове</h3>
-                </div>
-                <ul className="space-y-2">
-                  {amenities.shopping.map((shop, index) => (
-                    <li key={index} className="text-gray-700 flex items-center">
-                      <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                      {shop}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Medical */}
-            {amenities.medical && amenities.medical.length > 0 && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <Hospital className="h-8 w-8 text-[#d4af37] mr-3" />
-                  <h3 className="text-xl font-semibold text-[#1a2642]">Медицински заведения</h3>
-                </div>
-                <ul className="space-y-2">
-                  {amenities.medical.map((medical, index) => (
-                    <li key={index} className="text-gray-700 flex items-center">
-                      <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                      {medical}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Transport */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-center mb-4">
-                <Bus className="h-8 w-8 text-[#d4af37] mr-3" />
-                <h3 className="text-xl font-semibold text-[#1a2642]">Транспорт</h3>
-              </div>
-              <div className="space-y-3">
-                {transport.bus_lines && transport.bus_lines.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-gray-800 mb-2">Автобусни линии:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {transport.bus_lines.map((line, index) => (
-                        <span 
-                          key={index}
-                          className="bg-[#d4af37] text-[#1a2642] px-3 py-1 rounded-full text-sm font-medium"
-                        >
-                          {line}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex items-center text-gray-700">
-                  <Car className="h-4 w-4 text-gray-400 mr-2" />
-                  {getParkingText(transport.parking)}
-                </div>
-                
-                <div className="flex items-center text-gray-700">
-                  <Footprints className="h-4 w-4 text-gray-400 mr-2" />
-                  {getWalkabilityText(transport.walkability)}
-                </div>
-              </div>
-            </div>
+            <p className="flex items-center gap-2 text-charcoal/80">
+              <Car className="h-4 w-4 text-charcoal/40" aria-hidden="true" />
+              {PARKING[transport.parking ?? ""] ?? "Паркиране на разположение"}
+            </p>
+            <p className="mt-1.5 flex items-center gap-2 text-charcoal/80">
+              <Footprints className="h-4 w-4 text-charcoal/40" aria-hidden="true" />
+              {WALKABILITY[transport.walkability ?? ""] ?? "Добра пешеходна достъпност"}
+            </p>
           </div>
-        </section>
-
-        {/* Living in Neighborhood Section */}
-        <section className="bg-[#1a2642] text-white rounded-lg p-8">
-          <h2 className="text-3xl font-bold mb-6 text-center">
-            Живот в {neighborhood.name_bg}
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-[#d4af37] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <MapPin className="h-8 w-8 text-[#1a2642]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Стратегическо местоположение</h3>
-              <p className="text-gray-300">
-                Отлично разположение с лесен достъп до центъра на града и основните транспортни артерии.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-[#d4af37] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-[#1a2642]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Спокойна среда</h3>
-              <p className="text-gray-300">
-                Идеално място за семейства с деца, предлагащо спокойствие и безопасност.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-[#d4af37] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-8 w-8 text-[#1a2642]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Бърз достъп</h3>
-              <p className="text-gray-300">
-                Близо до всички необходими услуги - училища, магазини, медицински заведения.
-              </p>
-            </div>
-          </div>
-        </section>
+        </div>
       </div>
-    </div>
+    </Section>
   );
 }
