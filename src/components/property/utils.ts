@@ -1,5 +1,3 @@
-import React from "react";
-
 export function formatPrice(amount?: number | null): string {
   if (typeof amount !== "number" || !Number.isFinite(amount)) return "-";
   return new Intl.NumberFormat("bg-BG", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);

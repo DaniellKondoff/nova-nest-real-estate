@@ -5,6 +5,7 @@
 
 import { absoluteUrl } from './config';
 import { propertyPath } from './property-slug';
+import { propertyHeadline } from './property-metadata';
 import type { PropertyWithDetails } from '@/types/property';
 import type { BreadcrumbItem } from './breadcrumb-schema';
 
@@ -36,6 +37,6 @@ export function getPropertyBreadcrumbs(property: PropertyWithDetails): Breadcrum
     HOME,
     PROPERTIES,
     ...(neighborhood?.slug ? [{ name: neighborhood.name_bg, path: `/${neighborhood.slug}/` }] : []),
-    { name: prop.title_bg, path: propertyPath(prop.id, prop.slug) },
+    { name: propertyHeadline(property), path: propertyPath(prop.id, prop.slug) },
   ]);
 }

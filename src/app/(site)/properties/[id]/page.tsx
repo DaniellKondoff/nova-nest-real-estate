@@ -4,16 +4,26 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { fetchPropertyDetails, validateIdOrNotFound } from "@/lib/queries/property-detail";
-import { generatePropertyMetadata, generatePropertyNotFoundMetadata, isClosedListing } from "@/lib/seo/property-metadata";
+import {
+  displayTitle,
+  generatePropertyMetadata,
+  generatePropertyNotFoundMetadata,
+  isClosedListing,
+  neighborhoodLabel,
+  propertyHeadline,
+} from "@/lib/seo/property-metadata";
 import PropertyGallery from "@/components/property/PropertyGallery";
 import PropertyHeader from "@/components/property/PropertyHeader";
+import PropertyKeyFacts from "@/components/property/PropertyKeyFacts";
 import PropertyDescription from "@/components/property/PropertyDescription";
 import PropertyDetails from "@/components/property/PropertyDetails";
 import PropertyFeatures from "@/components/property/PropertyFeatures";
+import MortgageSection from "@/components/property/MortgageSection";
 import NeighborhoodInfo from "@/components/property/NeighborhoodInfo";
 import PropertyLandingLinks from "@/components/property/PropertyLandingLinks";
 import PropertyContact from "@/components/property/PropertyContact";
 import PropertyViewTracker from "@/components/property/PropertyViewTracker";
+import { formatPrice } from "@/components/property/utils";
 import { PropertySchema } from "@/components/seo/PropertySchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -25,7 +35,7 @@ import MobileContactBar from "@/components/property/MobileContactBar";
 import { site } from "@/config/site";
 import { cn } from "@/lib/utils";
 
-// Cache each property page for 1 hour; admin mutations call revalidatePath to purge immediately.
+// Cache each property page for 1 hour; admin mutations call revalidatePublicPages() to purge immediately.
 // Data is read with the cookie-free static client so the page can actually be statically regenerated.
 export const revalidate = 3600;
 
@@ -63,20 +73,28 @@ export default async function PropertyDetailPage({ params }: PageParams) {
     permanentRedirect(propertyPath(idNum, property.slug));
   }
   const closed = isClosedListing(property.status);
+  const isRent = property.operation_type === "rent";
+  const price = typeof property.price_eur === "number" && property.price_eur > 0 ? property.price_eur : null;
 
   const breadcrumbs = getPropertyBreadcrumbs(details);
-  const galleryImages = (images ?? []).map((img) => ({
+  const headline = propertyHeadline(details);
+  const galleryImages = (images ?? []).map((img, i) => ({
     id: String(img.id),
     url: img.url,
-    alt_text: img.alt_text_bg ?? property.title_bg,
+    alt_text: img.alt_text_bg?.trim() || `${headline} – снимка ${i + 1}`,
     order: img.sort_order,
     is_primary: img.is_primary,
   }));
 
   return (
     // Bottom padding keeps content clear of the fixed mobile contact bar
-    <div className="min-h-svh bg-gray-light pb-[calc(5rem+env(safe-area-inset-bottom))] xl:pb-0">
-      <MobileContactBar phoneNumber={site.contact.phone} />
+    <div className="min-h-svh bg-gray-light pb-[calc(5.5rem+env(safe-area-inset-bottom))] xl:pb-0">
+      <MobileContactBar
+        phoneNumber={site.contact.phone}
+        price={price ? formatPrice(price) : null}
+        isRent={isRent}
+        location={neighborhoodLabel(neighborhood?.name_bg)}
+      />
 
       <PropertySchema property={details} />
       <BreadcrumbSchema items={breadcrumbs} />
@@ -96,16 +114,23 @@ export default async function PropertyDetailPage({ params }: PageParams) {
         </div>
       </div>
 
-      {/* Gallery: full-bleed on mobile, contained bento on lg+ */}
-      <div className="sm:pt-6">
-        <div className="mx-auto w-full max-w-7xl sm:px-6 lg:px-8">
-          <PropertyGallery images={galleryImages} propertyTitle={property.title_bg} priority />
+      {/* The H1 comes first in the HTML; on mobile the gallery is shown above it (order-first) */}
+      <div className="flex flex-col">
+        <div className="bg-white lg:bg-transparent">
+          <div className={cn(containerClass, "py-5 lg:pt-8 lg:pb-6")}>
+            <PropertyHeader property={details} />
+          </div>
+        </div>
+        <div className="order-first sm:bg-white sm:pt-6 lg:order-none lg:bg-transparent lg:pt-0">
+          <div className="mx-auto w-full max-w-7xl sm:px-6 lg:px-8">
+            <PropertyGallery images={galleryImages} propertyTitle={headline} priority />
+          </div>
         </div>
       </div>
 
       <div className={cn(containerClass, "py-6 md:py-8")}>
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-8">
-          <div className="space-y-6 xl:col-span-8">
+          <div className="min-w-0 space-y-6 xl:col-span-8">
             {closed && (
               <p role="status" className="rounded-card border border-accent/40 bg-accent/10 p-4 font-semibold text-primary sm:p-5">
                 {property.status === "rented" ? "Този имот вече е отдаден под наем." : "Този имот вече е продаден."}{" "}
@@ -114,12 +139,11 @@ export default async function PropertyDetailPage({ params }: PageParams) {
                 </Link>
               </p>
             )}
-            <div className="rounded-card border border-border bg-white p-5 shadow-card sm:p-8">
-              <PropertyHeader property={details} />
-            </div>
-            <PropertyDescription description={property.description_bg ?? ""} />
+            <PropertyKeyFacts property={details} />
+            <PropertyDescription description={property.description_bg ?? ""} title={property.title_bg} />
             <PropertyDetails property={details} />
             <PropertyFeatures features={features ?? []} />
+            {!isRent && !closed && price && <MortgageSection price={price} />}
             <NeighborhoodInfo neighborhood={neighborhood} />
             <PropertyLandingLinks details={details} />
           </div>
@@ -129,7 +153,7 @@ export default async function PropertyDetailPage({ params }: PageParams) {
               id="contact-sidebar"
               className="scroll-mt-[calc(var(--header-h)+1rem)] xl:sticky xl:top-[calc(var(--header-h)+1.5rem)]"
             >
-              <PropertyContact propertyId={property.id} propertyTitle={property.title_bg} />
+              <PropertyContact propertyId={property.id} propertyTitle={displayTitle(property.title_bg)} />
             </div>
           </div>
         </div>

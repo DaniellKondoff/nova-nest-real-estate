@@ -150,6 +150,7 @@ export async function GET(
 **Rules (keep these or rankings break)**:
 - Every absolute URL (canonical, og:url, breadcrumbs, JSON-LD) goes through `absoluteUrl()` in `src/lib/seo/config.ts` (canonical host + trailing slash). Property URLs: `propertyPath(id, slug)` from `property-slug.ts`.
 - Page titles never contain the brand – the root template appends `| Nova Nest`. Use `generateMetadata()` from `lib/seo/metadata.ts`.
+- Property H1, `<title>` and breadcrumb use the fact-based `propertyHeadline()` ("Апартамент за продажба, 53 м², кв. Опълченски"); the admin `title_bg` is only a subtitle, shown via `displayTitle()` (sentence-cases ALL-CAPS). Use `neighborhoodLabel()` for "кв. X" / "село X".
 - Never attach testimonials/reviews to listings (Google review-snippet policy). Listing schema = `RealEstateListing` (+ `Product` only when priced), availability from `status`.
 - Pages without listings and without real text are thin content: 404 (landing combos) or `noindex,follow` + left out of the sitemap (neighborhoods, see `isNeighborhoodIndexable`).
 - Admin listing mutations must call `revalidatePublicPages()` (`src/lib/revalidate.ts`) – public pages are ISR.

@@ -5,6 +5,7 @@ import { Building2, BedDouble, Layers, MapPin, Ruler } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Tables } from "@/types/database.generated";
 import { propertyPath } from "@/lib/seo/property-slug";
+import { displayTitle } from "@/lib/seo/property-metadata";
 import { cn } from "@/lib/utils";
 import { formatPrice, isNewProperty } from "./utils";
 
@@ -142,7 +143,7 @@ export default function PropertyCard({
             href={href}
             className="outline-none after:absolute after:inset-0 after:content-[''] hover:text-primary-light"
           >
-            {p.title_bg}
+            {displayTitle(p.title_bg)}
           </Link>
         </Heading>
 

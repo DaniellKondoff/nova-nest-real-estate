@@ -24,31 +24,57 @@ function hasPrice(price: number | null | undefined): price is number {
   return typeof price === 'number' && price > 0;
 }
 
+/** "кв. Казански" for city districts, "село Обручище" for villages (stored as neighborhoods) */
+export function neighborhoodLabel(name: string | null | undefined): string | null {
+  const clean = name?.replace(/\s+/g, ' ').trim();
+  if (!clean) return null;
+  const village = clean.match(/^(?:село|с\.)\s*(.+)$/i);
+  return village ? `село ${village[1]}` : `кв. ${clean}`;
+}
+
+/** Normalizes shouted admin headlines ("ПРОДАВА 2-СТАЕН") to sentence case; mixed-case titles stay as typed */
+export function displayTitle(title: string): string {
+  const clean = title.replace(/\s+/g, ' ').trim();
+  if (/[a-zа-я]/.test(clean)) return clean;
+  const lower = clean.toLocaleLowerCase('bg');
+  return lower.charAt(0).toLocaleUpperCase('bg') + lower.slice(1);
+}
+
+function headlineParts(property: PropertyWithDetails) {
+  const { property: prop, neighborhood, category } = property;
+  const kind = `${category?.name_bg ?? 'Имот'} ${prop.operation_type === 'rent' ? 'под наем' : 'за продажба'}`;
+  const area = prop.area_sqm ? `, ${prop.area_sqm} м²` : '';
+  const nbh = neighborhoodLabel(neighborhood?.name_bg);
+  const where = nbh ? `, ${nbh}` : '';
+  return { kind, area, where };
+}
+
 /**
- * "Продава 2-стаен, Казански – 86 000 €" (the root template appends "| Nova Nest")
- * Uses the admin title when it fits; long titles fall back to a fact-based one
- * ("Апартамент за продажба, 53 м², Опълченски – 79 990 €") so Google doesn't truncate it.
+ * Fact-based H1: "Апартамент за продажба, 53 м², кв. Опълченски".
+ * Room adjectives (двустаен…) are left out on purpose – admins count the kitchen inconsistently.
+ */
+export function propertyHeadline(property: PropertyWithDetails): string {
+  const { kind, area, where } = headlineParts(property);
+  return `${kind}${area}${where}`;
+}
+
+/**
+ * "Апартамент за продажба, 53 м², кв. Опълченски – 79 990 €" (the root template appends "| Nova Nest").
+ * Mirrors the H1; an explicit admin seo_title wins when it fits.
  */
 function generatePropertyTitle(property: PropertyWithDetails): string {
-  const { property: prop, neighborhood, category } = property;
-  const base = (prop.seo_title || prop.title_bg).replace(/\s+/g, ' ').trim();
-  const nbh = neighborhood?.name_bg.trim();
-  const withNbh = nbh && !base.toLowerCase().includes(nbh.toLowerCase()) ? `${base}, ${nbh}` : base;
+  const { property: prop } = property;
+  const { kind, area, where } = headlineParts(property);
   const price = hasPrice(prop.price_eur) ? ` – ${formatPrice(prop.price_eur)}` : '';
-
-  const facts = `${category?.name_bg ?? 'Имот'} ${prop.operation_type === 'rent' ? 'под наем' : 'за продажба'}`;
-  const area = prop.area_sqm ? `, ${prop.area_sqm} м²` : '';
-  const where = nbh ? `, ${nbh}` : '';
+  const seoTitle = prop.seo_title?.replace(/\s+/g, ' ').trim();
 
   const candidates = [
-    `${withNbh}${price}`,
-    withNbh,
-    base,
-    `${facts}${area}${where}${price}`,
-    `${facts}${where}${price}`,
-    `${facts}${where}`,
+    ...(seoTitle ? [seoTitle] : []),
+    `${kind}${area}${where}${price}`,
+    `${kind}${where}${price}`,
+    `${kind}${area}${where}`,
   ];
-  return candidates.find((c) => c.length + SUFFIX_LENGTH <= MAX_TITLE_LENGTH) ?? `${facts}${where}`;
+  return candidates.find((c) => c.length + SUFFIX_LENGTH <= MAX_TITLE_LENGTH) ?? `${kind}${where}`;
 }
 
 /**
@@ -60,7 +86,8 @@ function generatePropertyDescription(property: PropertyWithDetails): string {
   if (prop.seo_description) return toMetaDescription(prop.seo_description);
 
   const operation = prop.operation_type === 'rent' ? 'под наем' : 'за продажба';
-  const where = neighborhood?.name_bg ? `в ${neighborhood.name_bg}, Стара Загора` : 'в Стара Загора';
+  const nbh = neighborhoodLabel(neighborhood?.name_bg);
+  const where = nbh ? `в ${nbh}, Стара Загора` : 'в Стара Загора';
   const facts: string[] = [];
   if (prop.area_sqm) facts.push(`${prop.area_sqm} м²`);
   if (prop.rooms) facts.push(prop.rooms === 1 ? '1 стая' : `${prop.rooms} стаи`);

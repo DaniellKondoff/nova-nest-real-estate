@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, Bus, Hospital, School, ShoppingCart, Trees } from "lucide-react";
 import type { StaraZagoraNeighborhood } from "@/types/search";
+import { neighborhoodLabel } from "@/lib/seo/property-metadata";
 import DetailSection from "./DetailSection";
 
 export interface NeighborhoodInfoProps {
@@ -34,7 +35,7 @@ export default function NeighborhoodInfo({ neighborhood }: NeighborhoodInfoProps
   if (!neighborhood.description && blocks.length === 0) return null;
 
   return (
-    <DetailSection title={`За квартал ${neighborhood.name_bg}`} id="neighborhood">
+    <DetailSection title={`За ${neighborhoodLabel(neighborhood.name_bg)}`} id="neighborhood">
       {neighborhood.description && <p className="leading-relaxed text-charcoal">{neighborhood.description}</p>}
 
       {blocks.length > 0 && (
@@ -62,7 +63,7 @@ export default function NeighborhoodInfo({ neighborhood }: NeighborhoodInfoProps
           href={`/${neighborhood.slug}/`}
           className="mt-6 inline-flex min-h-11 items-center gap-2 font-semibold text-primary underline decoration-accent decoration-2 underline-offset-4 hover:text-primary-light"
         >
-          Всички имоти в кв. {neighborhood.name_bg}
+          Всички имоти в {neighborhoodLabel(neighborhood.name_bg)}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       )}

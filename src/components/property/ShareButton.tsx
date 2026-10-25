@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Share2, Copy, Check } from "lucide-react";
+import { Share2, Check } from "lucide-react";
 
 interface ShareButtonProps {
   title: string;
