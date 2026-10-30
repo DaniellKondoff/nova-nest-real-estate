@@ -164,7 +164,7 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
 
         {/* Linked properties list */}
         {entries.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">Няма свързани имоти</p>
+          <p className="text-sm text-gray-600 text-center py-6">Няма свързани имоти</p>
         ) : (
           <div className="space-y-2">
             {entries.map((entry) => {
@@ -212,7 +212,7 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
                   <button
                     onClick={() => handleUnlink(property.id)}
                     disabled={isUnlinking}
-                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50 flex-shrink-0"
+                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50 flex-shrink-0"
                     title="Премахни"
                   >
                     {isUnlinking ? (
@@ -244,7 +244,7 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
               <h2 className="text-lg font-semibold text-gray-900">Избери имот</h2>
               <button
                 onClick={() => setModalOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                className="p-1.5 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -272,7 +272,7 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
                   <Loader2 className="w-6 h-6 animate-spin text-[#D4AF37]" />
                 </div>
               ) : filteredEntries.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-16">
+                <p className="text-sm text-gray-600 text-center py-16">
                   {filterQuery.trim() ? "Няма намерени имоти" : "Всички имоти са вече свързани"}
                 </p>
               ) : (
@@ -334,7 +334,7 @@ export default function LinkedProperties({ contactId, initialProperties }: Linke
 
             {/* Footer count */}
             {!modalLoading && (
-              <div className="px-6 py-3 border-t border-gray-100 text-xs text-gray-400">
+              <div className="px-6 py-3 border-t border-gray-100 text-xs text-gray-600">
                 {filteredEntries.length} имота
               </div>
             )}

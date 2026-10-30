@@ -7,7 +7,7 @@ export default function MortgageSection({ price }: { price: number }): React.Rea
   return (
     <DetailSection title="Ипотечен калкулатор" id="mortgage">
       <MortgageCalculator price={price} />
-      <p className="mt-4 text-xs text-charcoal/60">
+      <p className="mt-4 text-xs text-charcoal/75">
         Ориентировъчно изчисление. Реалните условия зависят от банката и вашия профил – свържете се с нас за съдействие
         при кредитирането.
       </p>

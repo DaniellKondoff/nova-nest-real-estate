@@ -13,6 +13,7 @@ import { ArrowRight, MapPin, Phone, ShieldCheck } from "lucide-react";
 import HeroSearchForm from "@/components/forms/HeroSearchForm";
 import { getCachedPropertyCategories } from "@/lib/queries/categories";
 import { getCachedNeighborhoods } from "@/lib/queries/neighborhoods";
+import { getListingStats } from "@/lib/queries/listing-index";
 import { containerClass } from "@/components/ui/section";
 import { site } from "@/config/site";
 import { cn } from "@/lib/utils";
@@ -21,17 +22,19 @@ export interface HeroSectionProps {
   id?: string;
 }
 
-const STATS = [
-  { value: "95%", label: "Успешни сделки" },
-  { value: "24/7", label: "Съдействие" },
-  { value: "100%", label: "Доверие" },
-];
-
 export default async function HeroSection({ id }: HeroSectionProps): Promise<React.ReactElement> {
-  const [categories, neighborhoods] = await Promise.all([
+  const [categories, neighborhoods, stats] = await Promise.all([
     getCachedPropertyCategories().catch(() => []),
     getCachedNeighborhoods().catch(() => []),
+    getListingStats(),
   ]);
+
+  // Live, verifiable numbers only (no marketing percentages)
+  const STATS = [
+    { value: String(stats.total), label: stats.total === 1 ? "активна обява" : "активни обяви" },
+    { value: String(stats.neighborhoods), label: stats.neighborhoods === 1 ? "квартал" : "квартала и села" },
+    { value: "Пон–Съб", label: "на ваше разположение" },
+  ];
 
   return (
     <section
@@ -86,14 +89,16 @@ export default async function HeroSection({ id }: HeroSectionProps): Promise<Rea
             </a>
           </div>
 
-          <dl className="mt-10 hidden max-w-md grid-cols-3 gap-6 border-t border-white/10 pt-6 lg:grid">
-            {STATS.map((s) => (
-              <div key={s.label}>
-                <dt className="text-sm text-white/70">{s.label}</dt>
-                <dd className="order-first text-2xl font-bold text-accent">{s.value}</dd>
-              </div>
-            ))}
-          </dl>
+          {stats.total > 0 && (
+            <dl className="mt-10 hidden max-w-md grid-cols-3 gap-6 border-t border-white/10 pt-6 lg:grid">
+              {STATS.map((s) => (
+                <div key={s.label} className="flex flex-col">
+                  <dt className="text-sm text-white/70">{s.label}</dt>
+                  <dd className="order-first text-2xl font-bold text-accent">{s.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
 
         {/* Search */}

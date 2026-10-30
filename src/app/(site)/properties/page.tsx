@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { generateMetadata as buildMetadata } from "@/lib/seo/metadata";
 import { getPropertiesBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { filterListings, landingPathFor } from "@/lib/seo/landing";
+import { neighborhoodLabel } from "@/lib/seo/property-metadata";
 import { getLandingData } from "@/lib/queries/landing-data";
 import { searchPropertyListings } from "@/lib/queries/property-listings";
 import { getCachedPropertyCategories } from "@/lib/queries/categories";
@@ -41,11 +42,11 @@ async function getFilterOptions() {
   return { categories: lean(categories), neighborhoods: lean(neighborhoods), features };
 }
 
-/** "Имоти за продажба в Стара Загора – кв. Център" */
+/** "Имоти за продажба в Стара Загора – кв. Център" (or "– село X") */
 function buildTitle(filters: PropertySearchFilters, neighborhoods: FilterOption[]): string {
   const op = filters.operationType === "sale" ? " за продажба" : filters.operationType === "rent" ? " под наем" : "";
   const nbh = neighborhoods.find((n) => n.id === filters.neighborhoodId)?.name_bg;
-  return `Имоти${op} в Стара Загора${nbh ? ` – кв. ${nbh}` : ""}`;
+  return `Имоти${op} в Стара Загора${nbh ? ` – ${neighborhoodLabel(nbh)}` : ""}`;
 }
 
 /** Only "landing-page" combinations (operation / neighborhood / category, no ranges) are indexable */

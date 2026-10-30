@@ -74,7 +74,7 @@ export default function LandingPage({
             <dl className="mt-6 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-4">
               {facts.map((fact) => (
                 <div key={fact.label} className="rounded-xl border border-border bg-gray-light px-4 py-3 sm:min-w-40">
-                  <dt className="text-xs font-medium text-charcoal/60 sm:text-sm">{fact.label}</dt>
+                  <dt className="text-xs font-medium text-charcoal/75 sm:text-sm">{fact.label}</dt>
                   <dd className="mt-0.5 text-lg font-bold text-primary">{fact.value}</dd>
                 </div>
               ))}

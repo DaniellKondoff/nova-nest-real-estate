@@ -146,7 +146,7 @@ export default function CreateContactModal({ isOpen, onClose, onSuccess }: Creat
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded disabled:opacity-50"
+            className="p-1 text-gray-500 hover:text-gray-600 rounded disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>

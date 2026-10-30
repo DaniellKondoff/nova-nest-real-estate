@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import type { PropertySearchFilters } from "@/types/search";
 import type { FeatureOption } from "@/lib/queries/features";
+import { neighborhoodLabel } from "@/lib/seo/property-metadata";
 import { buildPropertiesHref } from "@/lib/search/params";
 import type { FilterOption } from "./PropertyFilterForm";
 import { ListingLink } from "./PropertiesNavigation";
@@ -33,7 +34,7 @@ export default function ActiveFilterChips({ filters, categories, neighborhoods, 
   if (typeof filters.neighborhoodId === "number")
     chips.push({
       key: "nbh",
-      label: `кв. ${neighborhoods.find((n) => n.id === filters.neighborhoodId)?.name_bg ?? ""}`.trim(),
+      label: neighborhoodLabel(neighborhoods.find((n) => n.id === filters.neighborhoodId)?.name_bg) ?? "Квартал",
       next: without({ neighborhoodId: undefined }),
     });
   if (typeof filters.minPriceEur === "number")

@@ -74,3 +74,23 @@ export function countByNeighborhood(listings: ListingIndexEntry[]): Map<number, 
   }
   return counts;
 }
+
+export interface ListingStats {
+  total: number;
+  sale: number;
+  rent: number;
+  /** Neighborhoods and villages with at least one available listing */
+  neighborhoods: number;
+}
+
+/** Live counts for trust stats on the home page (zeros when the index can't be loaded) */
+export async function getListingStats(): Promise<ListingStats> {
+  const listings = await getCachedListingIndex().catch(() => [] as ListingIndexEntry[]);
+  const rent = listings.filter((l) => l.operationType === "rent").length;
+  return {
+    total: listings.length,
+    sale: listings.length - rent,
+    rent,
+    neighborhoods: countByNeighborhood(listings).size,
+  };
+}

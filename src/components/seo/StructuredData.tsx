@@ -3,32 +3,16 @@
  * Provides Schema.org JSON-LD structured data for rich search results
  */
 
-import { generateOrganizationSchema, generateWebsiteSchema, generateAggregateRatingSchema, generateReviewsSchema } from '@/lib/seo/generate-schema';
-import { getCachedApprovedTestimonials, getAggregateRatingStatic } from '@/lib/queries/testimonials';
+import { generateOrganizationSchema, generateWebsiteSchema } from '@/lib/seo/generate-schema';
 
 /**
  * Organization Schema Component
- * Renders RealEstateAgent schema for business information
- * Enables Google Maps integration, business hours, contact info, and star ratings in search results
+ * Renders RealEstateAgent schema for business information (NAP, hours, contact).
+ * No review/aggregateRating: self-published testimonials are not eligible for review
+ * rich results, and this schema is rendered on every page including listings.
  */
-export async function OrganizationSchema() {
-  // Fetch rating and review data — both derived from the same cached testimonials call
-  const testimonials = await getCachedApprovedTestimonials();
-  const { averageRating, reviewCount } = await getAggregateRatingStatic();
-  
-  // Generate base organization schema
-  const baseSchema = generateOrganizationSchema();
-  
-  // Add rating and review data if available
-  const schema = {
-    ...baseSchema,
-    ...(reviewCount > 0 && {
-      aggregateRating: generateAggregateRatingSchema(averageRating, reviewCount)
-    }),
-    ...(testimonials.length > 0 && {
-      review: generateReviewsSchema(testimonials)
-    })
-  };
+export function OrganizationSchema() {
+  const schema = generateOrganizationSchema();
 
   return (
     <script

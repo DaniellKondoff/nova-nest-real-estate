@@ -4,6 +4,7 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { generateNeighborhoodStructuredData } from "@/lib/seo/neighborhood-metadata";
 import { getNeighborhoodBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { generateNeighborhoodMetadata } from "@/lib/seo/neighborhood-metadata";
+import { neighborhoodLabel } from "@/lib/seo/property-metadata";
 import {
   getCachedNeighborhoods,
   getCachedPropertiesByNeighborhood,
@@ -112,8 +113,8 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
             title={`Имоти в ${neighborhood.name_bg}`}
             description={
               propertyCount > 0
-                ? `${propertyCount} активни обяви в квартал ${neighborhood.name_bg}.`
-                : `В момента няма активни обяви в квартал ${neighborhood.name_bg}.`
+                ? `${propertyCount} активни обяви в ${neighborhoodLabel(neighborhood.name_bg)}.`
+                : `В момента няма активни обяви в ${neighborhoodLabel(neighborhood.name_bg)}.`
             }
             align="left"
             className="mb-0 md:mb-0"

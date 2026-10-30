@@ -34,7 +34,7 @@ const FEATURE_GROUP_LABELS: Record<string, string> = {
 const FEATURE_GROUP_ORDER = ["buildingType", "interior", "exterior", "building", "location"];
 
 export const fieldClass =
-  "h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 text-base text-primary shadow-subtle outline-none transition-colors placeholder:text-gray-400 hover:border-primary/40 focus:border-accent focus:ring-2 focus:ring-accent/30 md:h-11 md:text-[15px]";
+  "h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 text-base text-primary shadow-subtle outline-none transition-colors placeholder:text-gray-500 hover:border-primary/40 focus:border-accent focus:ring-2 focus:ring-accent/30 md:h-11 md:text-[15px]";
 const labelClass = "mb-1.5 block text-sm font-medium text-primary";
 
 function OperationToggle({ value, autoSubmit }: { value?: string; autoSubmit: boolean }) {
@@ -99,7 +99,7 @@ function RangeInputs({
               aria-label={`${label} – ${f.placeholder.toLowerCase()}`}
               className={cn(fieldClass, "pr-10")}
             />
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">{unit}</span>
+            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">{unit}</span>
           </div>
         ))}
       </div>
@@ -299,7 +299,7 @@ export default function PropertyFilterForm({
           <div className="space-y-4">
             {groupedFeatures.map((group) => (
               <div key={group.key}>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-charcoal/60">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-charcoal/75">
                   {FEATURE_GROUP_LABELS[group.key] ?? group.key}
                 </p>
                 <div className="flex flex-wrap gap-2">

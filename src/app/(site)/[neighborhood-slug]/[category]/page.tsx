@@ -4,6 +4,7 @@ import { getLandingData } from "@/lib/queries/landing-data";
 import { searchPropertyListings } from "@/lib/queries/property-listings";
 import { generateMetadata as buildMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
+import { neighborhoodLabel } from "@/lib/seo/property-metadata";
 import {
   computeListingStats,
   filterListings,
@@ -56,7 +57,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { neighborhood, category, stats, h1, isRent } = await resolve(params);
   return buildMetadata({
     title: `${h1} – ${listingCountLabel(stats.count)}`,
-    description: `${category.plural} в квартал ${neighborhood.name_bg}, Стара Загора – обяви със снимки, цени и описание. ${statsSentence(stats, isRent)}`,
+    description: `${category.plural} в ${neighborhoodLabel(neighborhood.name_bg)}, Стара Загора – обяви със снимки, цени и описание. ${statsSentence(stats, isRent)}`,
     path: neighborhoodCategoryPath(neighborhood, category),
   });
 }
@@ -87,7 +88,7 @@ export default async function NeighborhoodCategoryPage({ params }: { params: Par
     .map(({ n, count }) => ({ href: neighborhoodCategoryPath(n, category), label: `${category.plural} в ${n.name_bg}`, count }));
 
   const intro = [
-    `${category.plural} в квартал ${neighborhood.name_bg}, Стара Загора, предлагани от Nova Nest.`,
+    `${category.plural} в ${neighborhoodLabel(neighborhood.name_bg)}, Стара Загора, предлагани от Nova Nest.`,
     statsSentence(stats, isRent),
     "Свържете се с нас за оглед или за още информация за квартала.",
   ]

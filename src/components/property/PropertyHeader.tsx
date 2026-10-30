@@ -51,7 +51,7 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
           <MapPin className="h-5 w-5 shrink-0 text-accent-dark" aria-hidden="true" />
           <span className="truncate">{nbh ? `${nbh}, Стара Загора` : "Стара Загора"}</span>
         </p>
-        <p className="mt-1 text-sm text-charcoal/60">
+        <p className="mt-1 text-sm text-charcoal/75">
           Обява № {p.id}
           {updated && (
             <>
@@ -65,10 +65,10 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
         <div>
           <p className="text-3xl font-bold text-primary sm:text-4xl">
             {hasPrice ? formatPrice(p.price_eur) : "Цена при запитване"}
-            {isRent && hasPrice && <span className="text-lg font-medium text-charcoal/60"> / месец</span>}
+            {isRent && hasPrice && <span className="text-lg font-medium text-charcoal/75"> / месец</span>}
           </p>
           {(pricePerSqm || p.price_bgn) && (
-            <p className="mt-1 text-sm text-charcoal/60">
+            <p className="mt-1 text-sm text-charcoal/75">
               {pricePerSqm && <>{new Intl.NumberFormat("bg-BG").format(pricePerSqm)} €/m²</>}
               {pricePerSqm && p.price_bgn ? " · " : null}
               {p.price_bgn ? <>{new Intl.NumberFormat("bg-BG").format(p.price_bgn)} лв.</> : null}

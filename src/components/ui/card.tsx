@@ -126,7 +126,7 @@ export const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(
         {imageSrc ? (
           <Image src={imageSrc} alt={imageAlt} fill className="object-cover" sizes="(min-width: 1024px) 600px, 100vw" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-charcoal/60">Без изображение</div>
+          <div className="absolute inset-0 flex items-center justify-center text-charcoal/75">Без изображение</div>
         )}
       </div>
     );

@@ -35,7 +35,7 @@ export default function PropertyKeyFacts({ property }: { property: PropertyWithD
             <Icon className="h-5 w-5 text-accent-dark" aria-hidden />
           </span>
           <div className="min-w-0">
-            <dt className="text-xs text-charcoal/60">{label}</dt>
+            <dt className="text-xs text-charcoal/75">{label}</dt>
             <dd className="whitespace-nowrap font-semibold leading-snug text-primary">{value}</dd>
           </div>
         </div>

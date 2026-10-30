@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Loader2, Send, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/design-tokens";
 import { ContactFormSchema, type ContactFormData } from "@/lib/validations";
+import { useAntiSpam } from "./anti-spam";
 
 export interface ContactFormProps {
   onSuccess?: () => void;
@@ -23,6 +24,7 @@ export default function ContactForm({
   const [submitStatus, setSubmitStatus] = React.useState<{ type: "success" | "error"; message?: string } | null>(null);
   const successRef = React.useRef<HTMLDivElement | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
+  const { honeypot, antiSpamFields } = useAntiSpam();
 
   const {
     register,
@@ -74,7 +76,7 @@ export default function ContactForm({
       const res = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, ...antiSpamFields() }),
         signal: controller.signal,
       });
       clearTimeout(id);
@@ -116,7 +118,7 @@ export default function ContactForm({
   };
 
   const baseInput =
-    "block w-full rounded-xl border bg-white text-[16px] leading-[1.5] transition duration-200 placeholder:text-gray-400 text-charcoal";
+    "block w-full rounded-xl border bg-white text-[16px] leading-[1.5] transition duration-200 placeholder:text-gray-500 text-charcoal";
   const inputPadding = "px-4 py-3"; // ~12px 16px
   const inputBorderDefault = "border-gray-300";
   const inputFocus =
@@ -137,7 +139,7 @@ export default function ContactForm({
     <form
       aria-label="Форма за контакт"
       onSubmit={handleSubmit(onLocalSubmit)}
-      className={cn("rounded-card bg-white p-5 shadow-card sm:p-8", className)}
+      className={cn("relative rounded-card bg-white p-5 shadow-card sm:p-8", className)}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setServerError(null);
@@ -348,6 +350,7 @@ export default function ContactForm({
       {/* Live regions for SR announcements */}
       <p className="sr-only" aria-live="polite">{serverMessage ?? ""}</p>
       <p className="sr-only" aria-live="assertive">{serverError ?? ""}</p>
+      {honeypot}
 
       {/* Auto-dismiss success after 8s */}
       {submitStatus?.type === "success" && (

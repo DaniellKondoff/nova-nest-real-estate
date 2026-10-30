@@ -268,7 +268,7 @@ export default function TasksSection({ contactId, initialTasks }: TasksSectionPr
 
       {/* Open tasks */}
       {openTasks.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-4">Няма активни задачи</p>
+        <p className="text-sm text-gray-600 text-center py-4">Няма активни задачи</p>
       ) : (
         <div className="divide-y divide-gray-100">
           {openTasks.map((task) => {
@@ -303,7 +303,7 @@ export default function TasksSection({ contactId, initialTasks }: TasksSectionPr
                 {/* Due date */}
                 <div className="flex-shrink-0 flex flex-col items-end gap-0.5">
                   <span
-                    className={`text-xs font-medium ${overdue ? "text-red-500" : "text-gray-400"}`}
+                    className={`text-xs font-medium ${overdue ? "text-red-500" : "text-gray-600"}`}
                   >
                     {formatDueDate(task.due_date)}
                   </span>
@@ -357,7 +357,7 @@ export default function TasksSection({ contactId, initialTasks }: TasksSectionPr
                     </span>
 
                     {/* Title (strikethrough) */}
-                    <span className="flex-1 text-sm text-gray-400 line-through min-w-0 truncate">
+                    <span className="flex-1 text-sm text-gray-500 line-through min-w-0 truncate">
                       {task.title}
                     </span>
 

@@ -110,7 +110,7 @@ export function TodaysTasksWidget() {
       )}
 
       {!loading && !error && tasks.length === 0 && (
-        <p className="text-sm text-gray-400 text-center py-4">
+        <p className="text-sm text-gray-600 text-center py-4">
           Няма задачи за днес 🎉
         </p>
       )}
@@ -160,7 +160,7 @@ export function TodaysTasksWidget() {
                 <div className="flex-shrink-0 flex flex-col items-end gap-0.5">
                   <span
                     className={`text-xs font-medium ${
-                      overdue ? "text-red-500" : "text-gray-400"
+                      overdue ? "text-red-500" : "text-gray-600"
                     }`}
                   >
                     {formatDueDate(task.due_date)}

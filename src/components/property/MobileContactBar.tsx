@@ -1,5 +1,6 @@
 import React from "react";
-import { MessageSquare, Phone } from "lucide-react";
+import { MessageCircle, MessageSquare, Phone } from "lucide-react";
+import { viberHref } from "@/lib/contact-links";
 
 interface MobileContactBarProps {
   phoneNumber: string;
@@ -10,6 +11,8 @@ interface MobileContactBarProps {
   location?: string | null;
   /** Anchor id of the inquiry form to jump to */
   formAnchor?: string;
+  /** Pre-filled Viber message (e.g. with the listing URL) */
+  viberDraft?: string;
 }
 
 /**
@@ -23,6 +26,7 @@ export default function MobileContactBar({
   isRent = false,
   location,
   formAnchor = "contact-sidebar",
+  viberDraft,
 }: MobileContactBarProps): React.ReactElement {
   return (
     <div
@@ -33,9 +37,9 @@ export default function MobileContactBar({
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-bold leading-tight text-primary">
             {price ?? "Цена при запитване"}
-            {price && isRent && <span className="text-sm font-medium text-charcoal/60"> / мес.</span>}
+            {price && isRent && <span className="text-sm font-medium text-charcoal/75"> / мес.</span>}
           </p>
-          {location && <p className="truncate text-xs text-charcoal/60">{location}</p>}
+          {location && <p className="truncate text-xs text-charcoal/75">{location}</p>}
         </div>
         <a
           href={`tel:${phoneNumber}`}
@@ -45,11 +49,18 @@ export default function MobileContactBar({
           <Phone className="h-5 w-5" aria-hidden />
         </a>
         <a
+          href={viberHref(viberDraft)}
+          aria-label="Пишете ни във Viber"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-viber text-white transition-opacity hover:opacity-90 active:scale-[0.98]"
+        >
+          <MessageCircle className="h-5 w-5" aria-hidden />
+        </a>
+        <a
           href={`#${formAnchor}`}
-          className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-4 font-semibold text-primary transition-colors hover:bg-accent-light active:scale-[0.98]"
+          className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-4 font-semibold text-primary transition-colors hover:bg-accent-light active:scale-[0.98] max-[399px]:px-3"
         >
           <MessageSquare className="h-5 w-5" aria-hidden />
-          Запитване
+          <span className="max-[399px]:sr-only">Запитване</span>
         </a>
       </div>
     </div>

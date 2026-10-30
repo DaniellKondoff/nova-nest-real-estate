@@ -5,7 +5,7 @@ import { Building2, BedDouble, Layers, MapPin, Ruler } from "lucide-react";
 import type { PropertyWithDetails } from "@/types/property";
 import type { Tables } from "@/types/database.generated";
 import { propertyPath } from "@/lib/seo/property-slug";
-import { displayTitle } from "@/lib/seo/property-metadata";
+import { displayTitle, neighborhoodLabel } from "@/lib/seo/property-metadata";
 import { cn } from "@/lib/utils";
 import { formatPrice, isNewProperty } from "./utils";
 
@@ -133,7 +133,7 @@ export default function PropertyCard({
         <p className="flex min-w-0 items-center gap-1.5 text-sm text-charcoal/70">
           <MapPin className="h-4 w-4 shrink-0 text-accent-dark" aria-hidden="true" />
           <span className="truncate">
-            {neighborhoodName ? `кв. ${neighborhoodName}` : "Стара Загора"}
+            {neighborhoodLabel(neighborhoodName) ?? "Стара Загора"}
             {categoryName ? ` · ${categoryName}` : ""}
           </span>
         </p>

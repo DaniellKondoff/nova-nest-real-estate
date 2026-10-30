@@ -311,7 +311,7 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
 
       {/* Timeline */}
       {activities.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-6">Няма добавени активности</p>
+        <p className="text-sm text-gray-600 text-center py-6">Няма добавени активности</p>
       ) : (
         <div className="space-y-4">
           {activities.map((activity, index) => {
@@ -421,12 +421,12 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
                         <span className="text-xs font-semibold text-gray-700">
                           {CRM_ACTIVITY_TYPE_LABELS[type]}
                         </span>
-                        <span className="text-xs text-gray-400">{formatDate(activity.occurred_at)}</span>
+                        <span className="text-xs text-gray-600">{formatDate(activity.occurred_at)}</span>
                         <div className="ml-auto flex items-center gap-1">
                           <button
                             onClick={() => startEdit(activity)}
                             title="Редактирай"
-                            className="p-1 text-gray-400 hover:text-[#D4AF37] hover:bg-yellow-50 rounded transition-colors"
+                            className="p-1 text-gray-500 hover:text-[#D4AF37] hover:bg-yellow-50 rounded transition-colors"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
@@ -434,7 +434,7 @@ export default function ActivityTimeline({ contactId, initialActivities }: Activ
                             onClick={() => setConfirmDeleteId(activity.id)}
                             disabled={isDeleting}
                             title="Изтрий"
-                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                            className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
                           >
                             {isDeleting ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />

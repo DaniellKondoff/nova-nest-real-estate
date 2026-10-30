@@ -7,16 +7,18 @@ import { Check, Loader2, TriangleAlert } from "lucide-react";
 import type { z } from "zod";
 import { ContactFormSchema } from "@/lib/validations";
 import { cn } from "@/lib/utils";
+import { useAntiSpam } from "@/components/forms/anti-spam";
 
 type InquiryFormData = z.infer<typeof ContactFormSchema>;
 
 const inputClass =
-  "w-full rounded-xl border bg-white px-4 py-3 text-base text-primary placeholder:text-gray-400 outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-60";
+  "w-full rounded-xl border bg-white px-4 py-3 text-base text-primary placeholder:text-gray-500 outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-60";
 
 /** Property inquiry form (client island). Sends the property id so the agent knows which listing it is about. */
 export default function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number; propertyTitle: string }) {
   const [success, setSuccess] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
+  const { honeypot, antiSpamFields } = useAntiSpam();
 
   const {
     register,
@@ -46,6 +48,7 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
           message: values.message,
           property_id: propertyId,
           inquiry_type: "property_interest",
+          ...antiSpamFields(),
         }),
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
@@ -103,7 +106,7 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="relative space-y-4" noValidate>
       {apiError && (
         <div role="alert" className="flex items-start gap-2 rounded-xl bg-red-50 p-3 text-sm text-red-800">
           <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
@@ -113,7 +116,7 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
 
       {field("full_name", "Име и фамилия", { type: "text", autoComplete: "name", placeholder: "Иван Иванов" })}
       {field("email", "Имейл", { type: "email", autoComplete: "email", inputMode: "email", placeholder: "name@example.com" })}
-      {field("phone", <>Телефон <span className="font-normal text-charcoal/50">(по избор)</span></>, {
+      {field("phone", <>Телефон <span className="font-normal text-charcoal/75">(по избор)</span></>, {
         type: "tel",
         autoComplete: "tel",
         inputMode: "tel",
@@ -130,9 +133,14 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
           {...register("message")}
           disabled={isSubmitting}
           aria-invalid={errors.message ? "true" : "false"}
+          aria-describedby={errors.message ? "inq-message-error" : undefined}
           className={cn(inputClass, "resize-y", errors.message ? "border-red-500" : "border-gray-300")}
         />
-        {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>}
+        {errors.message && (
+          <p id="inq-message-error" className="mt-1 text-sm text-red-600">
+            {errors.message.message}
+          </p>
+        )}
       </div>
 
       <button
@@ -149,7 +157,8 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
           "Изпратете запитване"
         )}
       </button>
-      <p className="text-center text-xs text-charcoal/50">Отговаряме в рамките на работния ден.</p>
+      <p className="text-center text-xs text-charcoal/75">Отговаряме в рамките на работния ден.</p>
+      {honeypot}
     </form>
   );
 }
