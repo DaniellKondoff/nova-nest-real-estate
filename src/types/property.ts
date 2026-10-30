@@ -208,6 +208,8 @@ export interface PropertySearchFilters {
   maxPriceEur?: number;
   minArea?: number;
   maxArea?: number;
+  /** Room counts (1–4, where 4 means "4+") – "едностаен / двустаен / тристаен / многостаен" */
+  rooms?: number[];
   minBedrooms?: number;
   minBathrooms?: number;
   isFeatured?: boolean;

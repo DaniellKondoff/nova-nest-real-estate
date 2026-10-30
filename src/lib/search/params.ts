@@ -3,7 +3,7 @@ import type { PropertySearchFilters, SortOption } from "@/types/search";
 /**
  * Shared (server + client) helpers for the /properties URL contract.
  * URL params: operation, category, neighborhood, minPrice, maxPrice, minArea, maxArea,
- * features (comma-separated or repeated), search, sort, page.
+ * rooms + features (comma-separated or repeated), minBedrooms, new, featured, search, sort, page.
  */
 
 export const PROPERTIES_PATH = "/properties/";
@@ -19,6 +19,16 @@ export const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 ];
 
 const SORT_VALUES = new Set<SortOption>(SORT_OPTIONS.map((o) => o.value));
+
+/** Room-count filter values; 4 means "4 or more" */
+export const ROOM_OPTIONS: Array<{ value: number; label: string }> = [
+  { value: 1, label: "Едностаен" },
+  { value: 2, label: "Двустаен" },
+  { value: 3, label: "Тристаен" },
+  { value: 4, label: "Многостаен" },
+];
+
+const ROOM_VALUES = new Set(ROOM_OPTIONS.map((o) => o.value));
 
 /** Minimal read interface satisfied by URLSearchParams and our record adapter */
 interface ParamReader {
@@ -66,6 +76,11 @@ const parseNumberList = (values: string[]): number[] | undefined => {
   return numbers.length > 0 ? Array.from(new Set(numbers)) : undefined;
 };
 
+const parseRooms = (values: string[]): number[] | undefined => {
+  const rooms = parseNumberList(values)?.filter((r) => ROOM_VALUES.has(r)).sort((a, b) => a - b);
+  return rooms && rooms.length > 0 ? rooms : undefined;
+};
+
 /** Parse URL params into typed filters. Unknown keys are ignored on purpose. */
 export function urlParamsToFilters(input: URLSearchParams | RawSearchParams): PropertySearchFilters {
   const params = toParamReader(input);
@@ -81,6 +96,7 @@ export function urlParamsToFilters(input: URLSearchParams | RawSearchParams): Pr
     maxPriceEur: parseNumber(params.get("maxPrice")),
     minArea: parseNumber(params.get("minArea")),
     maxArea: parseNumber(params.get("maxArea")),
+    rooms: parseRooms(params.getAll("rooms")),
     minBedrooms: parseNumber(params.get("minBedrooms")),
     isFeatured: parseBoolean(params.get("featured")),
     isNew: parseBoolean(params.get("new")),
@@ -104,6 +120,7 @@ const URL_KEYS: Partial<Record<keyof PropertySearchFilters, string>> = {
   maxPriceEur: "maxPrice",
   minArea: "minArea",
   maxArea: "maxArea",
+  rooms: "rooms",
   minBedrooms: "minBedrooms",
   isFeatured: "featured",
   isNew: "new",

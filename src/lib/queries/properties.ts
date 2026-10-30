@@ -19,8 +19,17 @@ export type SearchFilters = {
   maxPrice?: number;
   minArea?: number;
   maxArea?: number;
+  /** Room counts; 4 means "4 or more" */
+  rooms?: number[];
+  minBedrooms?: number;
+  isNew?: boolean;
+  isFeatured?: boolean;
+  /** The property must have ALL of these features */
   featureIds?: number[];
 };
+
+/** Listings flagged new or created within this many days count as "Ново" (same rule as the card badge) */
+const NEW_LISTING_DAYS = 7;
 
 // Type for property row with basic relations (used in detail page fetching)
 export type PropertyWithRelations = Tables<"properties"> & {
@@ -89,9 +98,9 @@ export async function searchProperties(
   const supabase: DbClient = client ?? (getBrowserClient() as unknown as DbClient);
 
   try {
-    // Try the RPC function first (without feature filtering)
+    // All filters (incl. rooms and ALL-of features) run in Postgres – scripts/migrations/015_create_search_properties_v3.sql
     // @ts-expect-error - RPC function not in generated types yet
-    const { data, error } = await supabase.rpc("search_properties_v2", {
+    const { data, error } = await supabase.rpc("search_properties_v3", {
       p_search_term: searchTerm || undefined,
       p_language_code: "bg",
       p_category_id: filters.categoryId,
@@ -101,6 +110,11 @@ export async function searchProperties(
       p_max_price: filters.maxPrice,
       p_min_area: filters.minArea,
       p_max_area: filters.maxArea,
+      p_rooms: filters.rooms?.length ? filters.rooms : undefined,
+      p_min_bedrooms: filters.minBedrooms,
+      p_is_new: filters.isNew,
+      p_is_featured: filters.isFeatured,
+      p_feature_ids: filters.featureIds?.length ? filters.featureIds : undefined,
     });
 
     if (error) {
@@ -108,31 +122,7 @@ export async function searchProperties(
       return await searchPropertiesFallback(searchTerm, filters, client);
     }
 
-    let results = (data as any) || [];
-
-    // Apply feature filtering to RPC results if needed
-    if (filters.featureIds && filters.featureIds.length > 0) {
-      // Get property IDs that have the required features
-      const { data: featureData, error: featureError } = await supabase
-        .from("property_property_features")
-        .select("property_id")
-        .in("feature_id", filters.featureIds);
-
-      if (featureError) {
-        console.warn("Feature filtering failed:", featureError);
-      } else {
-        const propertyIdsWithFeatures = new Set(
-          (featureData || []).map((item) => item.property_id)
-        );
-        
-        // Filter RPC results to only include those with the required features
-        results = results.filter((item: any) => 
-          propertyIdsWithFeatures.has(item.id)
-        );
-      }
-    }
-
-    return results;
+    return (data as any) || [];
   } catch (error) {
     console.warn("RPC search failed, falling back to direct query:", error);
     return await searchPropertiesFallback(searchTerm, filters, client);
@@ -192,8 +182,29 @@ export async function searchPropertiesFallback(
     query = query.lte("area_sqm", filters.maxArea);
   }
 
-  // Note: Feature filtering will be handled after the main query
-  // due to the complexity of the many-to-many relationship
+  // Rooms: exact values, 4 = "4 or more" (only validated integers reach the filter string)
+  const rooms = (filters.rooms ?? []).filter((r) => Number.isInteger(r) && r >= 1 && r <= 4);
+  if (rooms.length > 0) {
+    const exact = rooms.filter((r) => r < 4);
+    const parts = [
+      ...(exact.length > 0 ? [`rooms.in.(${exact.join(",")})`] : []),
+      ...(rooms.includes(4) ? ["rooms.gte.4"] : []),
+    ];
+    query = query.or(parts.join(","));
+  }
+
+  if (typeof filters.minBedrooms === "number") {
+    query = query.gte("bedrooms", filters.minBedrooms);
+  }
+  if (typeof filters.isFeatured === "boolean") {
+    query = query.eq("is_featured", filters.isFeatured);
+  }
+  if (typeof filters.isNew === "boolean") {
+    const since = new Date(Date.now() - NEW_LISTING_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    query = filters.isNew
+      ? query.or(`is_new.eq.true,created_at.gte.${since}`)
+      : query.eq("is_new", false).lt("created_at", since);
+  }
 
   // Order by creation date (newest first)
   query = query.order("created_at", { ascending: false });
@@ -207,26 +218,28 @@ export async function searchPropertiesFallback(
 
   let filteredData = data || [];
 
-  // Apply feature filtering if needed
-  if (filters.featureIds && filters.featureIds.length > 0) {
-    // Get property IDs that have the required features
+  // Features: keep only properties that have ALL selected features.
+  // The join rows are scoped to the candidate ids, so this never loads the whole table.
+  const featureIds = Array.from(new Set(filters.featureIds ?? []));
+  if (featureIds.length > 0 && filteredData.length > 0) {
     const { data: featureData, error: featureError } = await supabase
       .from("property_property_features")
-      .select("property_id")
-      .in("feature_id", filters.featureIds);
+      .select("property_id, feature_id")
+      .in("property_id", filteredData.map((item) => item.id))
+      .in("feature_id", featureIds);
 
     if (featureError) {
-      console.warn("Feature filtering failed:", featureError);
-    } else {
-      const propertyIdsWithFeatures = new Set(
-        (featureData || []).map((item) => item.property_id)
-      );
-      
-      // Filter properties to only include those with the required features
-      filteredData = filteredData.filter((item) => 
-        propertyIdsWithFeatures.has(item.id)
-      );
+      console.error("Feature filtering failed:", featureError);
+      throw featureError;
     }
+
+    const featuresByProperty = new Map<number, Set<number>>();
+    (featureData || []).forEach(({ property_id, feature_id }) => {
+      const set = featuresByProperty.get(property_id) ?? new Set<number>();
+      set.add(feature_id);
+      featuresByProperty.set(property_id, set);
+    });
+    filteredData = filteredData.filter((item) => (featuresByProperty.get(item.id)?.size ?? 0) === featureIds.length);
   }
 
   // Transform to match expected format with rank

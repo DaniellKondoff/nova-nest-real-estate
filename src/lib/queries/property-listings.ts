@@ -46,6 +46,10 @@ function hasSearchCriteria(filters: PropertySearchFilters): boolean {
       typeof filters.minArea === "number" ||
       typeof filters.maxArea === "number" ||
       filters.operationType ||
+      (filters.rooms && filters.rooms.length > 0) ||
+      typeof filters.minBedrooms === "number" ||
+      typeof filters.isNew === "boolean" ||
+      typeof filters.isFeatured === "boolean" ||
       (filters.featureIds && filters.featureIds.length > 0)
   );
 }
@@ -89,6 +93,10 @@ export async function searchPropertyListings(
       maxPrice: filters.maxPriceEur,
       minArea: filters.minArea,
       maxArea: filters.maxArea,
+      rooms: filters.rooms,
+      minBedrooms: filters.minBedrooms,
+      isNew: filters.isNew,
+      isFeatured: filters.isFeatured,
       featureIds: filters.featureIds,
     };
 

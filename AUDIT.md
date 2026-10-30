@@ -142,7 +142,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   - Add a `/politika-za-poveritelnost/` page and link it from the footer.
   - Add one line under each submit button: "С изпращането се съгласявате с обработката на данните ви съгласно Политиката за поверителност."
 
-#### F-4: Some search filters are silently ignored · Impact M · Effort S
+#### F-4: Some search filters are silently ignored · Impact M · Effort S · ✅ Done (rooms landing pages still open)
 - **Problem:** `urlParamsToFilters` parses `minBedrooms`, `featured` and `new`, and `countActiveFilters` counts them. `searchPropertyListings` then builds `queryFilters` without them, and `hasSearchCriteria` ignores them too. A link such as `?minBedrooms=2` shows "1 active filter" but returns unfiltered results. The UI also has no **rooms** filter, which is the primary search axis in Bulgaria ("едностаен / двустаен / тристаен / многостаен").
 - **Where:**
   - `src/lib/queries/property-listings.ts:37-48`, `:82-91`
@@ -154,7 +154,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   - Show it as chips in the filter bar.
   - Consider landing pages such as `/imoti-za-prodazhba/dvustaini-apartamenti/` later. These are high-volume search queries.
 
-#### F-5: Feature filter returns "any of" instead of "all of", and loads the whole join table · Impact M · Effort S
+#### F-5: Feature filter returns "any of" instead of "all of", and loads the whole join table · Impact M · Effort S · ✅ Done (run migration 015)
 - **Problem:** with features "Асансьор" and "Паркинг" selected, users get listings that have *either* feature. The query also fetches every matching `property_property_features` row with no limit, then filters in JavaScript.
 - **Where:** `src/lib/queries/properties.ts:114-130` (and the same pattern in the fallback)
 - **Fix:** group by `property_id` and keep only properties where the count equals the number of selected features. Do it in the `search_properties_v2` RPC (`HAVING count(DISTINCT feature_id) = cardinality(p_feature_ids)`). Add a migration in `scripts/migrations/`.
