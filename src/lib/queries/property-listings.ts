@@ -1,8 +1,10 @@
+import { unstable_cache } from "next/cache";
 import type { PropertySearchFilters, PropertyWithDetails } from "@/types/property";
 import type { SortOption } from "@/types/search";
 import { getStaticServerClient } from "@/lib/supabase/server";
 import { searchProperties, searchPropertiesFallback } from "@/lib/queries/properties";
 import { LISTING_SELECT } from "@/lib/queries/listing-select";
+import { LISTINGS_CACHE_TAG } from "@/lib/queries/listing-index";
 
 /**
  * Server-side property listing search shared by the /properties page (SSR)
@@ -160,3 +162,13 @@ export async function searchPropertyListings(
     hasMore: totalPages > 0 && currentPage < totalPages,
   };
 }
+
+/** Newest available listings for the home page, purged with the other listing caches by revalidatePublicPages() */
+export const getCachedLatestListings = unstable_cache(
+  async (limit: number): Promise<Pick<PropertyListingResult, "properties" | "total">> => {
+    const { properties, total } = await searchPropertyListings({}, 1, limit);
+    return { properties, total };
+  },
+  ["latest-listings"],
+  { tags: [LISTINGS_CACHE_TAG], revalidate: 3600 }
+);

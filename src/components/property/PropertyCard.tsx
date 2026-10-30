@@ -64,7 +64,7 @@ export default function PropertyCard({
 
   const stats = [
     typeof p.area_sqm === "number" && p.area_sqm > 0
-      ? { icon: Ruler, value: `${p.area_sqm} m²`, label: "Площ" }
+      ? { icon: Ruler, value: `${Math.round(p.area_sqm)} м²`, label: "Площ" }
       : null,
     typeof p.rooms === "number" && p.rooms > 0
       ? { icon: BedDouble, value: pluralRooms(p.rooms), label: "Стаи" }

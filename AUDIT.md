@@ -47,7 +47,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
 
 ### UX & conversion
 
-#### UX-1: The home page shows no properties · Impact H · Effort S
+#### UX-1: The home page shows no properties · Impact H · Effort S · ✅ Done
 - **Problem:** `/` renders Hero → About → Services → Why us → Testimonials → Contact. There is no listing card anywhere. A real-estate visitor's first question is "what do you have?" To answer it they must use the search form or find "Всички имоти". The home page is also the strongest page for crawling, and it doesn't link to any property.
 - **Where:** `src/app/(site)/page.tsx:38-52`
 - **Fix:** add a server-rendered "Нови обяви" section right after the hero. Reuse the existing helpers:
