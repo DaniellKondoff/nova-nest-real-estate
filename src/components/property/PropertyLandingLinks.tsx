@@ -4,11 +4,17 @@ import type { PropertyWithDetails } from "@/types/property";
 import { getLandingData } from "@/lib/queries/landing-data";
 import {
   OPERATION_LANDINGS,
+  ROOM_LANDINGS,
   filterListings,
+  isApartmentCategory,
   neighborhoodCategoryPath,
   neighborhoodPath,
+  neighborhoodRoomsPath,
   operationCategoryPath,
   operationPath,
+  operationRoomsPath,
+  roomBucket,
+  roomLandingsFor,
   type OperationType,
 } from "@/lib/seo/landing";
 import DetailSection from "./DetailSection";
@@ -24,7 +30,21 @@ export default async function PropertyLandingLinks({ details }: { details: Prope
   const operation: OperationType = property.operation_type === "rent" ? "rent" : "sale";
   const op = OPERATION_LANDINGS[operation];
 
+  // Apartments: "Двустайни апартаменти в Казански" / "Двустайни апартаменти за продажба" when those pages exist
+  const room = isApartmentCategory(category) ? roomBucket(property.rooms) : null;
+  const roomLinks =
+    room && category
+      ? [
+          neighborhood &&
+          roomLandingsFor(listings, { neighborhoodId: neighborhood.id }, category.id).some((r) => r.room === room)
+            ? { href: neighborhoodRoomsPath(neighborhood, room), label: `${ROOM_LANDINGS[room].plural} в ${neighborhood.name_bg}`, scope: { neighborhoodId: neighborhood.id, categoryId: category.id, rooms: room } }
+            : null,
+          { href: operationRoomsPath(operation, room), label: `${ROOM_LANDINGS[room].plural} ${op.label}`, scope: { operationType: operation, categoryId: category.id, rooms: room } },
+        ]
+      : [];
+
   const candidates = [
+    ...roomLinks,
     neighborhood && category
       ? { href: neighborhoodCategoryPath(neighborhood, category), label: `${category.plural} в ${neighborhood.name_bg}`, scope: { neighborhoodId: neighborhood.id, categoryId: category.id } }
       : null,

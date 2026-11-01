@@ -11,6 +11,8 @@ interface ActiveFilterChipsProps {
   categories: FilterOption[];
   neighborhoods: FilterOption[];
   features: FeatureOption[];
+  /** Room chips are skipped while RoomsQuickFilter shows the same state */
+  hideRooms?: boolean;
 }
 
 const nf = new Intl.NumberFormat("bg-BG");
@@ -19,7 +21,7 @@ const nf = new Intl.NumberFormat("bg-BG");
  * Server-rendered "remove filter" chips. Each chip is a real link to the URL without that filter.
  * Mobile: a single horizontally scrollable row.
  */
-export default function ActiveFilterChips({ filters, categories, neighborhoods, features }: ActiveFilterChipsProps) {
+export default function ActiveFilterChips({ filters, categories, neighborhoods, features, hideRooms = false }: ActiveFilterChipsProps) {
   const chips: Array<{ key: string; label: string; next: PropertySearchFilters }> = [];
   const without = (patch: Partial<PropertySearchFilters>) => ({ ...filters, ...patch });
 
@@ -41,7 +43,7 @@ export default function ActiveFilterChips({ filters, categories, neighborhoods, 
     chips.push({ key: "minP", label: `от €${nf.format(filters.minPriceEur)}`, next: without({ minPriceEur: undefined }) });
   if (typeof filters.maxPriceEur === "number")
     chips.push({ key: "maxP", label: `до €${nf.format(filters.maxPriceEur)}`, next: without({ maxPriceEur: undefined }) });
-  filters.rooms?.forEach((value) => {
+  if (!hideRooms) filters.rooms?.forEach((value) => {
     const rest = filters.rooms!.filter((r) => r !== value);
     chips.push({
       key: `r${value}`,

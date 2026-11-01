@@ -12,9 +12,13 @@ import { countByNeighborhood, type ListingIndexEntry } from '@/lib/queries/listi
 import { getLandingData } from '@/lib/queries/landing-data';
 import {
   filterListings,
+  findApartmentCategory,
   neighborhoodCategoryPath,
+  neighborhoodRoomsPath,
   operationCategoryPath,
   operationPath,
+  operationRoomsPath,
+  roomLandingsFor,
   type OperationType,
 } from '@/lib/seo/landing';
 
@@ -70,6 +74,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const n of neighborhoods) {
     for (const c of categories) {
       addLanding(neighborhoodCategoryPath(n, c), filterListings(listings, { neighborhoodId: n.id, categoryId: c.id }));
+    }
+  }
+  // Apartment rooms pages ("двустайни апартаменти") – roomLandingsFor applies the thin/duplicate-content rules
+  const apartments = findApartmentCategory(categories);
+  if (apartments) {
+    for (const operation of ['sale', 'rent'] as OperationType[]) {
+      for (const r of roomLandingsFor(listings, { operationType: operation }, apartments.id)) {
+        addLanding(operationRoomsPath(operation, r.room), r.listings);
+      }
+    }
+    for (const n of neighborhoods) {
+      for (const r of roomLandingsFor(listings, { neighborhoodId: n.id }, apartments.id)) {
+        addLanding(neighborhoodRoomsPath(n, r.room), r.listings);
+      }
     }
   }
 

@@ -2,10 +2,14 @@ import { getLandingData } from "@/lib/queries/landing-data";
 import { countByNeighborhood } from "@/lib/queries/listing-index";
 import {
   OPERATION_LANDINGS,
+  ROOM_LANDINGS,
   filterListings,
+  findApartmentCategory,
   neighborhoodPath,
   operationCategoryPath,
   operationPath,
+  operationRoomsPath,
+  roomLandingsFor,
   type OperationType,
 } from "@/lib/seo/landing";
 
@@ -19,6 +23,8 @@ export interface SiteNavOperation extends SiteNavLink {
   operation: OperationType;
   /** Category landing pages of this operation that currently have listings */
   categories: SiteNavLink[];
+  /** Apartment rooms pages of this operation ("Двустайни апартаменти"…) that currently exist */
+  rooms: SiteNavLink[];
 }
 
 export interface SiteNavLinks {
@@ -37,6 +43,7 @@ export async function getSiteNavLinks(): Promise<SiteNavLinks> {
   try {
     const { categories, neighborhoods, listings } = await getLandingData();
 
+    const apartments = findApartmentCategory(categories);
     const operations: SiteNavOperation[] = [];
     for (const operation of ["sale", "rent"] as const) {
       const count = filterListings(listings, { operationType: operation }).length;
@@ -53,6 +60,13 @@ export async function getSiteNavLinks(): Promise<SiteNavLinks> {
             count: filterListings(listings, { operationType: operation, categoryId: c.id }).length,
           }))
           .filter((c) => c.count > 0),
+        rooms: apartments
+          ? roomLandingsFor(listings, { operationType: operation }, apartments.id).map((r) => ({
+              label: ROOM_LANDINGS[r.room].plural,
+              href: operationRoomsPath(operation, r.room),
+              count: r.listings.length,
+            }))
+          : [],
       });
     }
 

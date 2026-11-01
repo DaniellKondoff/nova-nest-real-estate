@@ -44,6 +44,13 @@ export default async function LatestListingsSection(): Promise<React.ReactElemen
         return { href: c.href, short: label, label, count: c.count };
       })
     ),
+    // Apartments for sale by room count – "Двустайни" on phones, the full phrase from sm
+    ...(nav.operations.find((op) => op.operation === "sale")?.rooms ?? []).map((r) => ({
+      href: r.href,
+      short: r.label.split(" ")[0],
+      label: `${r.label} ${OPERATION_LANDINGS.sale.label}`,
+      count: r.count,
+    })),
   ];
 
   return (

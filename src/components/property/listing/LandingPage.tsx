@@ -32,6 +32,8 @@ export interface LandingPageProps {
   breadcrumbs: BreadcrumbItem[];
   /** Key figures shown under the intro, e.g. { label: "Средна цена", value: "95 000 €" } */
   facts: Array<{ label: string; value: string }>;
+  /** Optional sub-navigation under the facts, e.g. apartments by room count */
+  quickNav?: React.ReactNode;
   properties: PropertyWithDetails[];
   total: number;
   /** Filterable /properties/ URL with the same scope (for "see all" and the empty state) */
@@ -50,6 +52,7 @@ export default function LandingPage({
   intro,
   breadcrumbs,
   facts,
+  quickNav,
   properties,
   total,
   allHref,
@@ -80,6 +83,7 @@ export default function LandingPage({
               ))}
             </dl>
           )}
+          {quickNav}
         </div>
       </section>
 

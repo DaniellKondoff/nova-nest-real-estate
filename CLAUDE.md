@@ -159,7 +159,8 @@ export async function GET(
 **Keyword landing pages** (`src/lib/seo/landing.ts`, ISR):
 - `/imoti-za-prodazhba/[category]/`, `/imoti-pod-naem/[category]/` (`(site)/_landing/operation-landing.tsx`), `/{neighborhood}/{category}/`
 - Category URL slugs are plural (`apartamenti`, `kashti`…) mapped from DB slugs in `CATEGORY_LANDING_NAMES`.
-- `/properties/` canonicalizes to the matching landing page (`landingPathFor`). Counts/stats come from `getCachedListingIndex()` (`lib/queries/listing-index.ts`) via `getLandingData()`.
+- Apartment rooms pages ("двустайни апартаменти"): `/imoti-za-prodazhba/dvustaini-apartamenti/`, `/imoti-pod-naem/…`, `/{neighborhood}/dvustaini-apartamenti/` – slugs in `ROOM_LANDINGS` (1–3, 4 = 4+), served by the same `[[...category]]` / `[category]` routes. Which pages exist is decided only by `roomLandingsFor()` (operation: ≥1 listing; neighborhood: ≥`MIN_NEIGHBORHOOD_ROOM_LISTINGS` and fewer than its `/apartamenti/` parent, else it's a duplicate) – routes, sitemap, nav and internal links all use it. UI: `RoomTypeNav` (tiles on apartment landing pages), `RoomsQuickFilter` (one-tap rooms pills on `/properties/`).
+- `/properties/` canonicalizes to the matching live landing page (`liveLandingPathFor`, incl. a single `rooms` value + apartments). Counts/stats come from `getCachedListingIndex()` (`lib/queries/listing-index.ts`) via `getLandingData()`.
 
 **Structured Data** (`src/components/seo/`): `OrganizationSchema`/`WebsiteSchema` (root layout), `BreadcrumbSchema` (one per page), `PropertySchema`, `ItemListSchema` (landing pages), `FAQSchema` (only for FAQs visible on the page).
 

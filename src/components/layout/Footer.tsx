@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { site } from "@/config/site";
 import { containerClass } from "@/components/ui/section";
-import { OPERATION_LANDINGS } from "@/lib/seo/landing";
+import { APARTMENT_LANDING_SLUG, OPERATION_LANDINGS } from "@/lib/seo/landing";
 import { getSiteNavLinks } from "@/lib/seo/nav-links";
 import { cn } from "@/lib/utils";
 import FooterBackToTopClient from "./FooterBackToTopClient";
@@ -28,10 +28,16 @@ async function getSeoLinks(): Promise<{ searches: FooterLink[]; neighborhoods: F
   const { operations, neighborhoods } = await getSiteNavLinks();
   const searches = operations.flatMap((op) => [
     { label: op.label, href: op.href },
-    ...op.categories.map((c) => ({ label: `${c.label} ${OPERATION_LANDINGS[op.operation].label}`, href: c.href })),
+    ...op.categories.flatMap((c) => [
+      { label: `${c.label} ${OPERATION_LANDINGS[op.operation].label}`, href: c.href },
+      // "Двустайни апартаменти за продажба" – the most searched apartment queries, right after apartments
+      ...(op.operation === "sale" && c.href.endsWith(`/${APARTMENT_LANDING_SLUG}/`)
+        ? op.rooms.map((r) => ({ label: `${r.label} ${OPERATION_LANDINGS[op.operation].label}`, href: r.href }))
+        : []),
+    ]),
   ]);
   return {
-    searches: searches.slice(0, 8),
+    searches: searches.slice(0, 10),
     neighborhoods: neighborhoods.map((n) => ({ label: `Имоти в ${n.label}`, href: n.href })),
   };
 }

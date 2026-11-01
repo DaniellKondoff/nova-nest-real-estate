@@ -20,12 +20,12 @@ export const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 
 const SORT_VALUES = new Set<SortOption>(SORT_OPTIONS.map((o) => o.value));
 
-/** Room-count filter values; 4 means "4 or more" */
-export const ROOM_OPTIONS: Array<{ value: number; label: string }> = [
-  { value: 1, label: "Едностаен" },
-  { value: 2, label: "Двустаен" },
-  { value: 3, label: "Тристаен" },
-  { value: 4, label: "Многостаен" },
+/** Room-count filter values; 4 means "4 or more" (`short` fits one row of pills on a 360px phone) */
+export const ROOM_OPTIONS: Array<{ value: number; label: string; short: string }> = [
+  { value: 1, label: "Едностаен", short: "1 стая" },
+  { value: 2, label: "Двустаен", short: "2 стаи" },
+  { value: 3, label: "Тристаен", short: "3 стаи" },
+  { value: 4, label: "Многостаен (4+)", short: "4+ стаи" },
 ];
 
 const ROOM_VALUES = new Set(ROOM_OPTIONS.map((o) => o.value));
