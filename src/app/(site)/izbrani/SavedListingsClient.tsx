@@ -4,12 +4,21 @@ import React from "react";
 import Link from "next/link";
 import { Heart, Info, RotateCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { clearSaved, removeSaved, useSavedIds } from "@/lib/saved/store";
+import { clearSaved, removeSaved, restoreSaved, useSavedIds } from "@/lib/saved/store";
+import UndoSnackbar from "@/components/property/saved/UndoSnackbar";
 import { cn } from "@/lib/utils";
 import SavedListingsView from "@/components/property/saved/SavedListingsView";
 import { getSavedListings, type SavedListingsResult } from "./actions";
 
 const MAX_SKELETONS = 6;
+
+interface UndoState {
+  seq: number;
+  ids: number[];
+  /** The list before the removal, so undo puts items back in place */
+  previousOrder: number[];
+  message: string;
+}
 
 function propertiesLabel(n: number): string {
   return n === 1 ? "1 имот" : `${n} имота`;
@@ -68,10 +77,27 @@ export default function SavedListingsClient() {
   const [notice, setNotice] = React.useState<string | null>(null);
   const [attempt, setAttempt] = React.useState(0);
   const [pending, startTransition] = React.useTransition();
+  const [undo, setUndo] = React.useState<UndoState | null>(null);
   const requestRef = React.useRef(0);
+  const undoSeq = React.useRef(0);
+  const prevIdsRef = React.useRef<number[] | null>(null);
+  // Removals that must not offer "Върни" (pruned missing listings) or already did (clear all)
+  const silentRemovals = React.useRef(new Set<number>());
   const key = ids.join(",");
 
   React.useEffect(() => setMounted(true), []);
+
+  // A heart tapped on this page removes one id – offer undo for it
+  React.useEffect(() => {
+    if (!mounted) return;
+    const prev = prevIdsRef.current;
+    prevIdsRef.current = ids;
+    if (!prev) return;
+    const removed = prev.filter((id) => !ids.includes(id) && !silentRemovals.current.delete(id));
+    if (removed.length === 1) {
+      setUndo({ seq: ++undoSeq.current, ids: removed, previousOrder: prev, message: "Имотът е премахнат от избрани" });
+    }
+  }, [mounted, ids]);
 
   React.useEffect(() => {
     if (!mounted) return;
@@ -87,17 +113,31 @@ export default function SavedListingsClient() {
       setResult(res);
       if (res.missing.length > 0) {
         setNotice(removedNotice(res.missing.length));
+        res.missing.forEach((id) => silentRemovals.current.add(id));
         removeSaved(res.missing);
       }
     });
   }, [mounted, key, attempt]);
 
+  // No blocking confirm(): clear at once and offer "Върни" in the snackbar
   const onClear = () => {
-    if (window.confirm("Да премахнем ли всички избрани имоти?")) {
-      setNotice(null);
-      clearSaved();
-    }
+    const snapshot = ids;
+    snapshot.forEach((id) => silentRemovals.current.add(id));
+    setNotice(null);
+    clearSaved();
+    setUndo({
+      seq: ++undoSeq.current,
+      ids: snapshot,
+      previousOrder: snapshot,
+      message: "Списъкът е изчистен",
+    });
   };
+
+  const onUndo = () => {
+    if (undo) restoreSaved(undo.ids, undo.previousOrder);
+    setUndo(null);
+  };
+  const onDismissUndo = React.useCallback(() => setUndo(null), []);
 
   const count = result && !result.error ? result.items.length : ids.length;
   const loading = !mounted || (ids.length > 0 && result === null);
@@ -147,6 +187,10 @@ export default function SavedListingsClient() {
             {result && <SavedListingsView items={result.items} />}
           </div>
         </>
+      )}
+
+      {undo && (
+        <UndoSnackbar key={undo.seq} message={undo.message} onUndo={onUndo} onDismiss={onDismissUndo} />
       )}
     </div>
   );

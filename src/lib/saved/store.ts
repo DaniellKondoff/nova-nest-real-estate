@@ -76,6 +76,18 @@ export function removeSaved(remove: number[]): void {
   write(getSavedIds().filter((id) => !drop.has(id)));
 }
 
+/**
+ * Undo: puts `restore` back at their positions in `previousOrder` (the list before removal).
+ * Anything saved in the meantime stays, in front.
+ */
+export function restoreSaved(restore: number[], previousOrder: number[] = restore): void {
+  if (restore.length === 0) return;
+  const current = getSavedIds();
+  const back = new Set([...restore, ...current]);
+  const newer = current.filter((id) => !previousOrder.includes(id));
+  write([...new Set([...newer, ...previousOrder.filter((id) => back.has(id))])]);
+}
+
 export function clearSaved(): void {
   write(EMPTY);
 }
