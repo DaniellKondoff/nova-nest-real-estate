@@ -171,7 +171,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   - Move the rate limit to durable storage, shared with F-1.
   - Set a daily spend cap in the Anthropic console.
 
-#### F-7: View counter is inflated · Impact M · Effort S
+#### F-7: View counter is inflated · Impact M · Effort S · ✅ Done (server dedupe reuses `rate_limit_hit` from migration 016 – no new table)
 - **Problem:** the route builds a `rateLimitKey` and never uses it. The comment says "1 view per IP per 5 minutes", but every page load counts. Googlebot runs JavaScript, so its renders count as views too **(assumption: Googlebot executes the POST; it generally does fetch during render)**. As a result, the numbers in `/admin/analytics/views` are unreliable.
 - **Where:** `src/app/api/properties/[id]/view/route.ts:22-36`, `src/hooks/usePropertyViewTracking.ts`
 - **Fix:**
