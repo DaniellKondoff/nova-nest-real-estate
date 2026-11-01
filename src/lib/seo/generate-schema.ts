@@ -4,7 +4,6 @@
  */
 
 import { SEO_CONFIG, ORGANIZATION_ID, WEBSITE_ID, DEFAULT_OG_IMAGE, absoluteUrl } from './config';
-import type { Testimonial } from '@/lib/queries/testimonials';
 
 /** Office address – must match the footer (site.contact.address) and the Google Business Profile exactly */
 export const OFFICE_ADDRESS = {
@@ -95,43 +94,4 @@ export function generateWebsiteSchema() {
     },
     inLanguage: 'bg-BG'
   };
-}
-
-/**
- * Generates AggregateRating schema for organization
- * @param averageRating - The average rating (0-5)
- * @param reviewCount - The total number of reviews
- * @returns AggregateRating schema object
- */
-export function generateAggregateRatingSchema(averageRating: number, reviewCount: number) {
-  return {
-    '@type': 'AggregateRating',
-    ratingValue: averageRating.toFixed(1),
-    reviewCount: reviewCount,
-    bestRating: 5,
-    worstRating: 1
-  };
-}
-
-/**
- * Generates Review schemas from testimonials
- * @param testimonials - Array of testimonials to convert to reviews
- * @returns Array of Review schema objects (limited to 10 most recent)
- */
-export function generateReviewsSchema(testimonials: Testimonial[]) {
-  return testimonials.slice(0, 10).map(testimonial => ({
-    '@type': 'Review',
-    author: {
-      '@type': 'Person',
-      name: testimonial.client_name
-    },
-    reviewRating: {
-      '@type': 'Rating',
-      ratingValue: testimonial.rating,
-      bestRating: 5,
-      worstRating: 1
-    },
-    reviewBody: testimonial.comment_text,
-    datePublished: new Date(testimonial.created_at).toISOString()
-  }));
 }
