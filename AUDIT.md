@@ -233,7 +233,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   - Export real square assets from `logo.svg`: `favicon.ico` (32), `icon.png` (512), `apple-icon.png` (180), `logo.png` (a real PNG of at least 112 px).
   - Better still, use the Next file conventions `src/app/icon.png` and `apple-icon.png`.
 
-#### S-5: Leftover English-locale code · Impact L · Effort S
+#### S-5: Leftover English-locale code · Impact L · Effort S · ✅ Done
 - **Problem:** the site is Bulgarian-only, which is correct: there is no hreflang to emit. However, `middleware.ts:9-13`, the `/en` redirect in `next.config.ts` and `src/lib/i18n/locales.ts` keep English-locale code alive, and CLAUDE.md still says "English secondary".
 - **Fix:** keep the `/en/*` → `/` 301 redirect, since old links may exist. Remove the duplicate redirect from either middleware or config, and update CLAUDE.md.
 

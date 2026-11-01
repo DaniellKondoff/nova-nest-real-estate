@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Nova Nest Real Estate** is a Bulgarian real estate platform built for Stara Zagora. The application is fully localized to Bulgarian (primary language) with optional English support. It provides property listings, search/filtering, neighborhood pages, SEO-optimized structured data, and an admin panel for managing properties, inquiries, and testimonials.
+**Nova Nest Real Estate** is a Bulgarian real estate platform built for Stara Zagora. The application is Bulgarian-only. It provides property listings, search/filtering, neighborhood pages, SEO-optimized structured data, and an admin panel for managing properties, inquiries, and testimonials.
 
 ## Technology Stack
 
@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **UI Components**: Radix UI primitives + custom components
 - **Forms**: React Hook Form + Zod validation
 - **Fonts**: Inter (Latin + Cyrillic subsets via next/font)
-- **i18n**: Bulgarian (default locale `bg`), English (`en`) secondary
+- **i18n**: Bulgarian only (`bg`); old `/en/*` URLs permanently redirect to `/` via `next.config.ts` redirects
 
 ## Essential Commands
 

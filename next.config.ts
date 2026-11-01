@@ -126,8 +126,9 @@ const nextConfig: NextConfig = {
       { source: "/about", destination: "/za-nas/", permanent: true },
       { source: "/services", destination: "/#services", permanent: true },
       { source: "/contact", destination: "/kontakti/", permanent: true },
-      // Normalize trailing slash
-      { source: "/en", destination: "/", permanent: false },
+      // Former English locale – the site is Bulgarian-only; keep old /en links working
+      { source: "/en", destination: "/", permanent: true },
+      { source: "/en/:path*", destination: "/:path*/", permanent: true },
     ];
   },
   env: {
