@@ -133,7 +133,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   ```
   Add the property headline and its public URL to the email, and set `replyTo: email`.
 
-#### F-3: No privacy policy and no consent on forms (GDPR) · Impact H · Effort S
+#### F-3: No privacy policy and no consent on forms (GDPR) · Impact H · Effort S · ✅ Done (add ЕИК in `site.legal`; have the text reviewed)
 - **Problem:** the contact and inquiry forms collect name, email, phone and a free-text message. The site has no privacy policy page and no consent notice. That is a GDPR (Регламент 2016/679) transparency requirement, and the Bulgarian data protection authority (КЗЛД) enforces it **(assumption: legal text to be supplied by the business)**.
 - **Where:**
   - The forms: `src/components/forms/ContactForm.tsx`, `src/components/property/PropertyInquiryForm.tsx`

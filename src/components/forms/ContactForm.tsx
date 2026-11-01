@@ -7,6 +7,7 @@ import { AlertCircle, Loader2, Send, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/design-tokens";
 import { ContactFormSchema, type ContactFormData } from "@/lib/validations";
 import { useAntiSpam } from "./anti-spam";
+import { PrivacyNotice } from "./PrivacyNotice";
 
 export interface ContactFormProps {
   onSuccess?: () => void;
@@ -349,6 +350,7 @@ export default function ContactForm({
             </>
           )}
         </button>
+        <PrivacyNotice className="mt-3" />
       </div>
 
       {/* Live regions for SR announcements */}

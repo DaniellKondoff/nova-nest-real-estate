@@ -5,6 +5,7 @@
 
 import type { MetadataRoute } from 'next';
 import { absoluteUrl } from '@/lib/seo/config';
+import { site } from '@/config/site';
 import { propertyPath } from '@/lib/seo/property-slug';
 import { isNeighborhoodIndexable } from '@/lib/seo/neighborhood-metadata';
 import { countByNeighborhood, type ListingIndexEntry } from '@/lib/queries/listing-index';
@@ -37,6 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: absoluteUrl('/'), lastModified: lastListingChange },
     { url: absoluteUrl('/properties/'), lastModified: lastListingChange },
+    { url: absoluteUrl(site.legal.privacyPolicyPath), lastModified: new Date(site.legal.privacyPolicyUpdated) },
   ];
 
   const propertyPages: MetadataRoute.Sitemap = listings.map((l) => ({

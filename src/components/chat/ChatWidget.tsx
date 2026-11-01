@@ -5,6 +5,7 @@ import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/design-tokens";
 import { ChatMessage } from "./ChatMessage";
+import { site } from "@/config/site";
 
 interface Message {
   role: "user" | "assistant";
@@ -342,8 +343,15 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
                 </p>
               )}
 
-              <p className="text-center text-primary/60 tracking-wide text-[11px] mt-1.5 font-medium">
-                Nova Nest Real Estate Assistant — помага ви да намерите идеалния имот в Стара Загора.
+              {/* Chat text is sent to Anthropic (USA) – tell visitors before they type personal data */}
+              <p className="text-center text-charcoal/75 text-[11px] leading-4 mt-1.5">
+                AI асистент (Anthropic). Не въвеждайте лични данни.{" "}
+                <a
+                  href={site.legal.privacyPolicyPath}
+                  className="inline-block py-1 font-medium text-primary underline decoration-accent underline-offset-2"
+                >
+                  Поверителност
+                </a>
               </p>
             </div>
           </motion.div>

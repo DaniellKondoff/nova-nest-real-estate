@@ -18,6 +18,15 @@ export const site = {
       sunday: "Почивен ден",
     },
   },
+  /** Data controller details for the privacy policy (GDPR Art. 13) */
+  legal: {
+    companyName: "НОВА НЕСТ РЕАЛ ЕСТЕЙТ ЕООД",
+    eik: "", // ЕИК – shown on the privacy page once filled in
+    privacyEmail: "novanestrealestatebg@gmail.com",
+    inquiryRetentionMonths: 12,
+    privacyPolicyPath: "/politika-za-poveritelnost/",
+    privacyPolicyUpdated: "2026-11-01",
+  },
 } as const;
 
 

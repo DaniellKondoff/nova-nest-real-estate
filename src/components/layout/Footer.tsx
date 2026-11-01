@@ -136,7 +136,15 @@ export default async function Footer() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
           <p>© {currentYear} Nova Nest Real Estate. Всички права запазени.</p>
-          <p>Недвижими имоти в {site.city}</p>
+          <div className="flex flex-wrap items-center gap-x-4">
+            <Link
+              href={site.legal.privacyPolicyPath}
+              className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-accent hover:underline"
+            >
+              Политика за поверителност
+            </Link>
+            <p>Недвижими имоти в {site.city}</p>
+          </div>
         </div>
       </div>
 

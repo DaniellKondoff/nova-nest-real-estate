@@ -20,6 +20,11 @@ export function buildBreadcrumbs(trail: Array<{ name: string; path: string }>): 
 const HOME = { name: 'Начало', path: '/' };
 const PROPERTIES = { name: 'Имоти', path: '/properties/' };
 
+/** Начало › Политика за поверителност */
+export function getPrivacyBreadcrumbs(path: string): BreadcrumbItem[] {
+  return buildBreadcrumbs([HOME, { name: 'Политика за поверителност', path }]);
+}
+
 /** Начало › Имоти */
 export function getPropertiesBreadcrumbs(): BreadcrumbItem[] {
   return buildBreadcrumbs([HOME, PROPERTIES]);

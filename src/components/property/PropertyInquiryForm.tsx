@@ -8,6 +8,7 @@ import type { z } from "zod";
 import { ContactFormSchema } from "@/lib/validations";
 import { cn } from "@/lib/utils";
 import { useAntiSpam } from "@/components/forms/anti-spam";
+import { PrivacyNotice } from "@/components/forms/PrivacyNotice";
 
 type InquiryFormData = z.infer<typeof ContactFormSchema>;
 type Intent = "viewing_request" | "property_interest";
@@ -218,6 +219,7 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
         )}
       </button>
       <p className="text-center text-xs text-charcoal/75">Отговаряме в рамките на работния ден.</p>
+      <PrivacyNotice className="-mt-2" />
       {honeypot}
     </form>
   );
