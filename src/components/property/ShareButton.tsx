@@ -37,17 +37,17 @@ export default function ShareButton({ title, url }: ShareButtonProps): React.Rea
     <button
       onClick={handleShare}
       aria-label="Споделете имота"
-      className="inline-flex h-11 items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-primary transition-colors hover:border-primary"
+      className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-3 text-sm font-semibold text-primary transition-colors hover:border-primary sm:px-4"
     >
       {copied ? (
         <>
           <Check className="h-4 w-4" aria-hidden />
-          <span>Копирано!</span>
+          <span className="hidden sm:inline">Копирано!</span>
         </>
       ) : (
         <>
           <Share2 className="h-4 w-4" aria-hidden />
-          <span>Споделете</span>
+          <span className="hidden sm:inline">Споделете</span>
         </>
       )}
     </button>

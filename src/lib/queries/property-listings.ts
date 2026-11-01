@@ -54,7 +54,8 @@ function hasSearchCriteria(filters: PropertySearchFilters): boolean {
   );
 }
 
-function mapRow(row: unknown): PropertyWithDetails {
+/** Maps a LISTING_SELECT row to PropertyWithDetails (primary image first) */
+export function mapRow(row: unknown): PropertyWithDetails {
   const r = row as Record<string, unknown> & {
     neighborhood?: PropertyWithDetails["neighborhood"];
     category?: PropertyWithDetails["category"];

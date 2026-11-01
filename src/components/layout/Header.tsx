@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import HeaderScrollClient from "./HeaderScrollClient";
 import HeaderMobileMenuClient from "./HeaderMobileMenuClient";
 import HeaderNavItem from "./HeaderNavItem";
+import HeaderSavedLinkClient from "./HeaderSavedLinkClient";
 
 interface HeaderProps {
   /** Optional extra class names for the outer header container */
@@ -130,6 +131,8 @@ export default async function Header({ className }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2 lg:gap-4">
+          <HeaderSavedLinkClient />
+
           {/* Phone: gold-ringed icon button on mobile/tablet, number + hours on xl */}
           <a
             href={`tel:${site.contact.phone}`}

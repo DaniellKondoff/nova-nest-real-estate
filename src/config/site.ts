@@ -24,6 +24,8 @@ export const site = {
   pages: {
     contact: "/kontakti/",
     about: "/za-nas/",
+    /** "Избрани имоти" – device-only saved listings (noindex) */
+    saved: "/izbrani/",
   },
   /** Agency manager – shown on property pages and /za-nas/ (public info only) */
   manager: {

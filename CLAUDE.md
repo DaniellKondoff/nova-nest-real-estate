@@ -198,6 +198,11 @@ export async function GET(
 - Design at 360–430px first: 44px min tap targets, 16px inputs, `svh/dvh`, safe-area insets, scroll-snap rows instead of JS carousels.
 - Layout primitives: `Section`, `SectionHeading`, `containerClass` (`ui/section.tsx`), `Button` with `asChild` (`ui/button.tsx`).
 
+**Saved listings ("Избрани имоти", no accounts)**:
+- Property ids in `localStorage` (`nn:saved:v1`, newest first, max 50) via `src/lib/saved/store.ts` (`useSavedIds`, `toggleSaved`, `removeSaved`, `clearSaved`) – server snapshot is always empty, so SSR renders "not saved".
+- `SaveButton` (heart) sits on every `PropertyCard` image (z-10 above the stretched link) and in `PropertyHeader`; `HeaderSavedLinkClient` shows the count once something is saved.
+- `/izbrani/` (`site.pages.saved`) is a static noindex shell: `SavedListingsClient` calls the `getSavedListings` server action (`(site)/izbrani/actions.ts`) and renders the returned data with `SavedListingsView` (cards + comparison table); ids that no longer exist are pruned client-side. Actions return data, not JSX – client components in action JSX must already be in the page's client manifest. Not in the sitemap.
+
 **Components** (`src/components/`):
 - `ui/` - Base UI primitives (Button, Input, Card, Typography, etc.)
 - `property/` - Property listing components (Card, Grid, Filters, etc.)

@@ -4,6 +4,7 @@ import type { PropertyWithDetails } from "@/types/property";
 import { displayTitle, neighborhoodLabel, propertyHeadline } from "@/lib/seo/property-metadata";
 import { formatPrice, isNewProperty } from "./utils";
 import ShareButton from "@/components/property/ShareButton";
+import SaveButton from "@/components/property/SaveButton";
 
 export interface PropertyHeaderProps {
   property: PropertyWithDetails;
@@ -75,7 +76,10 @@ export default function PropertyHeader({ property }: PropertyHeaderProps): React
             </p>
           )}
         </div>
-        <ShareButton title={headline} />
+        <div className="flex shrink-0 gap-2">
+          <SaveButton propertyId={p.id} variant="detail" />
+          <ShareButton title={headline} />
+        </div>
       </div>
     </header>
   );

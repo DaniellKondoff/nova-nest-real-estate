@@ -8,6 +8,7 @@ import { propertyPath } from "@/lib/seo/property-slug";
 import { displayTitle, neighborhoodLabel } from "@/lib/seo/property-metadata";
 import { cn } from "@/lib/utils";
 import { formatPrice, isNewProperty } from "./utils";
+import SaveButton from "./SaveButton";
 
 export interface PropertyCardProps {
   property: PropertyWithDetails;
@@ -117,6 +118,11 @@ export default function PropertyCard({
               Ново
             </span>
           )}
+        </div>
+
+        {/* Save toggle – client island above the stretched link */}
+        <div className="absolute right-3 top-3 z-10">
+          <SaveButton propertyId={p.id} />
         </div>
 
         {/* Price */}
