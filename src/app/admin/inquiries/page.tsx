@@ -1,231 +1,143 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { getBrowserClient } from "@/lib/supabase/client";
-import { getCurrentUser } from "@/lib/auth";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import InquiriesTable from "@/components/admin/InquiriesTable";
 import InquiryDetailsModal from "@/components/admin/InquiryDetailsModal";
-import InquiriesFilter from "@/components/admin/InquiriesFilter";
-import { Eye } from "lucide-react";
+import InquiriesFilter, {
+  INQUIRIES_CHANGED_EVENT,
+  statusOptions,
+  typeOptions,
+} from "@/components/admin/InquiriesFilter";
+import AdminPagination from "@/components/admin/AdminPagination";
+import { useAdminToast } from "@/components/admin/AdminToast";
+import type { AdminInquiry as Inquiry } from "@/types/admin";
 
-interface Inquiry {
-  id: number;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  inquiry_type: "general" | "property_interest" | "viewing_request" | "valuation" | "selling" | "renting";
-  message: string;
-  status: "new" | "in_progress" | "responded" | "closed";
-  created_at: string;
-  property: {
-    id: number;
-    title_bg: string;
-    price_bgn: number | null;
-    price_eur: number | null;
-  } | null;
+const PAGE_SIZE = 20;
+
+/** Only accept values the filter offers – anything else in the URL is ignored */
+function pickOption(value: string | null, options: { value: string | null }[]): string | null {
+  return value && options.some((o) => o.value === value) ? value : null;
 }
 
-export default function AdminInquiriesPage() {
+function AdminInquiriesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const toast = useAdminToast();
+
+  const statusFilter = pickOption(searchParams.get("status"), statusOptions);
+  const typeFilter = pickOption(searchParams.get("type"), typeOptions);
+  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
+
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Fetch inquiries
-  const fetchInquiries = async () => {
-    try {
-      setLoading(true);
-      const supabase = getBrowserClient();
-      
-      const { data, error } = await supabase
-        .from("inquiries")
-        .select(`
-          id,
-          full_name,
-          email,
-          phone,
-          inquiry_type,
-          message,
-          status,
-          created_at,
-          property:properties(id, title_bg, price_bgn, price_eur)
-        `)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        throw error;
+  /** Writes filters/page to the URL; any filter change goes back to page 1 */
+  const updateQuery = useCallback(
+    (changes: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(changes)) {
+        if (value) params.set(key, value);
+        else params.delete(key);
       }
+      if (params.get("page") === "1") params.delete("page");
+      const qs = params.toString();
+      router.replace(qs ? `?${qs}` : "?", { scroll: false });
+    },
+    [router, searchParams]
+  );
 
-      setInquiries(data || []);
-    } catch (err) {
-      console.error("Error fetching inquiries:", err);
-      setError("Грешка при зареждане на запитванията.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Load inquiries on component mount
   useEffect(() => {
-    fetchInquiries();
-    
-    // Check authentication state
-    const checkAuth = async () => {
-      try {
-        const user = await getCurrentUser();
+    const controller = new AbortController();
+    const params = new URLSearchParams({ page: String(currentPage), limit: String(PAGE_SIZE) });
+    if (statusFilter) params.set("status", statusFilter);
+    if (typeFilter) params.set("inquiry_type", typeFilter);
 
-        if (!user) {
-          console.log("User not logged in - redirecting to login");
-          alert("Моля, влезте в системата за да можете да управлявате запитванията.");
-          window.location.href = '/admin/login';
+    setRefreshing(true);
+    fetch(`/api/admin/inquiries/?${params}`, { credentials: "include", signal: controller.signal })
+      .then(async (response) => {
+        if (response.status === 401 || response.status === 403) {
+          window.location.href = "/admin/login/";
           return;
         }
-        
-        // Check if user is admin
-        const supabase = getBrowserClient();
-        const { data: adminProfile, error } = await supabase
-          .from("admin_profiles")
-          .select("role")
-          .eq("user_id", user.id)
-          .single();
-          
-        if (error || !adminProfile) {
-          alert("Нямате администраторски права.");
-          window.location.href = '/admin/login';
-          return;
-        }
-        
-        setIsAuthenticated(true);
-      } catch (err) {
-        alert("Грешка при проверка на автентичността.");
-        window.location.href = '/admin/login';
-      }
-    };
-    checkAuth();
-  }, []);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        setInquiries(json.data?.items ?? []);
+        setTotal(json.data?.total ?? 0);
+        setError(null);
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        console.error("Error fetching inquiries:", err);
+        setError("Грешка при зареждане на запитванията.");
+      })
+      .finally(() => {
+        if (controller.signal.aborted) return;
+        setRefreshing(false);
+        setInitialLoading(false);
+      });
 
-  // Handle view details
+    return () => controller.abort();
+  }, [statusFilter, typeFilter, currentPage, reloadKey]);
+
   const handleViewDetails = (inquiry: Inquiry) => {
     setSelectedInquiry(inquiry);
     setIsModalOpen(true);
-    
-    // Note: Auto-mark as read functionality removed to prevent authentication errors
-    // Users can manually mark as read using the button in the modal
   };
 
-  // Update inquiry status
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedInquiry(null);
+  }, []);
+
   const updateStatus = async (id: string, status: string) => {
     try {
-      
-      const response = await fetch(`/api/admin/inquiries/${id}`, {
+      const response = await fetch(`/api/admin/inquiries/${id}/`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // Include cookies for authentication
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ status }),
       });
 
+      if (response.status === 401) {
+        window.location.href = "/admin/login/";
+        return;
+      }
       if (!response.ok) {
-        const errorText = await response.text();
-        
-        // If it's an authentication error, show a specific message
-        if (response.status === 401) {
-          const errorMsg = "Неоторизиран достъп. Моля, влезте отново в системата.";
-          console.error(errorMsg);
-          alert(errorMsg);
-          // Redirect to login
-          window.location.href = '/admin/login';
-          return;
-        }
-        
         throw new Error(`Неуспешно обновяване на статуса: ${response.status}`);
       }
 
-      const result = await response.json();
+      const inquiryId = Number(id);
+      const nextStatus = status as Inquiry["status"];
+      setInquiries((prev) => prev.map((i) => (i.id === inquiryId ? { ...i, status: nextStatus } : i)));
+      setSelectedInquiry((prev) => (prev?.id === inquiryId ? { ...prev, status: nextStatus } : prev));
+      window.dispatchEvent(new Event(INQUIRIES_CHANGED_EVENT));
+      toast.success("Статусът е обновен.");
 
-      // Update local state
-      setInquiries(prev => 
-        prev.map(inquiry => 
-          inquiry.id === parseInt(id) 
-            ? { ...inquiry, status: status as Inquiry["status"] }
-            : inquiry
-        )
-      );
-
-      // Update selected inquiry if it's the same one
-      if (selectedInquiry?.id === parseInt(id)) {
-        setSelectedInquiry(prev => 
-          prev ? { ...prev, status: status as Inquiry["status"] } : null
-        );
-      }
-
-      // Auto-close modal after successful status update
+      // Auto-close the modal; with a status filter the row may no longer belong on this page
       setTimeout(() => {
         handleCloseModal();
-      }, 1000); // Close after 1 second to show the success
+        if (statusFilter) setReloadKey((k) => k + 1);
+      }, 1000);
     } catch (err) {
       console.error("Error updating status:", err);
-      alert(`Грешка при обновяване на статуса: ${err instanceof Error ? err.message : 'Неизвестна грешка'}`);
-      // Don't re-throw to prevent unhandled promise rejections
+      toast.error(`Грешка при обновяване на статуса: ${err instanceof Error ? err.message : "Неизвестна грешка"}`);
     }
   };
 
-  // Handle modal close
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedInquiry(null);
-  };
-
-  // Filter inquiries based on selected filters
-  const filteredInquiries = useMemo(() => {
-    return inquiries.filter(inquiry => {
-      const statusMatch = !statusFilter || inquiry.status === statusFilter;
-      const typeMatch = !typeFilter || inquiry.inquiry_type === typeFilter;
-      return statusMatch && typeMatch;
-    });
-  }, [inquiries, statusFilter, typeFilter]);
-
-  // Check if user is authenticated before showing status update buttons
-  const canUpdateStatus = isAuthenticated;
-
-  // Handle filter changes
-  const handleStatusFilter = (status: string | null) => {
-    setStatusFilter(status);
-  };
-
-  const handleTypeFilter = (type: string | null) => {
-    setTypeFilter(type);
-  };
-
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Запитвания</h1>
         <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4"></div>
           <p className="text-gray-500">Зареждане на запитвания...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Запитвания</h1>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">{error}</p>
-          <button
-            onClick={fetchInquiries}
-            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            Опитай отново
-          </button>
         </div>
       </div>
     );
@@ -234,35 +146,52 @@ export default function AdminInquiriesPage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Запитвания</h1>
-      
+
       <InquiriesFilter
-        onStatusFilter={handleStatusFilter}
-        onTypeFilter={handleTypeFilter}
+        status={statusFilter}
+        type={typeFilter}
+        onStatusChange={(status) => updateQuery({ status, page: null })}
+        onTypeChange={(type) => updateQuery({ type, page: null })}
       />
-      
-      {/* Results summary */}
-      <div className="mb-4 text-sm text-gray-600">
-        {filteredInquiries.length === inquiries.length ? (
-          <span>Показват се всички {inquiries.length} запитвания</span>
-        ) : (
-          <span>
-            Показват се {filteredInquiries.length} от {inquiries.length} запитвания
-          </span>
-        )}
-      </div>
-      
-      <InquiriesTable 
-        inquiries={filteredInquiries} 
-        onViewDetails={handleViewDetails}
-      />
-      
+
+      {error ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+          <button
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Опитай отново
+          </button>
+        </div>
+      ) : (
+        <div className={refreshing ? "opacity-60 transition-opacity" : "transition-opacity"} aria-busy={refreshing}>
+          <InquiriesTable inquiries={inquiries} onViewDetails={handleViewDetails} />
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(total / PAGE_SIZE)}
+            totalResults={total}
+            onPageChange={(page) => updateQuery({ page: String(page) })}
+            itemsPerPage={PAGE_SIZE}
+          />
+        </div>
+      )}
+
       <InquiryDetailsModal
         inquiry={selectedInquiry}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onStatusUpdate={canUpdateStatus ? updateStatus : async () => {}}
-        isAuthenticated={isAuthenticated}
+        onStatusUpdate={updateStatus}
       />
     </div>
+  );
+}
+
+/** Admin auth is enforced by middleware.ts and admin/layout.tsx – no client re-check here */
+export default function AdminInquiriesPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminInquiriesContent />
+    </Suspense>
   );
 }

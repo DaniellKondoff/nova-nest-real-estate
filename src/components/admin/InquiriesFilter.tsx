@@ -4,21 +4,27 @@ import * as React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/design-tokens";
 
+/** Fired after an inquiry status change so the sidebar "new inquiries" badge refreshes */
+export const INQUIRIES_CHANGED_EVENT = "nn:inquiries-changed";
+
 export interface InquiriesFilterProps {
-  onStatusFilter: (status: string | null) => void;
-  onTypeFilter: (type: string | null) => void;
+  status: string | null;
+  type: string | null;
+  onStatusChange: (status: string | null) => void;
+  onTypeChange: (type: string | null) => void;
 }
 
 // Status filter options
-const statusOptions = [
+export const statusOptions = [
   { value: null, label: "Всички" },
   { value: "new", label: "Нови" },
   { value: "in_progress", label: "Прочетени" },
   { value: "responded", label: "Отговорени" },
+  { value: "closed", label: "Затворени" },
 ];
 
 // Inquiry type filter options
-const typeOptions = [
+export const typeOptions = [
   { value: null, label: "Всички типове" },
   { value: "general", label: "Общо" },
   { value: "property_interest", label: "Интерес към имот" },
@@ -114,36 +120,24 @@ function FilterDropdown({ label, options, value, onChange, className }: FilterDr
   );
 }
 
-export default function InquiriesFilter({ onStatusFilter, onTypeFilter }: InquiriesFilterProps) {
-  const [selectedStatus, setSelectedStatus] = React.useState<string | null>(null);
-  const [selectedType, setSelectedType] = React.useState<string | null>(null);
-
-  const handleStatusChange = (status: string | null) => {
-    setSelectedStatus(status);
-    onStatusFilter(status);
-  };
-
-  const handleTypeChange = (type: string | null) => {
-    setSelectedType(type);
-    onTypeFilter(type);
-  };
-
+/** Controlled – the selection lives in the page URL (?status=&type=) */
+export default function InquiriesFilter({ status, type, onStatusChange, onTypeChange }: InquiriesFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg mb-4 border border-gray-200">
       <div className="w-full sm:w-48">
         <FilterDropdown
           label="Статус"
           options={statusOptions}
-          value={selectedStatus}
-          onChange={handleStatusChange}
+          value={status}
+          onChange={onStatusChange}
         />
       </div>
       <div className="w-full sm:w-48">
         <FilterDropdown
           label="Тип запитване"
           options={typeOptions}
-          value={selectedType}
-          onChange={handleTypeChange}
+          value={type}
+          onChange={onTypeChange}
         />
       </div>
     </div>

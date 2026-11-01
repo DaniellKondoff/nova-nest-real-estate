@@ -1,17 +1,20 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { isAdminUserServer } from "@/lib/auth-server";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getServerClient } from "@/lib/supabase/server";
 import { formatErrorMessage, AuthError, ValidationError, DatabaseError } from "@/lib/errors";
 import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import type { AdminInquiry } from "@/types/admin";
 import { ok, fail, unauthorized } from "@/lib/api";
+
+const INQUIRY_SELECT =
+  "id, full_name, email, phone, inquiry_type, message, status, created_at, property:properties(id, title_bg, slug, price_eur)";
 
 const QuerySchema = z.object({
   status: z
-    .enum(["new", "in_progress", "responded", "closed"]) 
+    .enum(["new", "in_progress", "responded", "closed"])
     .optional(),
   inquiry_type: z
-    .enum(["general", "property_interest", "viewing_request", "valuation", "selling", "renting"]) 
+    .enum(["general", "property_interest", "viewing_request", "valuation", "selling", "renting"])
     .optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
@@ -32,25 +35,31 @@ const QuerySchema = z.object({
  * - limit: 1..100, default 20
  * - sort: newest|oldest, default newest
  *
- * Returns paginated inquiries with joined property and assigned agent.
+ * Returns paginated inquiries with the joined property (id, title, slug, EUR price).
  */
 export async function GET(req: NextRequest) {
   try {
-    const isAdmin = await isAdminUserServer();
-    if (!isAdmin) {
-      return unauthorized("Неоторизиран достъп.");
+    const supabase = await getServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) return unauthorized("Неоторизиран достъп.");
+
+    const { data: adminProfile, error: adminError } = await supabase
+      .from("admin_profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+    if (adminError || !adminProfile) {
+      return fail("Нямате администраторски права.", { status: 403, code: "FORBIDDEN" });
     }
 
     const url = new URL(req.url);
     const raw = Object.fromEntries(url.searchParams.entries());
     const parsed = await QuerySchema.parseAsync(raw);
 
-    const supabase = await getSupabaseClient();
-
-    // Base query
-    let query = supabase
-      .from("inquiries")
-      .select("*, property:properties(*), assigned:admin_profiles(*)", { count: "exact" });
+    let query = supabase.from("inquiries").select(INQUIRY_SELECT, { count: "exact" });
 
     if (parsed.status) query = query.eq("status", parsed.status);
     if (parsed.inquiry_type) query = query.eq("inquiry_type", parsed.inquiry_type);
@@ -66,9 +75,9 @@ export async function GET(req: NextRequest) {
     const { data, error, count } = await query;
     if (error) throw new DatabaseError("Неуспешно зареждане на запитвания.");
 
-    const body: SuccessResponse<{ items: any[]; total: number; page: number; limit: number }> = {
+    const body: SuccessResponse<{ items: AdminInquiry[]; total: number; page: number; limit: number }> = {
       data: {
-        items: (data as any[]) ?? [],
+        items: (data as unknown as AdminInquiry[] | null) ?? [],
         total: count ?? 0,
         page: parsed.page,
         limit: parsed.limit,
@@ -84,5 +93,3 @@ export async function GET(req: NextRequest) {
     return fail(body.error, { status, code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION_ERROR" : "SERVER_ERROR" });
   }
 }
-
-

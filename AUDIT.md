@@ -183,7 +183,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
 - **Problem:** the app has `not-found.tsx` files but no `error.tsx` or `global-error.tsx` anywhere. If Supabase is slow or down, `/properties/` and the landing pages throw (for example, `property-listings.ts` throws "Грешка при извличане на данни"). Visitors then get the generic Next.js error screen, with no phone number and no way back.
 - **Fix:** add `src/app/(site)/error.tsx` as a client component. It should say "Нещо се обърка", offer a retry button, show `tel:` and Viber links, and link to `/`. Add a minimal `src/app/global-error.tsx` as well.
 
-#### F-9: Admin inquiries page loads every inquiry in the browser · Impact M · Effort M
+#### F-9: Admin inquiries page loads every inquiry in the browser · Impact M · Effort M · ✅ Done (alerts removed on inquiries/CRM/properties; testimonials left for later)
 - **Problem:**
   - The page queries Supabase directly from the browser with no `.range()` and filters in memory. A paginated `GET /api/admin/inquiries` already exists (limit 20) and is bypassed.
   - The page also re-checks auth on the client, which the middleware already does, and reports errors through `alert()` (29 `alert`/`confirm` calls across admin).

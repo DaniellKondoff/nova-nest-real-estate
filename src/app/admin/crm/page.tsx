@@ -2,19 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Search } from "lucide-react";
-import { getBrowserClient } from "@/lib/supabase/client";
-import { getCurrentUser } from "@/lib/auth";
 import ContactsTable from "@/components/admin/crm/ContactsTable";
 import CreateContactModal from "@/components/admin/crm/CreateContactModal";
 import DeleteConfirmModal from "@/components/admin/DeleteConfirmModal";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { useAdminToast } from "@/components/admin/AdminToast";
 import type { CrmContact, CrmContactStatus, CrmClientType } from "@/types/crm";
 
 export default function AdminCrmPage() {
   const [contacts, setContacts] = useState<CrmContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const toast = useAdminToast();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<CrmContactStatus | "">("");
@@ -66,8 +65,7 @@ export default function AdminCrmPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          alert("Неоторизиран достъп. Моля, влезте отново в системата.");
-          window.location.href = "/admin/login";
+          window.location.href = "/admin/login/";
           return;
         }
         throw new Error("Грешка при зареждане на контактите");
@@ -84,45 +82,10 @@ export default function AdminCrmPage() {
     }
   }, [debouncedSearch, statusFilter, clientTypeFilter, currentPage]);
 
-  // Auth check + initial fetch
+  // Admin auth is enforced by middleware.ts and admin/layout.tsx – fetch on mount and on filter change
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const user = await getCurrentUser();
-        if (!user) {
-          alert("Моля, влезте в системата за да можете да управлявате CRM.");
-          window.location.href = "/admin/login";
-          return;
-        }
-
-        const supabase = getBrowserClient();
-        const { data: adminProfile, error } = await supabase
-          .from("admin_profiles")
-          .select("role")
-          .eq("user_id", user.id)
-          .single();
-
-        if (error || !adminProfile) {
-          alert("Нямате администраторски права.");
-          window.location.href = "/admin/login";
-          return;
-        }
-
-        setIsAuthenticated(true);
-      } catch {
-        alert("Грешка при проверка на автентичността.");
-        window.location.href = "/admin/login";
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  // Re-fetch when filters change
-  useEffect(() => {
-    if (!isAuthenticated) return;
     fetchContacts();
-  }, [isAuthenticated, fetchContacts]);
+  }, [fetchContacts]);
 
   const handleDelete = (contact: CrmContact) => {
     setContactToDelete(contact);
@@ -143,8 +106,7 @@ export default function AdminCrmPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          alert("Неоторизиран достъп. Моля, влезте отново в системата.");
-          window.location.href = "/admin/login";
+          window.location.href = "/admin/login/";
           return;
         }
         throw new Error("Грешка при изтриване");
@@ -152,10 +114,11 @@ export default function AdminCrmPage() {
 
       setDeleteModalOpen(false);
       setContactToDelete(null);
+      toast.success("Контактът е изтрит.");
       fetchContacts();
     } catch (err) {
       console.error("Error deleting contact:", err);
-      alert("Грешка при изтриване на контакта");
+      toast.error("Грешка при изтриване на контакта");
     } finally {
       setIsDeleting(false);
       setProcessingId(null);
@@ -171,18 +134,6 @@ export default function AdminCrmPage() {
     setCurrentPage(1);
     fetchContacts();
   };
-
-  if (loading && !isAuthenticated) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">CRM - Контакти</h1>
-        <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37] mx-auto mb-4"></div>
-          <p className="text-gray-500">Зареждане...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (

@@ -237,6 +237,7 @@ Dynamic neighborhood pages with SEO optimization:
 - Admin routes protected via `src/lib/auth-server.ts`
 - Admin profiles stored in `admin_profiles` table
 - Role-based permissions system
+- Feedback: use `useAdminToast()` (`src/components/admin/AdminToast.tsx`, provider mounted in `admin/layout.tsx`) instead of `alert()`; don't re-check auth in admin pages (middleware + layout do it)
 
 **Admin Routes** (`src/app/admin/`):
 - `/admin/dashboard` - Overview with stats

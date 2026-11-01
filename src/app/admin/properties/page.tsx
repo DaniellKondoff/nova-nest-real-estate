@@ -7,6 +7,7 @@ import PropertiesTable from "@/components/admin/PropertiesTable";
 import PropertiesSearchBar from "@/components/admin/PropertiesSearchBar";
 import AdminPagination from "@/components/admin/AdminPagination";
 import DeleteConfirmModal from "@/components/admin/DeleteConfirmModal";
+import { useAdminToast } from "@/components/admin/AdminToast";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { getAllPropertyCategories } from "@/lib/queries/categories";
 import type { PropertyWithDetails } from "@/types/property";
@@ -44,6 +45,7 @@ export default function PropertiesListPage() {
   
   // Success/error messages
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const toast = useAdminToast();
 
   // Fetch categories
   useEffect(() => {
@@ -166,7 +168,7 @@ export default function PropertiesListPage() {
       setPropertyToDelete(null);
     } catch (err) {
       console.error("Error deleting property:", err);
-      alert(err instanceof Error ? err.message : "Грешка при изтриване на имота");
+      toast.error(err instanceof Error ? err.message : "Грешка при изтриване на имота");
     } finally {
       setIsDeleting(false);
     }
@@ -260,9 +262,7 @@ export default function PropertiesListPage() {
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err) {
       console.error("Error bulk deleting properties:", err);
-      alert(
-        err instanceof Error ? err.message : "Грешка при изтриване на имотите"
-      );
+      toast.error(err instanceof Error ? err.message : "Грешка при изтриване на имотите");
     } finally {
       setIsBulkDeleting(false);
     }
