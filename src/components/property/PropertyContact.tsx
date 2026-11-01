@@ -23,8 +23,8 @@ export default function PropertyContact({ propertyId, propertyTitle, viberDraft 
       <div className="flex items-center gap-4">
         <div className="relative h-16 w-16 shrink-0">
           <Image
-            src="/images/ceo.jpg"
-            alt="Атанаска Кондова – управител на Nova Nest"
+            src={site.manager.photo}
+            alt={`${site.manager.name} – ${site.manager.role.toLowerCase()} на Nova Nest`}
             fill
             sizes="64px"
             className="rounded-full object-cover ring-2 ring-accent ring-offset-2"
@@ -32,9 +32,9 @@ export default function PropertyContact({ propertyId, propertyTitle, viberDraft 
         </div>
         <div className="min-w-0">
           <p id="contact-agent-title" className="text-lg font-bold text-primary">
-            Атанаска Кондова
+            {site.manager.name}
           </p>
-          <p className="text-sm text-charcoal/70">Управител · Nova Nest Real Estate</p>
+          <p className="text-sm text-charcoal/70">{site.manager.role} · Nova Nest Real Estate</p>
         </div>
       </div>
 

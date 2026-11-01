@@ -161,6 +161,18 @@ export default function PrivacyPolicyPage() {
             събира без бисквитки. Технически бисквитки се използват само във вътрешния административен панел за вход на
             служителите.
           </p>
+          <p className={p}>
+            Картата на страницата{" "}
+            <Link href={site.pages.contact} className={link}>
+              Контакти
+            </Link>{" "}
+            се зарежда от Google Maps едва след като натиснете „Покажи картата“. След това Google може да постави свои
+            бисквитки съгласно{" "}
+            <a href="https://policies.google.com/privacy" className={link} target="_blank" rel="noopener noreferrer">
+              политиката си за поверителност
+            </a>
+            .
+          </p>
 
           <h2 className={h2}>8. Промени в политиката</h2>
           <p className={p}>

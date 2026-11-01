@@ -93,7 +93,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   <a href={`viber://chat?number=${encodeURIComponent(site.contact.phone)}&draft=${encodeURIComponent(`Здравейте, интересувам се от ${absoluteUrl(path)}`)}`}>Viber</a>
   ```
 
-#### UX-5: There is no contact or about page; "Свържете се" jumps to a home-page anchor · Impact M · Effort M
+#### UX-5: There is no contact or about page; "Свържете се" jumps to a home-page anchor · Impact M · Effort M · ✅ Done
 - **Problem:** 9 CTAs point to `/#contact`. On a property page, that throws the visitor off the listing and onto the home page. `/about` and `/contact` 301-redirect to anchors (`next.config.ts`, the "Pages that never existed" block). Visitors therefore have no page with the address, map, hours and the people behind the agency. SEO impact is covered in S-3.
 - **Fix:** create `/kontakti/` (NAP, map embed, hours, contact form, Viber) and `/za-nas/` (agent bio and photo, licence, years in business). Point the global CTAs to `/kontakti/`. On property pages, keep CTAs pointing to `#contact-sidebar`, which already exists.
 
@@ -215,7 +215,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   - Run the rest through the sentence-casing in `displayTitle()`.
   - Round the area for display (`Math.round` in the headline, one decimal in the facts table).
 
-#### S-3: No local-SEO landing page for the agency itself · Impact M · Effort M
+#### S-3: No local-SEO landing page for the agency itself · Impact M · Effort M · ✅ Done
 - **Problem:** the queries "агенция за недвижими имоти Стара Загора" and "контакти" have no dedicated page. The home page is doing every job at once. Without an About page, Google has nothing about who stands behind the listings, which hurts E-E-A-T in a "your money" category such as real estate.
 - **Fix:** build the pages from UX-5:
   - `/kontakti/` with a `RealEstateAgent` schema that reuses `site.ts`, an embedded map and opening hours.

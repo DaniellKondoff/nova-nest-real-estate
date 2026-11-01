@@ -18,8 +18,8 @@ interface HeaderMobileMenuClientProps {
 const SECONDARY_LINKS = [
   { label: "Всички имоти", href: "/properties/" },
   { label: "Услуги", href: "/#services" },
-  { label: "За нас", href: "/#about" },
-  { label: "Контакти", href: "/#contact" },
+  { label: "За нас", href: site.pages.about },
+  { label: "Контакти", href: site.pages.contact },
 ];
 
 const FOCUSABLE = "a[href], button:not([disabled])";
@@ -254,7 +254,7 @@ export default function HeaderMobileMenuClient({ operations, neighborhoods }: He
                   Обади се
                 </a>
                 <Link
-                  href="/#contact"
+                  href={site.pages.contact}
                   onClick={onLinkClick}
                   className="inline-flex h-12 items-center justify-center rounded-xl bg-accent font-semibold text-primary shadow-gold transition-colors hover:bg-accent-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 >

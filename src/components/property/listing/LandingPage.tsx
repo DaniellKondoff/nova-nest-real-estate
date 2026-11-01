@@ -92,7 +92,7 @@ export default function LandingPage({
           priorityCount={2}
           emptyTitle={emptyTitle}
           emptyDescription={emptyDescription}
-          emptyAction={{ href: "/#contact", label: "Свържете се с нас" }}
+          emptyAction={{ href: site.pages.contact, label: "Свържете се с нас" }}
         />
         {total > properties.length && (
           <div className="mt-8 flex justify-center">
@@ -151,7 +151,7 @@ export default function LandingPage({
               </a>
             </Button>
             <Button asChild variant="outline-light" size="lg" className="w-full sm:w-auto">
-              <Link href="/#contact">
+              <Link href={site.pages.contact}>
                 <Mail className="h-5 w-5" aria-hidden="true" />
                 Изпратете запитване
               </Link>

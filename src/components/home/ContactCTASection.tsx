@@ -1,13 +1,18 @@
 import * as React from "react";
-import { CheckCircle, Clock, Mail, MapPin, Phone } from "lucide-react";
+import { CheckCircle, Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import ContactForm from "@/components/forms/ContactForm";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { site } from "@/config/site";
+import { viberHref } from "@/lib/contact-links";
 import { cn } from "@/lib/utils";
 
 export interface ContactCTASectionProps {
   className?: string;
   id?: string;
+  /** "h1" when the section is the main block of the page (/kontakti/) */
+  headingAs?: "h1" | "h2";
+  eyebrow?: string;
+  title?: string;
 }
 
 const PROMISES = [
@@ -20,9 +25,16 @@ const PROMISES = [
  * Contact – navy band. Mobile: form first, then big tappable contact rows.
  * Desktop: form (3/5) + contact info (2/5).
  */
-export default function ContactCTASection({ className, id }: ContactCTASectionProps): React.ReactElement {
+export default function ContactCTASection({
+  className,
+  id,
+  headingAs = "h2",
+  eyebrow = "Свържете се с нас",
+  title = "Готови сме да ви помогнем",
+}: ContactCTASectionProps): React.ReactElement {
   const rows = [
     { icon: Phone, label: "Телефон", value: site.contact.phoneDisplay, href: `tel:${site.contact.phone}` },
+    { icon: MessageCircle, label: "Viber", value: "Пишете ни във Viber", href: viberHref() },
     { icon: Mail, label: "Имейл", value: site.contact.email, href: `mailto:${site.contact.email}` },
     { icon: MapPin, label: "Адрес", value: site.contact.address },
     {
@@ -43,8 +55,9 @@ export default function ContactCTASection({ className, id }: ContactCTASectionPr
 
       <SectionHeading
         id="contact-cta-heading"
-        eyebrow="Свържете се с нас"
-        title="Готови сме да ви помогнем"
+        as={headingAs}
+        eyebrow={eyebrow}
+        title={title}
         description="Свържете се с нас за безплатна консултация и персонализирани решения."
         inverted
         className="reveal relative"

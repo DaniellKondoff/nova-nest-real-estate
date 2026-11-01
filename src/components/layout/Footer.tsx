@@ -15,9 +15,9 @@ interface FooterLink {
 const QUICK_LINKS: FooterLink[] = [
   { label: "Начало", href: "/" },
   { label: "Всички имоти", href: "/properties/" },
-  { label: "За нас", href: "/#about" },
+  { label: "За нас", href: site.pages.about },
   { label: "Услуги", href: "/#services" },
-  { label: "Контакти", href: "/#contact" },
+  { label: "Контакти", href: site.pages.contact },
 ];
 
 /**

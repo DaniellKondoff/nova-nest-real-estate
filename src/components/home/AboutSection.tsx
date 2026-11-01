@@ -28,8 +28,15 @@ const values = [
   },
 ];
 
+interface AboutSectionProps {
+  /** "h1" when the section is the main block of the page (/za-nas/) */
+  headingAs?: "h1" | "h2";
+  /** In-page anchor on the home page, the contacts page elsewhere */
+  contactHref?: string;
+}
+
 /** About – server component; CSS-only reveal (content is never hidden without JS). */
-export default async function AboutSection() {
+export default async function AboutSection({ headingAs = "h2", contactHref = "#contact" }: AboutSectionProps = {}) {
   const { total, sale, rent, neighborhoods } = await getListingStats();
 
   // Live, verifiable numbers only (no marketing percentages)
@@ -44,6 +51,7 @@ export default async function AboutSection() {
     <Section id="about" tone="muted" aria-labelledby="about-heading" className="scroll-mt-[var(--header-h)]">
       <SectionHeading
         id="about-heading"
+        as={headingAs}
         eyebrow="Водеща агенция в Стара Загора"
         title="Nova Nest Real Estate"
         description={
@@ -102,7 +110,7 @@ export default async function AboutSection() {
               <Link href="/properties/">Започнете търсенето</Link>
             </Button>
             <Button asChild variant="outline-light" size="lg" className="w-full sm:w-auto">
-              <a href="#contact">Свържете се с нас</a>
+              <Link href={contactHref}>Свържете се с нас</Link>
             </Button>
           </div>
         </div>

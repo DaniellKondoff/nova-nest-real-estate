@@ -17,7 +17,7 @@ interface HeaderProps {
 /** Plain links after the property sections (home page anchors) */
 const SECONDARY_NAV_ITEMS = [
   { label: "Услуги", href: "/#services" },
-  { label: "За нас", href: "/#about" },
+  { label: "За нас", href: site.pages.about },
 ];
 
 const MAX_HEADER_NEIGHBORHOODS = 6;
@@ -56,7 +56,7 @@ function NavPanel({ title, all, links }: { title: string; all: SiteNavLink; link
             <p className="mt-1 text-sm leading-relaxed text-white/70">Безплатна оценка и консултация.</p>
           </div>
           <Link
-            href="/#contact"
+            href={site.pages.contact}
             className="inline-flex h-10 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-primary transition-colors hover:bg-accent-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
           >
             Свържете се
@@ -144,7 +144,7 @@ export default async function Header({ className }: HeaderProps) {
           </a>
 
           <Link
-            href="/#contact"
+            href={site.pages.contact}
             className="hidden h-11 items-center rounded-xl bg-accent px-5 text-[15px] font-semibold text-primary shadow-gold transition-colors hover:bg-accent-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-primary lg:inline-flex"
           >
             Свържете се
