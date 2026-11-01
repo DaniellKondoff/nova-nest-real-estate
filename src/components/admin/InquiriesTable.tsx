@@ -134,9 +134,11 @@ export default function InquiriesTable({ inquiries, onViewDetails }: InquiriesTa
                   <div className="text-sm font-medium text-gray-900">
                     {inquiry.full_name}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {inquiry.email}
-                  </div>
+                  {inquiry.email && (
+                    <div className="text-xs text-gray-500">
+                      {inquiry.email}
+                    </div>
+                  )}
                   {inquiry.phone && (
                     <div className="text-xs text-gray-500">
                       {inquiry.phone}

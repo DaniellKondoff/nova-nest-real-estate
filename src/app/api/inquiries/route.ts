@@ -2,7 +2,7 @@ import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/types/database.generated";
-import { ContactFormSchema } from "@/lib/validations";
+import { ContactFieldsSchema, requirePhoneOrEmail } from "@/lib/validations";
 import { env, getServerEnv } from "@/lib/env";
 import { sendInquiryNotification } from "@/lib/email";
 import { absoluteUrl } from "@/lib/seo/config";
@@ -10,7 +10,7 @@ import { propertyPath } from "@/lib/seo/property-slug";
 import { displayTitle } from "@/lib/seo/property-metadata";
 
 // Public inquiry payload: contact fields + optional context (which property / what kind of request)
-const InquiryRequestSchema = ContactFormSchema.extend({
+const InquiryRequestSchema = ContactFieldsSchema.extend({
   property_id: z.number().int().positive().optional(),
   inquiry_type: z
     .enum(["general", "property_interest", "viewing_request", "valuation", "selling", "renting"])
@@ -18,7 +18,7 @@ const InquiryRequestSchema = ContactFormSchema.extend({
   // Anti-spam: honeypot (must stay empty) + when the form was rendered (ms since epoch)
   website: z.string().max(200).optional(),
   started_at: z.number().int().optional(),
-});
+}).superRefine(requirePhoneOrEmail);
 
 /** Real visitors need a few seconds to fill the form; bots post instantly or fill the hidden field */
 const MIN_FILL_MS = 3000;
@@ -48,8 +48,9 @@ export async function POST(req: NextRequest) {
       .from("inquiries")
       .insert({
         full_name: data.full_name,
-        email: data.email,
-        phone: data.phone && data.phone.length > 0 ? data.phone : null,
+        // Column is NOT NULL (shared prod schema) – phone-only leads are stored with an empty email
+        email: data.email || "",
+        phone: data.phone || null,
         inquiry_type: inquiryType as Database["public"]["Enums"]["inquiry_type"],
         message: data.message,
         subject: null,
@@ -85,8 +86,8 @@ export async function POST(req: NextRequest) {
         }
         await sendInquiryNotification({
           full_name: data.full_name,
-          email: data.email,
-          phone: data.phone,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
           message: data.message,
           inquiryId: inserted.id,
           inquiryType,

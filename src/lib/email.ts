@@ -15,7 +15,8 @@ const INQUIRY_TYPE_LABELS: Record<string, string> = {
 
 export interface InquiryEmailData {
   full_name: string;
-  email: string;
+  /** At least one of email/phone is present */
+  email?: string;
   phone?: string;
   message: string;
   inquiryId: number;
@@ -36,7 +37,7 @@ export async function sendInquiryNotification(data: InquiryEmailData): Promise<v
   await resend.emails.send({
     from: process.env.SMTP_FROM_EMAIL ?? 'info@novanest.bg',
     to: site.contact.email,
-    replyTo: email,
+    replyTo: email || undefined,
     subject: `Ново запитване #${inquiryId} от ${full_name}${property ? ` – ${property.title}` : ''}`,
     html: `
       <h2>Ново запитване – ${esc(typeLabel)}</h2>
@@ -44,8 +45,8 @@ export async function sendInquiryNotification(data: InquiryEmailData): Promise<v
       ${property ? `<p><strong>Имот:</strong> <a href="${esc(property.url)}">${esc(property.title)}</a></p>` : ''}
       <hr />
       <p><strong>Име:</strong> ${esc(full_name)}</p>
-      <p><strong>Имейл:</strong> ${esc(email)}</p>
-      ${phone ? `<p><strong>Телефон:</strong> ${esc(phone)}</p>` : ''}
+      ${phone ? `<p><strong>Телефон:</strong> <a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}">${esc(phone)}</a></p>` : ''}
+      ${email ? `<p><strong>Имейл:</strong> ${esc(email)}</p>` : ''}
       <p><strong>Съобщение:</strong></p>
       <p>${esc(message).replace(/\n/g, '<br />')}</p>
       <hr />

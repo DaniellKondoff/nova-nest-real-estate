@@ -72,7 +72,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   - `src/config/site.ts:16-20`
 - **Fix:** replace them with real, live numbers. The active listing count and the number of neighborhoods covered come from `getCachedListingIndex()`. Add years in business and a real count of closed deals. Use "Пон–Съб" instead of "24/7".
 
-#### UX-3: The inquiry form asks for the wrong required field and has no "viewing" option · Impact M · Effort S
+#### UX-3: The inquiry form asks for the wrong required field and has no "viewing" option · Impact M · Effort S · ✅ Done
 - **Problem:** the email field is required and the phone field is optional. Most Bulgarian property leads are followed up by phone, so a lead without a phone number is hard to work. Visitors also can't say "I want a viewing", although the API already accepts `inquiry_type: "viewing_request"`.
 - **Where:**
   - `src/lib/validations.ts:243-258`: `ContactFormSchema` requires `email` and makes `phone` optional.

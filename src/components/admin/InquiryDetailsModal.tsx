@@ -198,17 +198,20 @@ export default function InquiryDetailsModal({
                 <label className="text-sm font-medium text-gray-700">Име:</label>
                 <p className="text-gray-900 font-medium">{inquiry.full_name}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Имейл:</label>
-                <p className="text-gray-900">
-                  <a
-                    href={`mailto:${inquiry.email}`}
-                    className="text-[#D4AF37] hover:text-[#B8941F] transition-colors"
-                  >
-                    {inquiry.email}
-                  </a>
-                </p>
-              </div>
+              {/* Phone-only leads are stored with an empty email */}
+              {inquiry.email && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Имейл:</label>
+                  <p className="text-gray-900">
+                    <a
+                      href={`mailto:${inquiry.email}`}
+                      className="text-[#D4AF37] hover:text-[#B8941F] transition-colors"
+                    >
+                      {inquiry.email}
+                    </a>
+                  </p>
+                </div>
+              )}
               {inquiry.phone && (
                 <div>
                   <label className="text-sm font-medium text-gray-700">Телефон:</label>
