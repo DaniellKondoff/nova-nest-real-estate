@@ -30,6 +30,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { containerClass } from "@/components/ui/section";
 import { getPropertyBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { extractSlugFromUrlSlug, propertyPath } from "@/lib/seo/property-slug";
+import { absoluteUrl } from "@/lib/seo/config";
 import RelatedProperties from "@/components/property/RelatedProperties";
 import MobileContactBar from "@/components/property/MobileContactBar";
 import { site } from "@/config/site";
@@ -78,6 +79,8 @@ export default async function PropertyDetailPage({ params }: PageParams) {
 
   const breadcrumbs = getPropertyBreadcrumbs(details);
   const headline = propertyHeadline(details);
+  // Pre-filled Viber message so the agent sees which listing the visitor is writing about
+  const viberDraft = `Здравейте, интересувам се от ${absoluteUrl(propertyPath(property.id, property.slug))}`;
   const galleryImages = (images ?? []).map((img, i) => ({
     id: String(img.id),
     url: img.url,
@@ -94,6 +97,7 @@ export default async function PropertyDetailPage({ params }: PageParams) {
         price={price ? formatPrice(price) : null}
         isRent={isRent}
         location={neighborhoodLabel(neighborhood?.name_bg)}
+        viberDraft={viberDraft}
       />
 
       <PropertySchema property={details} />
@@ -153,7 +157,11 @@ export default async function PropertyDetailPage({ params }: PageParams) {
               id="contact-sidebar"
               className="scroll-mt-[calc(var(--header-h)+1rem)] xl:sticky xl:top-[calc(var(--header-h)+1.5rem)]"
             >
-              <PropertyContact propertyId={property.id} propertyTitle={displayTitle(property.title_bg)} />
+              <PropertyContact
+                propertyId={property.id}
+                propertyTitle={displayTitle(property.title_bg)}
+                viberDraft={viberDraft}
+              />
             </div>
           </div>
         </div>

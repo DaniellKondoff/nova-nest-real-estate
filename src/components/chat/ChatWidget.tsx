@@ -5,6 +5,7 @@ import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/design-tokens";
 import { ChatMessage } from "./ChatMessage";
+import { site } from "@/config/site";
 
 interface Message {
   role: "user" | "assistant";
@@ -38,6 +39,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const fabRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -75,6 +77,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
     const controller = new AbortController();
     abortRef.current = controller;
     let timedOut = false;
+    let serverMessage: string | undefined;
     const timeoutId = setTimeout(() => {
       timedOut = true;
       controller.abort();
@@ -88,6 +91,11 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
         signal: controller.signal,
       });
 
+      // Rate limited / unavailable: show the server's message (it is user-facing Bulgarian text)
+      if (res.status === 429 || res.status === 503) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (body?.error) serverMessage = body.error;
+      }
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
       // First chunk received — swap waiting indicator for streaming bubble
@@ -133,7 +141,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
       if (!isAbort || timedOut) {
         const errorContent = timedOut
           ? "Заявката отне твърде дълго. Моля, опитайте отново."
-          : "Съжалявам, възникна грешка. Моля, опитайте отново.";
+          : serverMessage ?? "Съжалявам, възникна грешка. Моля, опитайте отново.";
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
@@ -162,6 +170,20 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
   const handleToggle = () => {
     if (isOpen) abortRef.current?.abort();
     setIsOpen((v) => !v);
+  };
+
+  // Return focus to the launcher after the panel closes (keyboard and screen-reader users)
+  const wasOpenRef = useRef(isOpen);
+  useEffect(() => {
+    if (wasOpenRef.current && !isOpen) fabRef.current?.focus();
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  const handlePanelKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      handleToggle();
+    }
   };
 
   const isBusy = isStreaming || isWaiting;
@@ -194,6 +216,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
             role="dialog"
             aria-label="AI имотен асистент"
             aria-modal="false"
+            onKeyDown={handlePanelKeyDown}
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3.5 bg-primary/95 backdrop-blur-[8px] sm:rounded-t-2xl flex-shrink-0 border-b border-white/10 relative overflow-hidden">
@@ -215,12 +238,18 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
                 className="flex h-11 w-11 items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
                 aria-label="Затвори чата"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 
-            {/* Messages list */}
-            <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-3 min-h-0 bg-white">
+            {/* Messages list – announced once per finished answer (aria-busy while streaming) */}
+            <div
+              role="log"
+              aria-live="polite"
+              aria-busy={isBusy}
+              aria-label="Разговор с асистента"
+              className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-3 min-h-0 bg-white"
+            >
               {messages.map((msg, i) => (
                 <ChatMessage
                   key={i}
@@ -297,9 +326,9 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
                   aria-label="Изпрати съобщение"
                 >
                   {isBusy ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                   ) : (
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-3.5 h-3.5" aria-hidden="true" />
                   )}
                 </button>
               </div>
@@ -308,14 +337,21 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
               {showCounter && (
                 <p className={cn(
                   "text-right text-[10px] mt-1 pr-0.5",
-                  isAtLimit ? "text-red-500 font-medium" : "text-gray-400"
+                  isAtLimit ? "text-red-500 font-medium" : "text-gray-600"
                 )}>
                   {input.length}/{MAX_CHARS}
                 </p>
               )}
 
-              <p className="text-center text-primary/60 tracking-wide text-[11px] mt-1.5 font-medium">
-                Nova Nest Real Estate Assistant — помага ви да намерите идеалния имот в Стара Загора.
+              {/* Chat text is sent to Anthropic (USA) – tell visitors before they type personal data */}
+              <p className="text-center text-charcoal/75 text-[11px] leading-4 mt-1.5">
+                AI асистент (Anthropic). Не въвеждайте лични данни.{" "}
+                <a
+                  href={site.legal.privacyPolicyPath}
+                  className="inline-block py-1 font-medium text-primary underline decoration-accent underline-offset-2"
+                >
+                  Поверителност
+                </a>
               </p>
             </div>
           </motion.div>
@@ -325,6 +361,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
       {/* ── FAB toggle button ─────────────────────────────────────────── */}
       <div className={cn("fixed bottom-[calc(5rem+var(--fab-offset))] right-3 sm:right-4 z-50", isOpen && "hidden sm:flex")}>
         <button
+          ref={fabRef}
           onClick={handleToggle}
           aria-label={isOpen ? "Затвори чата" : "Отвори AI асистент"}
           aria-expanded={isOpen}
@@ -373,8 +410,8 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
           {/* Icon */}
           <span className={cn("relative z-10 transition-transform duration-200", isOpen ? "rotate-90" : "rotate-0")}>
             {isOpen
-              ? <X className="w-5 h-5 text-white" />
-              : <MessageCircle className="w-5 h-5 text-white" />
+              ? <X className="w-5 h-5 text-white" aria-hidden="true" />
+              : <MessageCircle className="w-5 h-5 text-white" aria-hidden="true" />
             }
           </span>
         </button>

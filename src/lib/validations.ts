@@ -228,34 +228,39 @@ export const AdminPropertySchema = z.object({
 // Contact Form (Public Site)
 // ==========================
 
-// Bulgarian-specific phone pattern per requirements
-export const bulgarianPhoneRegex = /^(\+359|0)\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/;
+// Bulgarian mobile or landline, tested after stripping separators (spaces, dashes, dots, brackets, slashes):
+// "+359 88 812 3456", "0888-123-456", "042 123 456", "00359 42 123 456"
+export const bulgarianPhoneRegex = /^(?:\+359|00359|0)\d{8,9}$/;
 
-export const ContactFormSchema = z.object({
+const normalizePhone = (val: string) => val.replace(/[\s\-().\/]/g, "");
+
+/** Fields of the public contact/inquiry forms. Extend this (not ContactFormSchema – refined schemas can't be extended) */
+export const ContactFieldsSchema = z.object({
   full_name: z
     .string()
     .trim()
     .min(1, "Моля, въведете вашето име")
     .min(2, "Името трябва да бъде поне 2 символа")
     .max(100, "Името е твърде дълго (максимум 100 символа)")
-    .regex(/^[а-яА-Яa-zA-Z\s\-]+$/, "Невалидни символи в името"),
+    .regex(/^[\p{L}\s.'’\-]+$/u, "Невалидни символи в името"),
 
+  // Optional on its own – requirePhoneOrEmail demands at least one of email/phone
   email: z
     .string()
     .trim()
-    .min(1, "Моля, въведете имейл адрес")
-    .email("Моля, въведете валиден имейл адрес")
-    .toLowerCase(),
+    .toLowerCase()
+    .refine((val) => !val || z.email().safeParse(val).success, {
+      message: "Моля, въведете валиден имейл адрес",
+    })
+    .optional(),
 
   phone: z
     .string()
-    .optional()
-    .refine(
-      (val) => !val || bulgarianPhoneRegex.test(val.trim()),
-      {
-        message: "Моля, въведете валиден телефонен номер",
-      }
-    ),
+    .trim()
+    .refine((val) => !val || bulgarianPhoneRegex.test(normalizePhone(val)), {
+      message: "Моля, въведете валиден телефонен номер",
+    })
+    .optional(),
 
   message: z
     .string()
@@ -264,6 +269,19 @@ export const ContactFormSchema = z.object({
     .min(10, "Съобщението трябва да бъде поне 10 символа")
     .max(1000, "Съобщението е твърде дълго (максимум 1000 символа)"),
 });
+
+/** Leads are followed up by phone, but an email alone is fine too – at least one is required */
+export function requirePhoneOrEmail(data: { email?: string; phone?: string }, ctx: z.RefinementCtx): void {
+  if (!data.phone?.trim() && !data.email?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["phone"],
+      message: "Моля, оставете телефон или имейл, за да се свържем с вас",
+    });
+  }
+}
+
+export const ContactFormSchema = ContactFieldsSchema.superRefine(requirePhoneOrEmail);
 
 export type ContactFormData = z.infer<typeof ContactFormSchema>;
 

@@ -20,6 +20,16 @@ export function buildBreadcrumbs(trail: Array<{ name: string; path: string }>): 
 const HOME = { name: 'Начало', path: '/' };
 const PROPERTIES = { name: 'Имоти', path: '/properties/' };
 
+/** Начало › {страница} – for standalone info pages (contacts, about, privacy) */
+export function getStaticPageBreadcrumbs(name: string, path: string): BreadcrumbItem[] {
+  return buildBreadcrumbs([HOME, { name, path }]);
+}
+
+/** Начало › Политика за поверителност */
+export function getPrivacyBreadcrumbs(path: string): BreadcrumbItem[] {
+  return getStaticPageBreadcrumbs('Политика за поверителност', path);
+}
+
 /** Начало › Имоти */
 export function getPropertiesBreadcrumbs(): BreadcrumbItem[] {
   return buildBreadcrumbs([HOME, PROPERTIES]);

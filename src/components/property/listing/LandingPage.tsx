@@ -32,6 +32,8 @@ export interface LandingPageProps {
   breadcrumbs: BreadcrumbItem[];
   /** Key figures shown under the intro, e.g. { label: "Средна цена", value: "95 000 €" } */
   facts: Array<{ label: string; value: string }>;
+  /** Optional sub-navigation under the facts, e.g. apartments by room count */
+  quickNav?: React.ReactNode;
   properties: PropertyWithDetails[];
   total: number;
   /** Filterable /properties/ URL with the same scope (for "see all" and the empty state) */
@@ -50,6 +52,7 @@ export default function LandingPage({
   intro,
   breadcrumbs,
   facts,
+  quickNav,
   properties,
   total,
   allHref,
@@ -74,12 +77,13 @@ export default function LandingPage({
             <dl className="mt-6 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-4">
               {facts.map((fact) => (
                 <div key={fact.label} className="rounded-xl border border-border bg-gray-light px-4 py-3 sm:min-w-40">
-                  <dt className="text-xs font-medium text-charcoal/60 sm:text-sm">{fact.label}</dt>
+                  <dt className="text-xs font-medium text-charcoal/75 sm:text-sm">{fact.label}</dt>
                   <dd className="mt-0.5 text-lg font-bold text-primary">{fact.value}</dd>
                 </div>
               ))}
             </dl>
           )}
+          {quickNav}
         </div>
       </section>
 
@@ -92,7 +96,7 @@ export default function LandingPage({
           priorityCount={2}
           emptyTitle={emptyTitle}
           emptyDescription={emptyDescription}
-          emptyAction={{ href: "/#contact", label: "Свържете се с нас" }}
+          emptyAction={{ href: site.pages.contact, label: "Свържете се с нас" }}
         />
         {total > properties.length && (
           <div className="mt-8 flex justify-center">
@@ -151,7 +155,7 @@ export default function LandingPage({
               </a>
             </Button>
             <Button asChild variant="outline-light" size="lg" className="w-full sm:w-auto">
-              <Link href="/#contact">
+              <Link href={site.pages.contact}>
                 <Mail className="h-5 w-5" aria-hidden="true" />
                 Изпратете запитване
               </Link>

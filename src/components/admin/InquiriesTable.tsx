@@ -1,23 +1,7 @@
 "use client";
 
 import { Eye } from "lucide-react";
-
-interface Inquiry {
-  id: number;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  inquiry_type: "general" | "property_interest" | "viewing_request" | "valuation" | "selling" | "renting";
-  message: string;
-  status: "new" | "in_progress" | "responded" | "closed";
-  created_at: string;
-  property: {
-    id: number;
-    title_bg: string;
-    price_bgn: number | null;
-    price_eur: number | null;
-  } | null;
-}
+import type { AdminInquiry as Inquiry } from "@/types/admin";
 
 interface InquiriesTableProps {
   inquiries: Inquiry[];
@@ -134,9 +118,11 @@ export default function InquiriesTable({ inquiries, onViewDetails }: InquiriesTa
                   <div className="text-sm font-medium text-gray-900">
                     {inquiry.full_name}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {inquiry.email}
-                  </div>
+                  {inquiry.email && (
+                    <div className="text-xs text-gray-500">
+                      {inquiry.email}
+                    </div>
+                  )}
                   {inquiry.phone && (
                     <div className="text-xs text-gray-500">
                       {inquiry.phone}

@@ -1,7 +1,8 @@
 import { X } from "lucide-react";
 import type { PropertySearchFilters } from "@/types/search";
 import type { FeatureOption } from "@/lib/queries/features";
-import { buildPropertiesHref } from "@/lib/search/params";
+import { neighborhoodLabel } from "@/lib/seo/property-metadata";
+import { buildPropertiesHref, ROOM_OPTIONS } from "@/lib/search/params";
 import type { FilterOption } from "./PropertyFilterForm";
 import { ListingLink } from "./PropertiesNavigation";
 
@@ -10,6 +11,8 @@ interface ActiveFilterChipsProps {
   categories: FilterOption[];
   neighborhoods: FilterOption[];
   features: FeatureOption[];
+  /** Room chips are skipped while RoomsQuickFilter shows the same state */
+  hideRooms?: boolean;
 }
 
 const nf = new Intl.NumberFormat("bg-BG");
@@ -18,7 +21,7 @@ const nf = new Intl.NumberFormat("bg-BG");
  * Server-rendered "remove filter" chips. Each chip is a real link to the URL without that filter.
  * Mobile: a single horizontally scrollable row.
  */
-export default function ActiveFilterChips({ filters, categories, neighborhoods, features }: ActiveFilterChipsProps) {
+export default function ActiveFilterChips({ filters, categories, neighborhoods, features, hideRooms = false }: ActiveFilterChipsProps) {
   const chips: Array<{ key: string; label: string; next: PropertySearchFilters }> = [];
   const without = (patch: Partial<PropertySearchFilters>) => ({ ...filters, ...patch });
 
@@ -33,17 +36,39 @@ export default function ActiveFilterChips({ filters, categories, neighborhoods, 
   if (typeof filters.neighborhoodId === "number")
     chips.push({
       key: "nbh",
-      label: `кв. ${neighborhoods.find((n) => n.id === filters.neighborhoodId)?.name_bg ?? ""}`.trim(),
+      label: neighborhoodLabel(neighborhoods.find((n) => n.id === filters.neighborhoodId)?.name_bg) ?? "Квартал",
       next: without({ neighborhoodId: undefined }),
     });
   if (typeof filters.minPriceEur === "number")
     chips.push({ key: "minP", label: `от €${nf.format(filters.minPriceEur)}`, next: without({ minPriceEur: undefined }) });
   if (typeof filters.maxPriceEur === "number")
     chips.push({ key: "maxP", label: `до €${nf.format(filters.maxPriceEur)}`, next: without({ maxPriceEur: undefined }) });
+  if (!hideRooms) filters.rooms?.forEach((value) => {
+    const rest = filters.rooms!.filter((r) => r !== value);
+    chips.push({
+      key: `r${value}`,
+      label: ROOM_OPTIONS.find((o) => o.value === value)?.label ?? `${value} стаи`,
+      next: without({ rooms: rest.length ? rest : undefined }),
+    });
+  });
   if (typeof filters.minArea === "number")
-    chips.push({ key: "minA", label: `от ${filters.minArea} m²`, next: without({ minArea: undefined }) });
+    chips.push({ key: "minA", label: `от ${filters.minArea} м²`, next: without({ minArea: undefined }) });
   if (typeof filters.maxArea === "number")
-    chips.push({ key: "maxA", label: `до ${filters.maxArea} m²`, next: without({ maxArea: undefined }) });
+    chips.push({ key: "maxA", label: `до ${filters.maxArea} м²`, next: without({ maxArea: undefined }) });
+  if (typeof filters.minBedrooms === "number")
+    chips.push({
+      key: "bed",
+      label: filters.minBedrooms === 1 ? "поне 1 спалня" : `поне ${filters.minBedrooms} спални`,
+      next: without({ minBedrooms: undefined }),
+    });
+  if (typeof filters.isNew === "boolean")
+    chips.push({ key: "new", label: filters.isNew ? "Нови обяви" : "Без нови обяви", next: without({ isNew: undefined }) });
+  if (typeof filters.isFeatured === "boolean")
+    chips.push({
+      key: "feat",
+      label: filters.isFeatured ? "Препоръчани" : "Без препоръчани",
+      next: without({ isFeatured: undefined }),
+    });
   filters.featureIds?.forEach((id) => {
     const rest = filters.featureIds!.filter((f) => f !== id);
     chips.push({

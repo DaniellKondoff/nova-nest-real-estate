@@ -5,13 +5,6 @@ import { env } from "@/lib/env";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Handle English locale redirects
-  if (pathname === "/en" || pathname.startsWith("/en/")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/" + pathname.slice(4);
-    return NextResponse.redirect(url);
-  }
 
   // Admin route protection
   if (pathname.startsWith("/admin") && pathname !== "/admin/login" && pathname !== "/admin/login/") {

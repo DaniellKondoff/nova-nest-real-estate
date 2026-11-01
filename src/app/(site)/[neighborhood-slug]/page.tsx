@@ -4,6 +4,7 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { generateNeighborhoodStructuredData } from "@/lib/seo/neighborhood-metadata";
 import { getNeighborhoodBreadcrumbs } from "@/lib/seo/breadcrumb-helpers";
 import { generateNeighborhoodMetadata } from "@/lib/seo/neighborhood-metadata";
+import { neighborhoodLabel } from "@/lib/seo/property-metadata";
 import {
   getCachedNeighborhoods,
   getCachedPropertiesByNeighborhood,
@@ -21,7 +22,14 @@ import { buildPropertiesHref } from "@/lib/search/params";
 import Link from "next/link";
 import { site } from "@/config/site";
 import { getLandingData } from "@/lib/queries/landing-data";
-import { filterListings, neighborhoodCategoryPath } from "@/lib/seo/landing";
+import {
+  ROOM_LANDINGS,
+  filterListings,
+  findApartmentCategory,
+  neighborhoodCategoryPath,
+  neighborhoodRoomsPath,
+  roomLandingsFor,
+} from "@/lib/seo/landing";
 
 const PAGE_LIMIT = 12;
 
@@ -89,9 +97,24 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
     getPropertyCountByNeighborhood(neighborhood.id),
     getLandingData(),
   ]);
-  const categoryLinks = landing.categories
-    .map((c) => ({ c, count: filterListings(landing.listings, { neighborhoodId: neighborhood.id, categoryId: c.id }).length }))
-    .filter(({ count }) => count > 0);
+  const apartments = findApartmentCategory(landing.categories);
+  const typeLinks = [
+    ...landing.categories
+      .map((c) => ({
+        href: neighborhoodCategoryPath(neighborhood, c),
+        label: `${c.plural} в ${neighborhood.name_bg}`,
+        count: filterListings(landing.listings, { neighborhoodId: neighborhood.id, categoryId: c.id }).length,
+      }))
+      .filter(({ count }) => count > 0),
+    // "Двустайни апартаменти в Казански" – only rooms pages that exist
+    ...(apartments
+      ? roomLandingsFor(landing.listings, { neighborhoodId: neighborhood.id }, apartments.id).map((r) => ({
+          href: neighborhoodRoomsPath(neighborhood, r.room),
+          label: `${ROOM_LANDINGS[r.room].plural} в ${neighborhood.name_bg}`,
+          count: r.listings.length,
+        }))
+      : []),
+  ];
 
   const breadcrumbs = getNeighborhoodBreadcrumbs(neighborhood.name_bg, neighborhood.slug);
   const structuredData = generateNeighborhoodStructuredData(neighborhood);
@@ -112,8 +135,8 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
             title={`Имоти в ${neighborhood.name_bg}`}
             description={
               propertyCount > 0
-                ? `${propertyCount} активни обяви в квартал ${neighborhood.name_bg}.`
-                : `В момента няма активни обяви в квартал ${neighborhood.name_bg}.`
+                ? `${propertyCount} активни обяви в ${neighborhoodLabel(neighborhood.name_bg)}.`
+                : `В момента няма активни обяви в ${neighborhoodLabel(neighborhood.name_bg)}.`
             }
             align="left"
             className="mb-0 md:mb-0"
@@ -128,16 +151,16 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
           )}
         </div>
 
-        {categoryLinks.length > 0 && (
+        {typeLinks.length > 0 && (
           <nav aria-label={`Имоти в ${neighborhood.name_bg} по вид`} className="-mt-2 mb-6">
             <ul className="flex flex-wrap gap-2">
-              {categoryLinks.map(({ c, count }) => (
-                <li key={c.id}>
+              {typeLinks.map(({ href, label, count }) => (
+                <li key={href}>
                   <Link
-                    href={neighborhoodCategoryPath(neighborhood, c)}
+                    href={href}
                     className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-white px-4 text-sm font-medium text-primary transition-colors hover:border-accent hover:bg-accent/5"
                   >
-                    {c.plural} в {neighborhood.name_bg}
+                    {label}
                     <span className="rounded-full bg-gray-light px-2 py-0.5 text-xs font-semibold text-charcoal/70">{count}</span>
                   </Link>
                 </li>
@@ -151,7 +174,7 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
           priorityCount={1}
           emptyTitle="Няма активни обяви"
           emptyDescription="Свържете се с нас, за да ви уведомим първи за нови оферти в квартала."
-          emptyAction={{ href: "/#contact", label: "Свържете се с нас" }}
+          emptyAction={{ href: site.pages.contact, label: "Свържете се с нас" }}
         />
       </Section>
 
@@ -174,7 +197,7 @@ export default async function NeighborhoodPage({ params }: NeighborhoodPageProps
               </a>
             </Button>
             <Button asChild variant="outline-light" size="lg" className="w-full sm:w-auto">
-              <Link href="/#contact">
+              <Link href={site.pages.contact}>
                 <Mail className="h-5 w-5" aria-hidden="true" />
                 Изпратете запитване
               </Link>

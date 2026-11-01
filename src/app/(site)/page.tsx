@@ -1,6 +1,7 @@
 import { generateMetadata as buildMetadata } from "@/lib/seo/metadata";
 import { ORGANIZATION_ID } from "@/lib/seo/config";
 import HeroSection from "@/components/home/HeroSection";
+import LatestListingsSection from "@/components/home/LatestListingsSection";
 import AboutSection from "@/components/home/AboutSection";
 import ServicesSection, { SERVICES_DATA } from "@/components/home/ServicesSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
@@ -43,6 +44,7 @@ export default function Home(): React.ReactElement {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(offerCatalogSchema, null, 0) }}
       />
       <HeroSection id="home" />
+      <LatestListingsSection />
       <AboutSection />
       <ServicesSection id="services" />
       <WhyChooseUsSection />

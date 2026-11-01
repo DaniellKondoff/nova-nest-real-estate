@@ -36,7 +36,7 @@ export default function PropertyFeatures({ features }: PropertyFeaturesProps): R
       <div className="space-y-5">
         {groups.map((category) => (
           <div key={category}>
-            <h3 className="mb-2.5 text-sm font-semibold uppercase tracking-wider text-charcoal/60">
+            <h3 className="mb-2.5 text-sm font-semibold uppercase tracking-wider text-charcoal/75">
               {CATEGORY_LABELS[category] || category}
             </h3>
             <ul className="flex flex-wrap gap-2">

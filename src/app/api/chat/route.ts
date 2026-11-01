@@ -3,17 +3,33 @@ import { z } from "zod";
 import { fail } from "@/lib/api";
 import { streamChatResponse, type ChatMessage } from "@/lib/chat/assistant";
 import { getServerEnv } from "@/lib/env";
-import { checkRateLimit } from "@/lib/chat/rate-limit";
+import { checkRateLimit, hashIp } from "@/lib/chat/rate-limit";
 
-const MessageSchema = z.object({
-  role: z.enum(["user", "assistant"]),
-  content: z.string().min(1),
-});
+// Durable limits (shared across serverless instances). The global daily cap is the real cost ceiling.
+const IP_LIMIT_PER_MINUTE = 10;
+const IP_LIMIT_PER_DAY = 60;
+const GLOBAL_LIMIT_PER_DAY = 1000;
+const DAY_SECONDS = 86_400;
 
-const BodySchema = z.object({
-  message: z.string().trim().min(1, "Моля, въведете съобщение."),
-  history: z.array(MessageSchema).max(20).optional().default([]),
-});
+// Hard caps keep a single request from pushing a huge prompt to Anthropic (the widget sends ≤500 chars, last 10 turns)
+const MAX_MESSAGE_CHARS = 1000;
+const MAX_ASSISTANT_CHARS = 6000; // answers are capped at 1024 tokens (≈ 4–5k Cyrillic chars)
+const MAX_TOTAL_CHARS = 20_000;
+
+const MessageSchema = z.discriminatedUnion("role", [
+  z.object({ role: z.literal("user"), content: z.string().min(1).max(MAX_MESSAGE_CHARS) }),
+  z.object({ role: z.literal("assistant"), content: z.string().min(1).max(MAX_ASSISTANT_CHARS) }),
+]);
+
+const BodySchema = z
+  .object({
+    message: z.string().trim().min(1, "Моля, въведете съобщение.").max(MAX_MESSAGE_CHARS),
+    history: z.array(MessageSchema).max(12).optional().default([]),
+  })
+  .refine(
+    ({ message, history }) => history.reduce((sum, m) => sum + m.content.length, message.length) <= MAX_TOTAL_CHARS,
+    { message: "Разговорът е твърде дълъг." }
+  );
 
 export async function POST(req: NextRequest): Promise<Response> {
   let body: unknown;
@@ -34,13 +50,30 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const { message, history } = parsed.data;
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  const rl = checkRateLimit(ip);
-  if (!rl.allowed) {
+  // x-real-ip is set by the platform (Vercel); x-forwarded-for's first entry can be spoofed by the client
+  const ip =
+    req.headers.get("x-real-ip")?.trim() || req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+  const ipKey = hashIp(ip);
+  const [perMinute, perDay] = await Promise.all([
+    checkRateLimit(`chat:ip:${ipKey}:min`, IP_LIMIT_PER_MINUTE, 60),
+    checkRateLimit(`chat:ip:${ipKey}:day`, IP_LIMIT_PER_DAY, DAY_SECONDS),
+  ]);
+  const ipLimited = [perMinute, perDay].find((r) => !r.allowed);
+  if (ipLimited) {
     return fail("Твърде много заявки. Моля, изчакайте малко.", {
       status: 429,
       code: "RATE_LIMITED",
-      details: { retryAfter: rl.retryAfter },
+      details: { retryAfter: ipLimited.retryAfter },
+      headers: { "Retry-After": String(ipLimited.retryAfter ?? 60) },
+    });
+  }
+  // Checked only after the IP limits pass, so a single blocked client can't drain the shared budget
+  const global = await checkRateLimit("chat:global:day", GLOBAL_LIMIT_PER_DAY, DAY_SECONDS);
+  if (!global.allowed) {
+    console.warn("[chat-route] global daily limit reached");
+    return fail("Асистентът временно не е наличен. Моля, свържете се с нас по телефона.", {
+      status: 503,
+      code: "SERVICE_UNAVAILABLE",
     });
   }
 

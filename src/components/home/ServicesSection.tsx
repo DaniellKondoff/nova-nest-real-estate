@@ -50,7 +50,8 @@ export const SERVICES_DATA = [
 ] as const;
 
 /** Services – server component. Mobile: compact cards with icon + title on one row. */
-export default function ServicesSection({ id }: { id?: string }) {
+/** `contactHref`: in-page anchor on the home page, the contacts page elsewhere */
+export default function ServicesSection({ id, contactHref = "#contact" }: { id?: string; contactHref?: string }) {
   return (
     <Section id={id || "services"} aria-labelledby="services-heading" className="scroll-mt-[var(--header-h)]">
       <SectionHeading
@@ -99,7 +100,7 @@ export default function ServicesSection({ id }: { id?: string }) {
         </div>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Button asChild variant="secondary" size="lg" className="w-full sm:w-auto">
-            <a href="#contact">
+            <a href={contactHref}>
               <MessageCircle className="h-5 w-5" aria-hidden="true" />
               Безплатна консултация
             </a>

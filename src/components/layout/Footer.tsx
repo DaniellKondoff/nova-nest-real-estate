@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { site } from "@/config/site";
 import { containerClass } from "@/components/ui/section";
-import { OPERATION_LANDINGS } from "@/lib/seo/landing";
+import { APARTMENT_LANDING_SLUG, OPERATION_LANDINGS } from "@/lib/seo/landing";
 import { getSiteNavLinks } from "@/lib/seo/nav-links";
 import { cn } from "@/lib/utils";
 import FooterBackToTopClient from "./FooterBackToTopClient";
@@ -15,9 +15,9 @@ interface FooterLink {
 const QUICK_LINKS: FooterLink[] = [
   { label: "Начало", href: "/" },
   { label: "Всички имоти", href: "/properties/" },
-  { label: "За нас", href: "/#about" },
+  { label: "За нас", href: site.pages.about },
   { label: "Услуги", href: "/#services" },
-  { label: "Контакти", href: "/#contact" },
+  { label: "Контакти", href: site.pages.contact },
 ];
 
 /**
@@ -28,10 +28,16 @@ async function getSeoLinks(): Promise<{ searches: FooterLink[]; neighborhoods: F
   const { operations, neighborhoods } = await getSiteNavLinks();
   const searches = operations.flatMap((op) => [
     { label: op.label, href: op.href },
-    ...op.categories.map((c) => ({ label: `${c.label} ${OPERATION_LANDINGS[op.operation].label}`, href: c.href })),
+    ...op.categories.flatMap((c) => [
+      { label: `${c.label} ${OPERATION_LANDINGS[op.operation].label}`, href: c.href },
+      // "Двустайни апартаменти за продажба" – the most searched apartment queries, right after apartments
+      ...(op.operation === "sale" && c.href.endsWith(`/${APARTMENT_LANDING_SLUG}/`)
+        ? op.rooms.map((r) => ({ label: `${r.label} ${OPERATION_LANDINGS[op.operation].label}`, href: r.href }))
+        : []),
+    ]),
   ]);
   return {
-    searches: searches.slice(0, 8),
+    searches: searches.slice(0, 10),
     neighborhoods: neighborhoods.map((n) => ({ label: `Имоти в ${n.label}`, href: n.href })),
   };
 }
@@ -136,7 +142,15 @@ export default async function Footer() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
           <p>© {currentYear} Nova Nest Real Estate. Всички права запазени.</p>
-          <p>Недвижими имоти в {site.city}</p>
+          <div className="flex flex-wrap items-center gap-x-4">
+            <Link
+              href={site.legal.privacyPolicyPath}
+              className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-accent hover:underline"
+            >
+              Политика за поверителност
+            </Link>
+            <p>Недвижими имоти в {site.city}</p>
+          </div>
         </div>
       </div>
 

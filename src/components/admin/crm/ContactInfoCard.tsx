@@ -290,7 +290,7 @@ export default function ContactInfoCard({ contact }: ContactInfoCardProps) {
 
             <button
               onClick={startEdit}
-              className="p-1.5 text-gray-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded transition-colors"
+              className="p-1.5 text-gray-500 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded transition-colors"
               title="Редактирай"
             >
               <Pencil className="w-4 h-4" />
@@ -490,7 +490,7 @@ export default function ContactInfoCard({ contact }: ContactInfoCardProps) {
           </span>
           <button
             onClick={openNeighborhoodPicker}
-            className="p-1 text-gray-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded transition-colors"
+            className="p-1 text-gray-500 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded transition-colors"
             title="Добави квартал"
           >
             <Plus className="w-4 h-4" />
@@ -498,7 +498,7 @@ export default function ContactInfoCard({ contact }: ContactInfoCardProps) {
         </div>
 
         {neighborhoods.length === 0 ? (
-          <p className="text-xs text-gray-400">Няма добавени квартали</p>
+          <p className="text-xs text-gray-600">Няма добавени квартали</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {neighborhoods.map((n) => (
@@ -509,7 +509,7 @@ export default function ContactInfoCard({ contact }: ContactInfoCardProps) {
                 {n.name_bg}
                 <button
                   onClick={() => handleUnlinkNeighborhood(n.id)}
-                  className="text-gray-400 hover:text-red-500 transition-colors ml-0.5"
+                  className="text-gray-500 hover:text-red-500 transition-colors ml-0.5"
                   title="Премахни"
                 >
                   <X className="w-3 h-3" />
@@ -543,7 +543,7 @@ export default function ContactInfoCard({ contact }: ContactInfoCardProps) {
               ) : neighborhoodError ? (
                 <p className="p-3 text-xs text-red-600">{neighborhoodError}</p>
               ) : availableNeighborhoods.length === 0 ? (
-                <p className="p-3 text-xs text-gray-400">Няма налични квартали</p>
+                <p className="p-3 text-xs text-gray-600">Няма налични квартали</p>
               ) : (
                 availableNeighborhoods.map((n) => (
                   <button

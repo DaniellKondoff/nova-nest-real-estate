@@ -40,10 +40,33 @@ export function displayTitle(title: string): string {
   return lower.charAt(0).toLocaleUpperCase('bg') + lower.slice(1);
 }
 
+/** Whole square metres for headlines and snippets ("53.01" → "53"); the schema keeps the exact value */
+function displayArea(areaSqm: number): string {
+  return `${Math.round(areaSqm)} м²`;
+}
+
+/**
+ * Admin descriptions often start with shouted, pipe-separated fact lines
+ * ("2+КУХНЯ | КВ. ОПЪЛЧЕНСКИ | 53 КВ.М") that repeat the facts already in the snippet.
+ * Keeps only the prose lines.
+ */
+function metaDescriptionText(raw: string): string {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => {
+      if (!line || line.includes('|')) return false;
+      const letters = line.match(/\p{L}/gu) ?? [];
+      const upper = letters.filter((c) => c !== c.toLocaleLowerCase('bg')).length;
+      return letters.length > 0 && upper / letters.length <= 0.6;
+    })
+    .join(' ');
+}
+
 function headlineParts(property: PropertyWithDetails) {
   const { property: prop, neighborhood, category } = property;
   const kind = `${category?.name_bg ?? 'Имот'} ${prop.operation_type === 'rent' ? 'под наем' : 'за продажба'}`;
-  const area = prop.area_sqm ? `, ${prop.area_sqm} м²` : '';
+  const area = prop.area_sqm ? `, ${displayArea(prop.area_sqm)}` : '';
   const nbh = neighborhoodLabel(neighborhood?.name_bg);
   const where = nbh ? `, ${nbh}` : '';
   return { kind, area, where };
@@ -89,7 +112,7 @@ function generatePropertyDescription(property: PropertyWithDetails): string {
   const nbh = neighborhoodLabel(neighborhood?.name_bg);
   const where = nbh ? `в ${nbh}, Стара Загора` : 'в Стара Загора';
   const facts: string[] = [];
-  if (prop.area_sqm) facts.push(`${prop.area_sqm} м²`);
+  if (prop.area_sqm) facts.push(displayArea(prop.area_sqm));
   if (prop.rooms) facts.push(prop.rooms === 1 ? '1 стая' : `${prop.rooms} стаи`);
   if (typeof prop.floor === 'number') facts.push(`етаж ${prop.floor}${prop.total_floors ? `/${prop.total_floors}` : ''}`);
 
@@ -100,7 +123,8 @@ function generatePropertyDescription(property: PropertyWithDetails): string {
       : '';
     text += ` Цена ${formatPrice(prop.price_eur)}${perSqm}.`;
   }
-  if (prop.description_bg) text += ` ${prop.description_bg}`;
+  const prose = prop.description_bg ? metaDescriptionText(prop.description_bg) : '';
+  if (prose) text += ` ${prose}`;
 
   return toMetaDescription(text);
 }

@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Loader2, Send, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/design-tokens";
 import { ContactFormSchema, type ContactFormData } from "@/lib/validations";
+import { useAntiSpam } from "./anti-spam";
+import { PrivacyNotice } from "./PrivacyNotice";
 
 export interface ContactFormProps {
   onSuccess?: () => void;
@@ -23,6 +25,7 @@ export default function ContactForm({
   const [submitStatus, setSubmitStatus] = React.useState<{ type: "success" | "error"; message?: string } | null>(null);
   const successRef = React.useRef<HTMLDivElement | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
+  const { honeypot, antiSpamFields } = useAntiSpam();
 
   const {
     register,
@@ -74,7 +77,7 @@ export default function ContactForm({
       const res = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, ...antiSpamFields() }),
         signal: controller.signal,
       });
       clearTimeout(id);
@@ -116,7 +119,7 @@ export default function ContactForm({
   };
 
   const baseInput =
-    "block w-full rounded-xl border bg-white text-[16px] leading-[1.5] transition duration-200 placeholder:text-gray-400 text-charcoal";
+    "block w-full rounded-xl border bg-white text-[16px] leading-[1.5] transition duration-200 placeholder:text-gray-500 text-charcoal";
   const inputPadding = "px-4 py-3"; // ~12px 16px
   const inputBorderDefault = "border-gray-300";
   const inputFocus =
@@ -137,7 +140,7 @@ export default function ContactForm({
     <form
       aria-label="Форма за контакт"
       onSubmit={handleSubmit(onLocalSubmit)}
-      className={cn("rounded-card bg-white p-5 shadow-card sm:p-8", className)}
+      className={cn("relative rounded-card bg-white p-5 shadow-card sm:p-8", className)}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setServerError(null);
@@ -223,53 +226,25 @@ export default function ContactForm({
         )}
       </div>
 
-      {/* Email */}
-      <div className="mt-5">
-        <label htmlFor="contact-email" className={labelBase}>
-          Имейл адрес <span className="text-accent" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="contact-email"
-          type="email"
-          inputMode="email"
-          aria-required="true"
-          aria-invalid={!!errors.email || undefined}
-          aria-describedby={errors.email ? "email_error" : undefined}
-          placeholder="email@example.com"
-          {...register("email")}
-          className={cn(
-            baseInput,
-            inputPadding,
-            errors.email ? inputError : inputBorderDefault,
-            inputFocus,
-            inputDisabled
-          )}
-          disabled={isSubmitting}
-        />
-        {errors.email && (
-          <p id="email_error" role="alert" className={errorText} aria-live="polite">
-            <AlertCircle className="h-4 w-4" aria-hidden="true" />
-            {errors.email.message?.toString()}
-          </p>
-        )}
-      </div>
+      {/* Phone or email – at least one is required */}
+      <p className="mt-5 text-[13px] text-[#6b7280]">Телефон или имейл – поне едно от двете</p>
 
       {/* Phone */}
-      <div className="mt-5">
+      <div className="mt-2">
         <div className="flex items-baseline justify-between gap-2">
           <label htmlFor="contact-phone" className={labelBase}>
             Телефон
           </label>
-          <span className={helperText}>(Незадължително. Формат: +359 XXX XXX XXX)</span>
+          <span className={helperText}>Формат: 08X XXX XXXX</span>
         </div>
         <input
           id="contact-phone"
           type="tel"
           inputMode="tel"
-          aria-required="false"
+          autoComplete="tel"
           aria-invalid={!!errors.phone || undefined}
           aria-describedby={errors.phone ? "phone_error" : undefined}
-          placeholder="+359 XXX XXX XXX"
+          placeholder="08X XXX XXXX"
           {...register("phone")}
           className={cn(
             baseInput,
@@ -284,6 +259,38 @@ export default function ContactForm({
           <p id="phone_error" role="alert" className={errorText} aria-live="polite">
             <AlertCircle className="h-4 w-4" aria-hidden="true" />
             {errors.phone.message?.toString()}
+          </p>
+        )}
+      </div>
+
+      {/* Email */}
+      <div className="mt-5">
+        <label htmlFor="contact-email" className={labelBase}>
+          Имейл адрес
+        </label>
+        <input
+          id="contact-email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          aria-invalid={!!errors.email || undefined}
+          aria-describedby={errors.email ? "email_error" : undefined}
+          placeholder="email@example.com"
+          // Phone carries the "phone or email" error, so re-check it when the email changes
+          {...register("email", { deps: ["phone"] })}
+          className={cn(
+            baseInput,
+            inputPadding,
+            errors.email ? inputError : inputBorderDefault,
+            inputFocus,
+            inputDisabled
+          )}
+          disabled={isSubmitting}
+        />
+        {errors.email && (
+          <p id="email_error" role="alert" className={errorText} aria-live="polite">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
+            {errors.email.message?.toString()}
           </p>
         )}
       </div>
@@ -343,11 +350,13 @@ export default function ContactForm({
             </>
           )}
         </button>
+        <PrivacyNotice className="mt-3" />
       </div>
 
       {/* Live regions for SR announcements */}
       <p className="sr-only" aria-live="polite">{serverMessage ?? ""}</p>
       <p className="sr-only" aria-live="assertive">{serverError ?? ""}</p>
+      {honeypot}
 
       {/* Auto-dismiss success after 8s */}
       {submitStatus?.type === "success" && (

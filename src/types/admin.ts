@@ -20,4 +20,22 @@ export interface InquiryWithRelations extends Tables<"inquiries"> {
   assigned_agent: Tables<"admin_profiles"> | null;
 }
 
+/** Row shape of GET /api/admin/inquiries (admin inquiries list + details modal) */
+export interface AdminInquiry {
+  id: number;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  inquiry_type: InquiryType;
+  message: string;
+  status: InquiryStatus;
+  created_at: string;
+  property: {
+    id: number;
+    title_bg: string;
+    slug: string | null;
+    price_eur: number | null;
+  } | null;
+}
+
 

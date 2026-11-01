@@ -15,6 +15,8 @@ import {
   Users
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { AdminToastProvider } from "@/components/admin/AdminToast";
+import { INQUIRIES_CHANGED_EVENT } from "@/components/admin/InquiriesFilter";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -25,6 +27,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [taskCount, setTaskCount] = useState(0);
+  const [newInquiryCount, setNewInquiryCount] = useState(0);
 
   // Skip auth check for login page (handle both with and without trailing slash)
   const isLoginPage = pathname === "/admin/login" || pathname === "/admin/login/";
@@ -44,6 +47,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       .then((data: unknown[]) => setTaskCount(Array.isArray(data) ? data.length : 0))
       .catch(() => setTaskCount(0));
   }, [user, isAdmin, isLoginPage]);
+
+  // "New inquiries" badge – limit=1, only the total is used
+  useEffect(() => {
+    if (!user || !isAdmin || isLoginPage) return;
+    const loadNewInquiries = () =>
+      fetch("/api/admin/inquiries/?status=new&limit=1", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((json) => setNewInquiryCount(json?.data?.total ?? 0))
+        .catch(() => setNewInquiryCount(0));
+    loadNewInquiries();
+    window.addEventListener(INQUIRIES_CHANGED_EVENT, loadNewInquiries);
+    return () => window.removeEventListener(INQUIRIES_CHANGED_EVENT, loadNewInquiries);
+  }, [user, isAdmin, isLoginPage, pathname]);
 
   const handleLogout = async () => {
     const success = await signOut();
@@ -91,7 +107,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: "Запитвания",
       href: "/admin/inquiries/",
       icon: MessageSquare,
-      badge: 0,
+      badge: newInquiryCount,
     },
     {
       name: "Отзиви",
@@ -192,7 +208,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Main Content */}
       <main className="ml-64 mt-16 p-6">
-        {children}
+        <AdminToastProvider>{children}</AdminToastProvider>
       </main>
     </div>
   );

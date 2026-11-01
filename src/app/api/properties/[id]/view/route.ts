@@ -1,38 +1,49 @@
 import { NextRequest } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getServiceClient } from "@/lib/supabase/service";
 import { formatErrorMessage, ValidationError, DatabaseError } from "@/lib/errors";
-import type { ErrorResponse, SuccessResponse } from "@/types/api";
+import type { ErrorResponse } from "@/types/api";
 import { ok, fail } from "@/lib/api";
+import { checkRateLimit, hashIp } from "@/lib/chat/rate-limit";
+import { isBotUserAgent } from "@/lib/bot-detection";
+
+const VIEW_WINDOW_SECONDS = 86_400;
+
+type ViewRow = { view_count: number | null; last_viewed_at: string | null };
 
 /**
- * Track a property view with rate limiting
- * 
+ * Track a property view
+ *
  * Authentication: not required
- * Rate limiting: 1 view per IP per 5 minutes per property
+ * Counting: bots are ignored; 1 view per hashed IP per property per UTC day
+ * (durable limiter from rate-limit.ts – no raw IPs stored). The client also dedupes per session.
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: idParam } = await params;
     const idNum = Number(idParam);
-    
+
     if (!Number.isFinite(idNum) || idNum <= 0) {
       throw new ValidationError("Невалидно ID на имот.");
     }
 
-    // Get client IP for rate limiting
+    if (isBotUserAgent(req.headers.get("user-agent"))) {
+      return ok({ counted: false });
+    }
+
     const forwarded = req.headers.get("x-forwarded-for");
-    const ip = forwarded ? forwarded.split(",")[0] : req.headers.get("x-real-ip") || "unknown";
-    
-    // Create a simple rate limiting key
-    const rateLimitKey = `view_${idNum}_${ip}`;
-    
-    // Check if this IP has viewed this property recently (5 minutes)
-    // For now, we'll use a simple approach - in production you might want to use Redis
-    const supabase = await getSupabaseClient();
-    
-    // Call the database function to increment view count atomically
-    const { data, error } = await supabase.rpc("increment_property_view", {
-      property_id: idNum
+    const ip = (forwarded ? forwarded.split(",")[0] : req.headers.get("x-real-ip"))?.trim() || "unknown";
+
+    // Unknown IPs would all share one key – rely on the client-side session dedupe for them
+    if (ip !== "unknown") {
+      const { allowed } = await checkRateLimit(`view:${idNum}:${hashIp(ip)}`, 1, VIEW_WINDOW_SECONDS);
+      if (!allowed) return ok({ counted: false });
+    }
+
+    // Service client: increment_property_view is SECURITY INVOKER, and RLS blocks the anon UPDATE
+    // (the call "succeeded" with a null row and nothing was counted)
+    // @ts-expect-error - RPC function not in generated types yet
+    const { data, error } = await getServiceClient().rpc("increment_property_view", {
+      property_id: idNum,
     });
 
     if (error) {
@@ -40,23 +51,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       throw new DatabaseError("Грешка при записване на преглед.");
     }
 
-    if (!data || data.length === 0) {
+    const result = (data as ViewRow[] | null)?.[0];
+    if (!result || result.view_count == null) {
       throw new DatabaseError("Имотът не е намерен.");
     }
 
-    const result = data[0];
-    
-    const body: SuccessResponse<{
-      view_count: number;
-      last_viewed_at: string;
-    }> = {
-      data: {
-        view_count: result.view_count,
-        last_viewed_at: result.last_viewed_at,
-      },
-    };
-
-    return ok(body.data);
+    return ok({
+      counted: true,
+      view_count: result.view_count,
+      last_viewed_at: result.last_viewed_at,
+    });
   } catch (err) {
     const message = formatErrorMessage(err);
     const status = err instanceof ValidationError ? 400 : 500;

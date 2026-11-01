@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Nova Nest Real Estate** is a Bulgarian real estate platform built for Stara Zagora. The application is fully localized to Bulgarian (primary language) with optional English support. It provides property listings, search/filtering, neighborhood pages, SEO-optimized structured data, and an admin panel for managing properties, inquiries, and testimonials.
+**Nova Nest Real Estate** is a Bulgarian real estate platform built for Stara Zagora. The application is Bulgarian-only. It provides property listings, search/filtering, neighborhood pages, SEO-optimized structured data, and an admin panel for managing properties, inquiries, and testimonials.
 
 ## Technology Stack
 
@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **UI Components**: Radix UI primitives + custom components
 - **Forms**: React Hook Form + Zod validation
 - **Fonts**: Inter (Latin + Cyrillic subsets via next/font)
-- **i18n**: Bulgarian (default locale `bg`), English (`en`) secondary
+- **i18n**: Bulgarian only (`bg`); old `/en/*` URLs permanently redirect to `/` via `next.config.ts` redirects
 
 ## Essential Commands
 
@@ -159,7 +159,8 @@ export async function GET(
 **Keyword landing pages** (`src/lib/seo/landing.ts`, ISR):
 - `/imoti-za-prodazhba/[category]/`, `/imoti-pod-naem/[category]/` (`(site)/_landing/operation-landing.tsx`), `/{neighborhood}/{category}/`
 - Category URL slugs are plural (`apartamenti`, `kashti`…) mapped from DB slugs in `CATEGORY_LANDING_NAMES`.
-- `/properties/` canonicalizes to the matching landing page (`landingPathFor`). Counts/stats come from `getCachedListingIndex()` (`lib/queries/listing-index.ts`) via `getLandingData()`.
+- Apartment rooms pages ("двустайни апартаменти"): `/imoti-za-prodazhba/dvustaini-apartamenti/`, `/imoti-pod-naem/…`, `/{neighborhood}/dvustaini-apartamenti/` – slugs in `ROOM_LANDINGS` (1–3, 4 = 4+), served by the same `[[...category]]` / `[category]` routes. Which pages exist is decided only by `roomLandingsFor()` (operation: ≥1 listing; neighborhood: ≥`MIN_NEIGHBORHOOD_ROOM_LISTINGS` and fewer than its `/apartamenti/` parent, else it's a duplicate) – routes, sitemap, nav and internal links all use it. UI: `RoomTypeNav` (tiles on apartment landing pages), `RoomsQuickFilter` (one-tap rooms pills on `/properties/`).
+- `/properties/` canonicalizes to the matching live landing page (`liveLandingPathFor`, incl. a single `rooms` value + apartments). Counts/stats come from `getCachedListingIndex()` (`lib/queries/listing-index.ts`) via `getLandingData()`.
 
 **Structured Data** (`src/components/seo/`): `OrganizationSchema`/`WebsiteSchema` (root layout), `BreadcrumbSchema` (one per page), `PropertySchema`, `ItemListSchema` (landing pages), `FAQSchema` (only for FAQs visible on the page).
 
@@ -196,6 +197,11 @@ export async function GET(
 - Keep client components as small leaf islands; prefer links/anchors and native forms over onClick handlers.
 - Design at 360–430px first: 44px min tap targets, 16px inputs, `svh/dvh`, safe-area insets, scroll-snap rows instead of JS carousels.
 - Layout primitives: `Section`, `SectionHeading`, `containerClass` (`ui/section.tsx`), `Button` with `asChild` (`ui/button.tsx`).
+
+**Saved listings ("Избрани имоти", no accounts)**:
+- Property ids in `localStorage` (`nn:saved:v1`, newest first, max 50) via `src/lib/saved/store.ts` (`useSavedIds`, `toggleSaved`, `removeSaved`, `clearSaved`) – server snapshot is always empty, so SSR renders "not saved".
+- `SaveButton` (heart) sits on every `PropertyCard` image (z-10 above the stretched link) and in `PropertyHeader`; `HeaderSavedLinkClient` shows the count once something is saved.
+- `/izbrani/` (`site.pages.saved`) is a static noindex shell: `SavedListingsClient` calls the `getSavedListings` server action (`(site)/izbrani/actions.ts`) and renders the returned data with `SavedListingsView` (cards + comparison table); ids that no longer exist are pruned client-side. Actions return data, not JSX – client components in action JSX must already be in the page's client manifest. Not in the sitemap.
 
 **Components** (`src/components/`):
 - `ui/` - Base UI primitives (Button, Input, Card, Typography, etc.)
@@ -237,6 +243,7 @@ Dynamic neighborhood pages with SEO optimization:
 - Admin routes protected via `src/lib/auth-server.ts`
 - Admin profiles stored in `admin_profiles` table
 - Role-based permissions system
+- Feedback: use `useAdminToast()` (`src/components/admin/AdminToast.tsx`, provider mounted in `admin/layout.tsx`) instead of `alert()`; don't re-check auth in admin pages (middleware + layout do it)
 
 **Admin Routes** (`src/app/admin/`):
 - `/admin/dashboard` - Overview with stats
@@ -335,6 +342,8 @@ ESLint rules are warnings (not errors) to allow flexibility:
 - Property images stored in Supabase Storage bucket
 - Image CRUD via `/api/images/[id]` and `/api/properties/[id]/images`
 - Max upload size: 5MB (validated in `src/lib/validations.ts`)
+
+**Logo & icons**: `public/images/logo.png`, `src/app/{favicon.ico,icon.png,apple-icon.png}` and `public/icons/*` (manifest) are generated by `node scripts/generate-icons.mjs` from `scripts/assets/logo-source.jpg` – regenerate, don't hand-edit. Don't add `public/favicon.ico` (conflicts with `app/favicon.ico`).
 
 ### Security Headers
 

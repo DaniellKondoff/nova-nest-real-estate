@@ -5,15 +5,20 @@
 
 import type { MetadataRoute } from 'next';
 import { absoluteUrl } from '@/lib/seo/config';
+import { site } from '@/config/site';
 import { propertyPath } from '@/lib/seo/property-slug';
 import { isNeighborhoodIndexable } from '@/lib/seo/neighborhood-metadata';
 import { countByNeighborhood, type ListingIndexEntry } from '@/lib/queries/listing-index';
 import { getLandingData } from '@/lib/queries/landing-data';
 import {
   filterListings,
+  findApartmentCategory,
   neighborhoodCategoryPath,
+  neighborhoodRoomsPath,
   operationCategoryPath,
   operationPath,
+  operationRoomsPath,
+  roomLandingsFor,
   type OperationType,
 } from '@/lib/seo/landing';
 
@@ -37,6 +42,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: absoluteUrl('/'), lastModified: lastListingChange },
     { url: absoluteUrl('/properties/'), lastModified: lastListingChange },
+    { url: absoluteUrl(site.pages.contact) },
+    { url: absoluteUrl(site.pages.about), lastModified: lastListingChange },
+    { url: absoluteUrl(site.legal.privacyPolicyPath), lastModified: new Date(site.legal.privacyPolicyUpdated) },
   ];
 
   const propertyPages: MetadataRoute.Sitemap = listings.map((l) => ({
@@ -66,6 +74,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const n of neighborhoods) {
     for (const c of categories) {
       addLanding(neighborhoodCategoryPath(n, c), filterListings(listings, { neighborhoodId: n.id, categoryId: c.id }));
+    }
+  }
+  // Apartment rooms pages ("двустайни апартаменти") – roomLandingsFor applies the thin/duplicate-content rules
+  const apartments = findApartmentCategory(categories);
+  if (apartments) {
+    for (const operation of ['sale', 'rent'] as OperationType[]) {
+      for (const r of roomLandingsFor(listings, { operationType: operation }, apartments.id)) {
+        addLanding(operationRoomsPath(operation, r.room), r.listings);
+      }
+    }
+    for (const n of neighborhoods) {
+      for (const r of roomLandingsFor(listings, { neighborhoodId: n.id }, apartments.id)) {
+        addLanding(neighborhoodRoomsPath(n, r.room), r.listings);
+      }
     }
   }
 

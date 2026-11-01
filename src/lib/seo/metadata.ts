@@ -120,15 +120,7 @@ export function generateDefaultMetadata(): Metadata {
       description: SEO_CONFIG.defaultDescription,
       images: [DEFAULT_OG_IMAGE.url],
     },
-    icons: {
-      icon: [
-        { url: '/favicon.ico', sizes: 'any' },
-        { url: '/favicon.png', type: 'image/png' },
-      ],
-      apple: [
-        { url: '/favicon.png', type: 'image/png' },
-      ],
-    },
+    // Icons come from the Next file conventions: src/app/favicon.ico, icon.png, apple-icon.png
     manifest: '/manifest.json',
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,

@@ -91,7 +91,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <span className="text-xs text-gray-500">{property.rooms}</span>
           )}
           {property.neighborhood && (
-            <span className="text-xs text-gray-400">{property.neighborhood}</span>
+            <span className="text-xs text-gray-600">{property.neighborhood}</span>
           )}
         </div>
       </div>

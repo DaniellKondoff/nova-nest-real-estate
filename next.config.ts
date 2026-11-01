@@ -59,7 +59,7 @@ const csp = [
   ]
     .filter(Boolean)
     .join(" "),
-  "frame-src 'self'",
+  "frame-src 'self' https://www.google.com", // click-to-load office map on /kontakti/
 ].join("; ");
 
 const nextConfig: NextConfig = {
@@ -122,12 +122,13 @@ const nextConfig: NextConfig = {
       { source: "/apartamenti/centar", destination: "/centar/apartamenti/", permanent: true },
       { source: "/kushi-samara-stara-zagora", destination: "/samara-1/", permanent: true },
       { source: "/kusti/samara", destination: "/samara-1/", permanent: true },
-      // Pages that never existed but were listed in the old sitemap
-      { source: "/about", destination: "/#about", permanent: true },
+      // Old sitemap URLs → the real pages (services still lives on the home page)
+      { source: "/about", destination: "/za-nas/", permanent: true },
       { source: "/services", destination: "/#services", permanent: true },
-      { source: "/contact", destination: "/#contact", permanent: true },
-      // Normalize trailing slash
-      { source: "/en", destination: "/", permanent: false },
+      { source: "/contact", destination: "/kontakti/", permanent: true },
+      // Former English locale – the site is Bulgarian-only; keep old /en links working
+      { source: "/en", destination: "/", permanent: true },
+      { source: "/en/:path*", destination: "/:path*/", permanent: true },
     ];
   },
   env: {

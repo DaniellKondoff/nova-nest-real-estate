@@ -1,37 +1,69 @@
 "use client";
 
 import React from "react";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitErrorHandler, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Loader2, TriangleAlert } from "lucide-react";
 import type { z } from "zod";
 import { ContactFormSchema } from "@/lib/validations";
 import { cn } from "@/lib/utils";
+import { useAntiSpam } from "@/components/forms/anti-spam";
+import { PrivacyNotice } from "@/components/forms/PrivacyNotice";
 
 type InquiryFormData = z.infer<typeof ContactFormSchema>;
+type Intent = "viewing_request" | "property_interest";
+
+const INTENTS: { value: Intent; label: string }[] = [
+  { value: "viewing_request", label: "Искам оглед" },
+  { value: "property_interest", label: "Повече информация" },
+];
+
+const messageTemplate = (intent: Intent, propertyTitle: string) =>
+  intent === "viewing_request"
+    ? `Здравейте, бих искал(а) да огледам имот „${propertyTitle}“. Моля, свържете се с мен, за да уговорим удобен ден и час.`
+    : `Здравейте, интересувам се от имот „${propertyTitle}“. Моля, свържете се с мен за повече информация.`;
 
 const inputClass =
-  "w-full rounded-xl border bg-white px-4 py-3 text-base text-primary placeholder:text-gray-400 outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-60";
+  "w-full rounded-xl border bg-white px-4 py-3 text-base text-primary placeholder:text-gray-500 outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-60";
 
 /** Property inquiry form (client island). Sends the property id so the agent knows which listing it is about. */
 export default function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number; propertyTitle: string }) {
   const [success, setSuccess] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
+  const [intent, setIntent] = React.useState<Intent>("property_interest");
+  const { honeypot, antiSpamFields } = useAntiSpam();
 
   const {
     register,
     handleSubmit,
     reset,
+    getValues,
+    setValue,
+    setFocus,
     formState: { errors, isSubmitting },
   } = useForm<InquiryFormData>({
     resolver: zodResolver(ContactFormSchema),
     defaultValues: {
       full_name: "",
-      email: "",
       phone: "",
-      message: `Здравейте, интересувам се от имот „${propertyTitle}“. Моля, свържете се с мен за повече информация.`,
+      email: "",
+      message: messageTemplate("property_interest", propertyTitle),
     },
   });
+
+  // Move focus to the first invalid field (in visual order) after a failed submit
+  const onInvalid: SubmitErrorHandler<InquiryFormData> = (invalid) => {
+    const first = (["full_name", "phone", "email", "message"] as const).find((key) => invalid[key]);
+    if (first) setFocus(first);
+  };
+
+  const changeIntent = (next: Intent) => {
+    // Swap the pre-filled text only while the visitor hasn't edited it
+    if (getValues("message") === messageTemplate(intent, propertyTitle)) {
+      setValue("message", messageTemplate(next, propertyTitle));
+    }
+    setIntent(next);
+  };
 
   const onSubmit: SubmitHandler<InquiryFormData> = async (values) => {
     setApiError(null);
@@ -41,17 +73,18 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           full_name: values.full_name,
-          email: values.email,
-          phone: values.phone?.trim() || undefined,
+          phone: values.phone || undefined,
+          email: values.email || undefined,
           message: values.message,
           property_id: propertyId,
-          inquiry_type: "property_interest",
+          inquiry_type: intent,
+          ...antiSpamFields(),
         }),
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
       if (!res.ok || !json?.success) throw new Error(json?.error || "Възникна грешка. Моля, опитайте отново.");
       setSuccess(true);
-      reset();
+      reset({ full_name: "", phone: "", email: "", message: messageTemplate(intent, propertyTitle) });
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Няма връзка със сървъра");
     }
@@ -64,7 +97,11 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
           <Check className="h-6 w-6" aria-hidden />
         </span>
         <p className="mt-3 font-semibold">Благодарим ви!</p>
-        <p className="mt-1 text-sm">Ще се свържем с вас възможно най-скоро.</p>
+        <p className="mt-1 text-sm">
+          {intent === "viewing_request"
+            ? "Ще се свържем с вас, за да уговорим оглед."
+            : "Ще се свържем с вас възможно най-скоро."}
+        </p>
         <button
           type="button"
           onClick={() => setSuccess(false)}
@@ -87,7 +124,8 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
       </label>
       <input
         id={`inq-${name}`}
-        {...register(name)}
+        // Phone carries the "phone or email" error, so re-check it when the email changes
+        {...register(name, name === "email" ? { deps: ["phone"] } : undefined)}
         {...props}
         disabled={isSubmitting}
         aria-invalid={errors[name] ? "true" : "false"}
@@ -103,7 +141,7 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="relative space-y-4" noValidate>
       {apiError && (
         <div role="alert" className="flex items-start gap-2 rounded-xl bg-red-50 p-3 text-sm text-red-800">
           <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
@@ -111,14 +149,38 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
         </div>
       )}
 
+      <fieldset>
+        <legend className="sr-only">Какво ви интересува?</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {INTENTS.map((option) => (
+            <label key={option.value} className="cursor-pointer">
+              <input
+                type="radio"
+                name="inq-intent"
+                value={option.value}
+                checked={intent === option.value}
+                onChange={() => changeIntent(option.value)}
+                disabled={isSubmitting}
+                className="peer sr-only"
+              />
+              <span className="flex min-h-11 items-center justify-center rounded-xl border border-gray-300 px-3 text-center text-sm font-semibold text-primary transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2">
+                {option.label}
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       {field("full_name", "Име и фамилия", { type: "text", autoComplete: "name", placeholder: "Иван Иванов" })}
-      {field("email", "Имейл", { type: "email", autoComplete: "email", inputMode: "email", placeholder: "name@example.com" })}
-      {field("phone", <>Телефон <span className="font-normal text-charcoal/50">(по избор)</span></>, {
+
+      <p className="-mb-2 text-sm text-charcoal/75">Оставете телефон или имейл – поне едно от двете.</p>
+      {field("phone", "Телефон", {
         type: "tel",
         autoComplete: "tel",
         inputMode: "tel",
-        placeholder: "+359 8XX XXX XXX",
+        placeholder: "08X XXX XXXX",
       })}
+      {field("email", "Имейл", { type: "email", autoComplete: "email", inputMode: "email", placeholder: "name@example.com" })}
 
       <div>
         <label htmlFor="inq-message" className="mb-1.5 block text-sm font-medium text-primary">
@@ -130,9 +192,14 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
           {...register("message")}
           disabled={isSubmitting}
           aria-invalid={errors.message ? "true" : "false"}
+          aria-describedby={errors.message ? "inq-message-error" : undefined}
           className={cn(inputClass, "resize-y", errors.message ? "border-red-500" : "border-gray-300")}
         />
-        {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>}
+        {errors.message && (
+          <p id="inq-message-error" className="mt-1 text-sm text-red-600">
+            {errors.message.message}
+          </p>
+        )}
       </div>
 
       <button
@@ -145,11 +212,15 @@ export default function PropertyInquiryForm({ propertyId, propertyTitle }: { pro
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             Изпращане...
           </>
+        ) : intent === "viewing_request" ? (
+          "Заявете оглед"
         ) : (
           "Изпратете запитване"
         )}
       </button>
-      <p className="text-center text-xs text-charcoal/50">Отговаряме в рамките на работния ден.</p>
+      <p className="text-center text-xs text-charcoal/75">Отговаряме в рамките на работния ден.</p>
+      <PrivacyNotice className="-mt-2" />
+      {honeypot}
     </form>
   );
 }

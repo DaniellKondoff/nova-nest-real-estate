@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { Award, Eye, Heart, Shield, Star, TrendingUp, Users, Zap } from "lucide-react";
+import { Building2, Clock, Eye, KeyRound, MapPin, Shield, Users, Zap } from "lucide-react";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
+import { getListingStats } from "@/lib/queries/listing-index";
+import { cn } from "@/lib/utils";
 
 const values = [
   {
@@ -26,19 +28,30 @@ const values = [
   },
 ];
 
-const stats = [
-  { icon: Star, value: "Десетки", label: "доволни клиенти" },
-  { icon: Award, value: "100%", label: "Качество" },
-  { icon: TrendingUp, value: "95%", label: "Успешни сделки" },
-  { icon: Heart, value: "24/7", label: "Поддръжка" },
-];
+interface AboutSectionProps {
+  /** "h1" when the section is the main block of the page (/za-nas/) */
+  headingAs?: "h1" | "h2";
+  /** In-page anchor on the home page, the contacts page elsewhere */
+  contactHref?: string;
+}
 
 /** About – server component; CSS-only reveal (content is never hidden without JS). */
-export default function AboutSection() {
+export default async function AboutSection({ headingAs = "h2", contactHref = "#contact" }: AboutSectionProps = {}) {
+  const { total, sale, rent, neighborhoods } = await getListingStats();
+
+  // Live, verifiable numbers only (no marketing percentages)
+  const stats = [
+    { icon: Building2, value: String(sale), label: "имота за продажба" },
+    { icon: KeyRound, value: String(rent), label: "имота под наем" },
+    { icon: MapPin, value: String(neighborhoods), label: "квартала и села" },
+    { icon: Clock, value: "Пон–Съб", label: "лично обслужване" },
+  ].filter((s) => s.value !== "0"); // e.g. no rentals right now – don't advertise a zero
+
   return (
     <Section id="about" tone="muted" aria-labelledby="about-heading" className="scroll-mt-[var(--header-h)]">
       <SectionHeading
         id="about-heading"
+        as={headingAs}
         eyebrow="Водеща агенция в Стара Загора"
         title="Nova Nest Real Estate"
         description={
@@ -51,15 +64,17 @@ export default function AboutSection() {
       />
 
       {/* Stats */}
-      <dl className="reveal grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-        {stats.map(({ icon: Icon, value, label }) => (
-          <div key={label} className="flex flex-col items-center rounded-card bg-white p-5 text-center shadow-card sm:p-6">
-            <Icon className="mb-2 h-6 w-6 text-accent-dark" aria-hidden="true" />
-            <dd className="text-2xl font-bold text-primary sm:text-3xl">{value}</dd>
-            <dt className="order-last mt-1 text-sm text-charcoal/70">{label}</dt>
-          </div>
-        ))}
-      </dl>
+      {total > 0 && (
+        <dl className={cn("reveal grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4", stats.length === 3 && "md:grid-cols-3")}>
+          {stats.map(({ icon: Icon, value, label }) => (
+            <div key={label} className="flex flex-col items-center rounded-card bg-white p-5 text-center shadow-card sm:p-6">
+              <Icon className="mb-2 h-6 w-6 text-accent-dark" aria-hidden="true" />
+              <dd className="text-2xl font-bold text-primary sm:text-3xl">{value}</dd>
+              <dt className="order-last mt-1 text-sm text-charcoal/75">{label}</dt>
+            </div>
+          ))}
+        </dl>
+      )}
 
       {/* Values */}
       <ul className="mt-6 grid gap-4 sm:mt-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
@@ -95,7 +110,7 @@ export default function AboutSection() {
               <Link href="/properties/">Започнете търсенето</Link>
             </Button>
             <Button asChild variant="outline-light" size="lg" className="w-full sm:w-auto">
-              <a href="#contact">Свържете се с нас</a>
+              <Link href={contactHref}>Свържете се с нас</Link>
             </Button>
           </div>
         </div>

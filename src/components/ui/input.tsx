@@ -16,7 +16,7 @@ import { Search, ChevronDown } from "lucide-react";
  */
 
 const inputStyles = cva(
-  "w-full rounded-md text-charcoal placeholder:text-charcoal/60 outline-none transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+  "w-full rounded-md text-charcoal placeholder:text-gray-500 outline-none transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
   {
     variants: {
       size: {
@@ -98,7 +98,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative">
           {leftIcon && (
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/60">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/75">
               {leftIcon}
             </span>
           )}
@@ -116,7 +116,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/60">
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/75">
               {rightIcon}
             </span>
           )}
@@ -200,7 +200,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             ref={ref}
             className={cn(
-              "w-full rounded-md bg-white text-base text-charcoal placeholder:text-charcoal/60 outline-none transition-colors duration-200 appearance-none pr-8 border border-charcoal/20 focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:border-accent disabled:opacity-50 disabled:cursor-not-allowed",
+              "w-full rounded-md bg-white text-base text-charcoal placeholder:text-gray-500 outline-none transition-colors duration-200 appearance-none pr-8 border border-charcoal/20 focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:border-accent disabled:opacity-50 disabled:cursor-not-allowed",
               error && "border-red-500 focus-visible:ring-red-500",
               className
             )}

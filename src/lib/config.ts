@@ -43,7 +43,6 @@ export const appConfig = {
   siteName: optionalEnv("NEXT_PUBLIC_SITE_NAME", "Nova Nest Real Estate")!,
   appUrl: optionalEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3000")!,
   locale: "bg",
-  fallbackLocale: "en",
 } as const;
 
 export const supabaseConfig = {

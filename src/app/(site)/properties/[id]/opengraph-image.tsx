@@ -29,7 +29,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     title: property.title_bg,
     facts: [
       typeof property.price_eur === "number" && property.price_eur > 0 ? formatPrice(property.price_eur) : null,
-      property.area_sqm ? `${property.area_sqm} м²` : null,
+      property.area_sqm ? `${Math.round(property.area_sqm)} м²` : null,
       neighborhood?.name_bg ?? null,
     ].filter((f): f is string => Boolean(f)),
     imageUrl: primary?.url ?? null,

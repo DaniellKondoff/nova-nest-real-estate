@@ -14,6 +14,7 @@ export interface ListingIndexEntry {
   neighborhoodId: number | null;
   priceEur: number | null;
   areaSqm: number | null;
+  rooms: number | null;
   primaryImageUrl: string | null;
 }
 
@@ -26,6 +27,7 @@ type IndexRow = {
   neighborhood_id: number | null;
   price_eur: number | null;
   area_sqm: number | null;
+  rooms: number | null;
   images: Array<{ url: string; is_primary: boolean | null; sort_order: number | null }> | null;
 };
 
@@ -39,7 +41,7 @@ export const getCachedListingIndex = unstable_cache(
     const { data, error } = await supabase
       .from("properties")
       .select(
-        "id, slug, updated_at, operation_type, category_id, neighborhood_id, price_eur, area_sqm, images:property_images(url, is_primary, sort_order)"
+        "id, slug, updated_at, operation_type, category_id, neighborhood_id, price_eur, area_sqm, rooms, images:property_images(url, is_primary, sort_order)"
       )
       .eq("status", "available")
       .order("updated_at", { ascending: false });
@@ -58,11 +60,12 @@ export const getCachedListingIndex = unstable_cache(
         neighborhoodId: row.neighborhood_id,
         priceEur: row.price_eur,
         areaSqm: row.area_sqm,
+        rooms: row.rooms,
         primaryImageUrl: images[0]?.url ?? null,
       };
     });
   },
-  ["listing-index"],
+  ["listing-index-v2"],
   { tags: [LISTINGS_CACHE_TAG], revalidate: 3600 }
 );
 
@@ -73,4 +76,24 @@ export function countByNeighborhood(listings: ListingIndexEntry[]): Map<number, 
     if (l.neighborhoodId != null) counts.set(l.neighborhoodId, (counts.get(l.neighborhoodId) ?? 0) + 1);
   }
   return counts;
+}
+
+export interface ListingStats {
+  total: number;
+  sale: number;
+  rent: number;
+  /** Neighborhoods and villages with at least one available listing */
+  neighborhoods: number;
+}
+
+/** Live counts for trust stats on the home page (zeros when the index can't be loaded) */
+export async function getListingStats(): Promise<ListingStats> {
+  const listings = await getCachedListingIndex().catch(() => [] as ListingIndexEntry[]);
+  const rent = listings.filter((l) => l.operationType === "rent").length;
+  return {
+    total: listings.length,
+    sale: listings.length - rent,
+    rent,
+    neighborhoods: countByNeighborhood(listings).size,
+  };
 }

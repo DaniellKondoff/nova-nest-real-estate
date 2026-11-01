@@ -121,9 +121,9 @@ export default function HeroSearchForm({ categories, neighborhoods, className }:
                 min={0}
                 name={f.name}
                 placeholder={f.placeholder}
-                className="h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 pr-9 text-base text-primary outline-none placeholder:text-gray-400 focus:border-accent focus:ring-2 focus:ring-accent/30"
+                className="h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 pr-9 text-base text-primary outline-none placeholder:text-gray-500 focus:border-accent focus:ring-2 focus:ring-accent/30"
               />
-              <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">€</span>
+              <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">€</span>
             </div>
           ))}
         </div>

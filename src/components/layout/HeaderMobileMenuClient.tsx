@@ -9,6 +9,7 @@ import { site } from "@/config/site";
 import type { SiteNavLink, SiteNavOperation } from "@/lib/seo/nav-links";
 import { listingCountLabel } from "@/lib/seo/landing";
 import { cn } from "@/lib/utils";
+import { useSavedIds } from "@/lib/saved/store";
 
 interface HeaderMobileMenuClientProps {
   operations: SiteNavOperation[];
@@ -17,9 +18,10 @@ interface HeaderMobileMenuClientProps {
 
 const SECONDARY_LINKS = [
   { label: "Всички имоти", href: "/properties/" },
+  { label: "Избрани имоти", href: site.pages.saved },
   { label: "Услуги", href: "/#services" },
-  { label: "За нас", href: "/#about" },
-  { label: "Контакти", href: "/#contact" },
+  { label: "За нас", href: site.pages.about },
+  { label: "Контакти", href: site.pages.contact },
 ];
 
 const FOCUSABLE = "a[href], button:not([disabled])";
@@ -39,6 +41,7 @@ export default function HeaderMobileMenuClient({ operations, neighborhoods }: He
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const savedCount = useSavedIds().length;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const pushed = useRef(false);
@@ -233,7 +236,12 @@ export default function HeaderMobileMenuClient({ operations, neighborhoods }: He
                         aria-current={isCurrent(item.href) ? "page" : undefined}
                         className="flex min-h-12 items-center justify-between text-lg font-medium transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[current=page]:text-accent"
                       >
-                        {item.label}
+                        <span className="flex items-center gap-2">
+                          {item.label}
+                          {item.href === site.pages.saved && savedCount > 0 && (
+                            <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-bold tabular-nums text-primary">{savedCount}</span>
+                          )}
+                        </span>
                         <ArrowRight className="h-4 w-4 text-white/40" aria-hidden="true" />
                       </Link>
                     </li>
@@ -254,7 +262,7 @@ export default function HeaderMobileMenuClient({ operations, neighborhoods }: He
                   Обади се
                 </a>
                 <Link
-                  href="/#contact"
+                  href={site.pages.contact}
                   onClick={onLinkClick}
                   className="inline-flex h-12 items-center justify-center rounded-xl bg-accent font-semibold text-primary shadow-gold transition-colors hover:bg-accent-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 >

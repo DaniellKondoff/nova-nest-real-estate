@@ -4,23 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { X, Mail, Phone, Calendar, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-interface Inquiry {
-  id: number;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  inquiry_type: "general" | "property_interest" | "viewing_request" | "valuation" | "selling" | "renting";
-  message: string;
-  status: "new" | "in_progress" | "responded" | "closed";
-  created_at: string;
-  property: {
-    id: number;
-    title_bg: string;
-    price_bgn: number | null;
-    price_eur: number | null;
-  } | null;
-}
+import type { AdminInquiry as Inquiry } from "@/types/admin";
+import { propertyPath } from "@/lib/seo/property-slug";
 
 interface InquiryDetailsModalProps {
   inquiry: Inquiry | null;
@@ -124,14 +109,8 @@ export default function InquiryDetailsModal({
   };
 
   // Format property price
-  const formatPrice = (priceBgn: number | null, priceEur: number | null) => {
-    if (priceEur !== null) {
-      return new Intl.NumberFormat("bg-BG").format(priceEur) + " €";
-    } else if (priceBgn !== null) {
-      return new Intl.NumberFormat("bg-BG").format(priceBgn) + " лв";
-    }
-    return "Цена по договаряне";
-  };
+  const formatPrice = (priceEur: number | null) =>
+    priceEur !== null ? new Intl.NumberFormat("bg-BG").format(priceEur) + " €" : "Цена по договаряне";
 
   // Handle status updates
   const handleMarkAsRead = async () => {
@@ -179,7 +158,7 @@ export default function InquiryDetailsModal({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             aria-label="Затвори"
           >
             <X className="w-5 h-5" />
@@ -198,17 +177,20 @@ export default function InquiryDetailsModal({
                 <label className="text-sm font-medium text-gray-700">Име:</label>
                 <p className="text-gray-900 font-medium">{inquiry.full_name}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Имейл:</label>
-                <p className="text-gray-900">
-                  <a
-                    href={`mailto:${inquiry.email}`}
-                    className="text-[#D4AF37] hover:text-[#B8941F] transition-colors"
-                  >
-                    {inquiry.email}
-                  </a>
-                </p>
-              </div>
+              {/* Phone-only leads are stored with an empty email */}
+              {inquiry.email && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Имейл:</label>
+                  <p className="text-gray-900">
+                    <a
+                      href={`mailto:${inquiry.email}`}
+                      className="text-[#D4AF37] hover:text-[#B8941F] transition-colors"
+                    >
+                      {inquiry.email}
+                    </a>
+                  </p>
+                </div>
+              )}
               {inquiry.phone && (
                 <div>
                   <label className="text-sm font-medium text-gray-700">Телефон:</label>
@@ -269,12 +251,12 @@ export default function InquiryDetailsModal({
                       {inquiry.property.title_bg}
                     </h4>
                     <p className="text-lg font-semibold text-[#D4AF37] mb-3">
-                      {formatPrice(inquiry.property.price_bgn, inquiry.property.price_eur)}
+                      {formatPrice(inquiry.property.price_eur)}
                     </p>
                   </div>
                 </div>
                 <Link
-                  href={`/properties/${inquiry.property.id}`}
+                  href={propertyPath(inquiry.property.id, inquiry.property.slug)}
                   target="_blank"
                   className="inline-flex items-center gap-2 text-[#D4AF37] hover:text-[#B8941F] font-medium transition-colors"
                 >

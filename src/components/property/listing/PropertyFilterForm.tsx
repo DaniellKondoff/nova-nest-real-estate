@@ -4,7 +4,7 @@ import * as React from "react";
 import { Search } from "lucide-react";
 import type { PropertySearchFilters } from "@/types/search";
 import type { FeatureOption } from "@/lib/queries/features";
-import { buildPropertiesHref, PROPERTIES_PATH, urlParamsToFilters } from "@/lib/search/params";
+import { buildPropertiesHref, PROPERTIES_PATH, ROOM_OPTIONS, urlParamsToFilters } from "@/lib/search/params";
 import { cn } from "@/lib/utils";
 import { usePropertiesNavigation } from "./PropertiesNavigation";
 
@@ -34,8 +34,10 @@ const FEATURE_GROUP_LABELS: Record<string, string> = {
 const FEATURE_GROUP_ORDER = ["buildingType", "interior", "exterior", "building", "location"];
 
 export const fieldClass =
-  "h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 text-base text-primary shadow-subtle outline-none transition-colors placeholder:text-gray-400 hover:border-primary/40 focus:border-accent focus:ring-2 focus:ring-accent/30 md:h-11 md:text-[15px]";
+  "h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 text-base text-primary shadow-subtle outline-none transition-colors placeholder:text-gray-500 hover:border-primary/40 focus:border-accent focus:ring-2 focus:ring-accent/30 md:h-11 md:text-[15px]";
 const labelClass = "mb-1.5 block text-sm font-medium text-primary";
+const pillClass =
+  "inline-flex min-h-11 cursor-pointer items-center rounded-full border border-gray-300 bg-white px-4 text-sm text-charcoal transition-colors hover:border-primary/40 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent";
 
 function OperationToggle({ value, autoSubmit }: { value?: string; autoSubmit: boolean }) {
   const options = [
@@ -99,7 +101,7 @@ function RangeInputs({
               aria-label={`${label} – ${f.placeholder.toLowerCase()}`}
               className={cn(fieldClass, "pr-10")}
             />
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">{unit}</span>
+            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">{unit}</span>
           </div>
         ))}
       </div>
@@ -194,8 +196,13 @@ export default function PropertyFilterForm({
     <>
       {filters.sort && <input type="hidden" name="sort" value={filters.sort} />}
       {filters.searchTerm && <input type="hidden" name="search" value={filters.searchTerm} />}
+      {typeof filters.minBedrooms === "number" && <input type="hidden" name="minBedrooms" value={filters.minBedrooms} />}
+      {typeof filters.isNew === "boolean" && <input type="hidden" name="new" value={String(filters.isNew)} />}
+      {typeof filters.isFeatured === "boolean" && <input type="hidden" name="featured" value={String(filters.isFeatured)} />}
     </>
   );
+
+  const selectedRooms = new Set(filters.rooms ?? []);
 
   if (isBar) {
     return (
@@ -214,6 +221,7 @@ export default function PropertyFilterForm({
         {typeof filters.minArea === "number" && <input type="hidden" name="minArea" value={filters.minArea} />}
         {typeof filters.maxArea === "number" && <input type="hidden" name="maxArea" value={filters.maxArea} />}
         {filters.featureIds?.map((f) => <input key={f} type="hidden" name="features" value={f} />)}
+        {filters.rooms?.map((r) => <input key={`r${r}`} type="hidden" name="rooms" value={r} />)}
 
         <OperationToggle value={filters.operationType} autoSubmit />
         {categorySelect}
@@ -276,6 +284,24 @@ export default function PropertyFilterForm({
         {neighborhoodSelect}
       </div>
 
+      <fieldset>
+        <legend className={labelClass}>Брой стаи</legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {ROOM_OPTIONS.map((r) => (
+            <label key={r.value} className="relative">
+              <input
+                type="checkbox"
+                name="rooms"
+                value={r.value}
+                defaultChecked={selectedRooms.has(r.value)}
+                className="peer sr-only"
+              />
+              <span className={cn(pillClass, "w-full justify-center px-3")}>{r.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <RangeInputs
         label="Цена"
         unit="€"
@@ -286,7 +312,7 @@ export default function PropertyFilterForm({
       />
       <RangeInputs
         label="Площ"
-        unit="m²"
+        unit="м²"
         minName="minArea"
         maxName="maxArea"
         minValue={filters.minArea}
@@ -299,7 +325,7 @@ export default function PropertyFilterForm({
           <div className="space-y-4">
             {groupedFeatures.map((group) => (
               <div key={group.key}>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-charcoal/60">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-charcoal/75">
                   {FEATURE_GROUP_LABELS[group.key] ?? group.key}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -312,9 +338,7 @@ export default function PropertyFilterForm({
                         defaultChecked={selectedFeatures.has(f.id)}
                         className="peer sr-only"
                       />
-                      <span className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-gray-300 bg-white px-4 text-sm text-charcoal transition-colors hover:border-primary/40 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent">
-                        {f.name_bg}
-                      </span>
+                      <span className={pillClass}>{f.name_bg}</span>
                     </label>
                   ))}
                 </div>
