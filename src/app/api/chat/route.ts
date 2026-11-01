@@ -3,7 +3,13 @@ import { z } from "zod";
 import { fail } from "@/lib/api";
 import { streamChatResponse, type ChatMessage } from "@/lib/chat/assistant";
 import { getServerEnv } from "@/lib/env";
-import { checkRateLimit } from "@/lib/chat/rate-limit";
+import { checkRateLimit, hashIp } from "@/lib/chat/rate-limit";
+
+// Durable limits (shared across serverless instances). The global daily cap is the real cost ceiling.
+const IP_LIMIT_PER_MINUTE = 10;
+const IP_LIMIT_PER_DAY = 60;
+const GLOBAL_LIMIT_PER_DAY = 1000;
+const DAY_SECONDS = 86_400;
 
 // Hard caps keep a single request from pushing a huge prompt to Anthropic (the widget sends ≤500 chars, last 10 turns)
 const MAX_MESSAGE_CHARS = 1000;
@@ -47,12 +53,27 @@ export async function POST(req: NextRequest): Promise<Response> {
   // x-real-ip is set by the platform (Vercel); x-forwarded-for's first entry can be spoofed by the client
   const ip =
     req.headers.get("x-real-ip")?.trim() || req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
-  const rl = checkRateLimit(ip);
-  if (!rl.allowed) {
+  const ipKey = hashIp(ip);
+  const [perMinute, perDay] = await Promise.all([
+    checkRateLimit(`chat:ip:${ipKey}:min`, IP_LIMIT_PER_MINUTE, 60),
+    checkRateLimit(`chat:ip:${ipKey}:day`, IP_LIMIT_PER_DAY, DAY_SECONDS),
+  ]);
+  const ipLimited = [perMinute, perDay].find((r) => !r.allowed);
+  if (ipLimited) {
     return fail("Твърде много заявки. Моля, изчакайте малко.", {
       status: 429,
       code: "RATE_LIMITED",
-      details: { retryAfter: rl.retryAfter },
+      details: { retryAfter: ipLimited.retryAfter },
+      headers: { "Retry-After": String(ipLimited.retryAfter ?? 60) },
+    });
+  }
+  // Checked only after the IP limits pass, so a single blocked client can't drain the shared budget
+  const global = await checkRateLimit("chat:global:day", GLOBAL_LIMIT_PER_DAY, DAY_SECONDS);
+  if (!global.allowed) {
+    console.warn("[chat-route] global daily limit reached");
+    return fail("Асистентът временно не е наличен. Моля, свържете се с нас по телефона.", {
+      status: 503,
+      code: "SERVICE_UNAVAILABLE",
     });
   }
 

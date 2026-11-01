@@ -76,6 +76,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
     const controller = new AbortController();
     abortRef.current = controller;
     let timedOut = false;
+    let serverMessage: string | undefined;
     const timeoutId = setTimeout(() => {
       timedOut = true;
       controller.abort();
@@ -89,6 +90,11 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
         signal: controller.signal,
       });
 
+      // Rate limited / unavailable: show the server's message (it is user-facing Bulgarian text)
+      if (res.status === 429 || res.status === 503) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (body?.error) serverMessage = body.error;
+      }
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
       // First chunk received — swap waiting indicator for streaming bubble
@@ -134,7 +140,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean } = 
       if (!isAbort || timedOut) {
         const errorContent = timedOut
           ? "Заявката отне твърде дълго. Моля, опитайте отново."
-          : "Съжалявам, възникна грешка. Моля, опитайте отново.";
+          : serverMessage ?? "Съжалявам, възникна грешка. Моля, опитайте отново.";
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];

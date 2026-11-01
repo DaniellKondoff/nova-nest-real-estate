@@ -159,7 +159,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
 - **Where:** `src/lib/queries/properties.ts:114-130` (and the same pattern in the fallback)
 - **Fix:** group by `property_id` and keep only properties where the count equals the number of selected features. Do it in the `search_properties_v2` RPC (`HAVING count(DISTINCT feature_id) = cardinality(p_feature_ids)`). Add a migration in `scripts/migrations/`.
 
-#### F-6: The AI chat endpoint can be abused for cost · Impact H · Effort S · 🟡 Quick-win part done
+#### F-6: The AI chat endpoint can be abused for cost · Impact H · Effort S · ✅ Done (run migration 016; set an Anthropic spend limit)
 - **Problem:**
   - The rate limiter is a module-level `Map`. On Vercel each instance has its own copy, and cold starts reset it, so the limit barely applies. The map is also never pruned.
   - `history` allows 20 messages with **no maximum length per message**, and `message` has no maximum length either. Each request can push very large prompts to Anthropic.
