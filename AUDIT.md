@@ -223,7 +223,7 @@ Impact: **H** / **M** / **L**. Effort: **S** (≤ ½ day) / **M** (1–3 days) /
   - Add both to `sitemap.ts`.
   - Replace the `/about` and `/contact` redirects so they point to the new pages.
 
-#### S-4: Favicon, logo and PWA icons are one mislabelled JPEG · Impact M · Effort S
+#### S-4: Favicon, logo and PWA icons are one mislabelled JPEG · Impact M · Effort S · ✅ Done
 - **Problem:** `public/favicon.ico`, `public/favicon.png` and `public/images/logo.png` are byte-identical JPEG files (`ff d8 ff e0` header, same MD5). The consequences:
   - `manifest.json` declares them as 192×192 and 512×512 PNGs.
   - The Organization schema `logo` points to a ".png" that is actually a JPEG.
