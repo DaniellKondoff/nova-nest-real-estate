@@ -55,6 +55,8 @@ const csp = [
     SUPABASE_HOST ? `https://${SUPABASE_HOST}` : undefined,
     "https://www.google-analytics.com",
     "https://www.googletagmanager.com",
+    "https://*.google-analytics.com",
+    "https://*.analytics.google.com",
     "https://maps.googleapis.com",
   ]
     .filter(Boolean)

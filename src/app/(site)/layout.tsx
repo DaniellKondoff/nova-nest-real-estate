@@ -1,6 +1,8 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { ChatLauncher } from "@/components/chat/ChatLauncher";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import CookieConsentBanner from "@/components/analytics/CookieConsentBanner";
 import { env } from "@/lib/env";
 
 /**
@@ -16,6 +18,12 @@ export default function SiteLayout({ children }: Readonly<{ children: React.Reac
       </main>
       <Footer />
       {env.NEXT_PUBLIC_CHAT_ENABLED !== "false" && <ChatLauncher />}
+      {env.NEXT_PUBLIC_GA_ID && (
+        <>
+          <GoogleAnalytics />
+          <CookieConsentBanner />
+        </>
+      )}
     </div>
   );
 }
