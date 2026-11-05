@@ -45,7 +45,10 @@ jobs:
           # App configuration
           NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
           NEXT_PUBLIC_SITE_NAME: 'Nova Nest Real Estate'
-          
+
+          # Analytics (public measurement ID, not a secret) – builds CI with GA + consent banner enabled
+          NEXT_PUBLIC_GA_ID: 'G-TTJ2WC0NNG'
+
           # Upload configuration
           MAX_FILE_SIZE: '5242880'
           ALLOWED_FILE_TYPES: 'jpg,jpeg,png,webp'
