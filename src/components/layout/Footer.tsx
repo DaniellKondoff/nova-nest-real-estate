@@ -5,6 +5,8 @@ import { containerClass } from "@/components/ui/section";
 import { APARTMENT_LANDING_SLUG, OPERATION_LANDINGS } from "@/lib/seo/landing";
 import { getSiteNavLinks } from "@/lib/seo/nav-links";
 import { cn } from "@/lib/utils";
+import { env } from "@/lib/env";
+import CookieSettingsButton from "@/components/analytics/CookieSettingsButton";
 import FooterBackToTopClient from "./FooterBackToTopClient";
 
 interface FooterLink {
@@ -149,6 +151,9 @@ export default async function Footer() {
             >
               Политика за поверителност
             </Link>
+            {env.NEXT_PUBLIC_GA_ID && (
+              <CookieSettingsButton className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-accent hover:underline" />
+            )}
             <p>Недвижими имоти в {site.city}</p>
           </div>
         </div>

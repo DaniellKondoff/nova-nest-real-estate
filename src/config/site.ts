@@ -40,7 +40,7 @@ export const site = {
     privacyEmail: "novanestrealestatebg@gmail.com",
     inquiryRetentionMonths: 12,
     privacyPolicyPath: "/politika-za-poveritelnost/",
-    privacyPolicyUpdated: "2026-11-01",
+    privacyPolicyUpdated: "2026-11-05",
   },
 } as const;
 

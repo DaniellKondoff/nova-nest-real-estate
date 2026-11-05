@@ -353,6 +353,12 @@ Configured in `next.config.ts`:
 - X-Frame-Options: SAMEORIGIN
 - Permissions-Policy for geolocation/camera/microphone
 
+### Analytics & Consent (GA4 + Consent Mode v2)
+
+- `components/analytics/GoogleAnalytics.tsx` (server, mounted in `(site)/layout.tsx` only – never admin) sets consent default `denied`, restores the saved choice, then loads gtag. No `NEXT_PUBLIC_GA_ID` = no scripts, no banner.
+- Choice is stored in `localStorage` (`nn:consent:v1`) via `src/lib/consent/store.ts` (`useConsent`, `setConsent`, `openConsentPanel`). `CookieConsentBanner` is the only UI; the footer `CookieSettingsButton` reopens it.
+- Only `analytics_storage` is ever granted (no ads). Any new tracking/third-party script must respect consent, and the privacy policy (section 7) must stay accurate.
+
 ### Magic UI Integration
 
 Placeholder directories for MCP-fetched components:
