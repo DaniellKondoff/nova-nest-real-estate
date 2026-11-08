@@ -6,6 +6,7 @@
 
 import { SEO_CONFIG, ORGANIZATION_ID, absoluteUrl } from './config';
 import { propertyPath } from './property-slug';
+import { propertyHeadline } from './property-metadata';
 import type { PropertyWithDetails } from '@/types/property';
 
 const SCHEMA_AVAILABILITY: Record<string, string> = {
@@ -43,6 +44,8 @@ export function generatePropertySchema(property: PropertyWithDetails) {
   const url = absoluteUrl(propertyPath(prop.id, prop.slug));
   const hasPrice = typeof prop.price_eur === 'number' && prop.price_eur > 0;
   const isRent = prop.operation_type === 'rent';
+  // Same fact-based headline as the H1/title; never empty, so the Product always has a name
+  const name = propertyHeadline(property);
 
   const imageUrls = [...(images || [])]
     .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -51,7 +54,7 @@ export function generatePropertySchema(property: PropertyWithDetails) {
 
   const accommodation = compact({
     '@type': accommodationType(category?.slug),
-    name: prop.title_bg,
+    name,
     floorSize: prop.area_sqm ? { '@type': 'QuantitativeValue', value: prop.area_sqm, unitCode: 'MTK' } : undefined,
     numberOfRooms: prop.rooms ?? undefined,
     numberOfBedrooms: prop.bedrooms ?? undefined,
@@ -94,7 +97,7 @@ export function generatePropertySchema(property: PropertyWithDetails) {
     '@type': hasPrice ? ['RealEstateListing', 'Product'] : 'RealEstateListing',
     '@id': `${url}#listing`,
     url,
-    name: prop.title_bg,
+    name,
     description: truncateDescription(prop.description_bg),
     image: imageUrls.length ? imageUrls : undefined,
     datePosted: prop.created_at ?? undefined,
