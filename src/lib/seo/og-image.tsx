@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import sharp from "sharp";
+import type SharpFn from "sharp";
 
 /** Social preview cards (Facebook, Viber, LinkedIn, X) – PNG 1200×630; SVG is not supported by those crawlers */
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -25,22 +25,47 @@ async function publicImageDataUrl(file: string): Promise<string> {
   return `data:image/jpeg;base64,${data.toString("base64")}`;
 }
 
+let sharpPromise: Promise<typeof SharpFn | null> | null = null;
+
+/**
+ * sharp is a native module – loaded lazily so a broken binary degrades the card instead of
+ * crashing the route at import time. Keep package.json `sharp` on Next's version: two copies mean
+ * two libvips builds in one process (GLib "VipsInterpretation" criticals, failures on Vercel).
+ */
+function loadSharp(): Promise<typeof SharpFn | null> {
+  sharpPromise ??= import("sharp")
+    .then((mod) => mod.default)
+    .catch((error) => {
+      console.error("[og] sharp unavailable:", error);
+      return null;
+    });
+  return sharpPromise;
+}
+
 /**
  * Satori (next/og) cannot decode WebP, and most listing photos are WebP – a remote WebP URL renders as nothing.
- * Every photo is fetched and re-encoded as a 1200×630 JPEG; any failure falls back to the brand hero image.
+ * Every photo is fetched and re-encoded as a 1200×630 JPEG. Without sharp, JPEG/PNG photos are passed through
+ * as-is; anything else (or any failure) falls back to the brand hero image.
  */
 async function photoDataUrl(url: string): Promise<string> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const jpeg = await sharp(Buffer.from(await res.arrayBuffer()))
-      .rotate()
-      .resize(OG_SIZE.width, OG_SIZE.height, { fit: "cover" })
-      .jpeg({ quality: 82 })
-      .toBuffer();
-    return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+    const bytes = Buffer.from(await res.arrayBuffer());
+    const sharp = await loadSharp();
+    if (sharp) {
+      const jpeg = await sharp(bytes)
+        .rotate()
+        .resize(OG_SIZE.width, OG_SIZE.height, { fit: "cover" })
+        .jpeg({ quality: 82 })
+        .toBuffer();
+      return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+    }
+    const type = res.headers.get("content-type")?.split(";")[0].trim();
+    if (type === "image/jpeg" || type === "image/png") return `data:${type};base64,${bytes.toString("base64")}`;
+    throw new Error(`cannot render ${type ?? "unknown type"} without sharp`);
   } catch (error) {
-    console.error("OG photo failed, using fallback:", url, error);
+    console.error("[og] photo failed, using fallback:", url, error);
     return publicImageDataUrl("images/hero-building.jpg");
   }
 }
@@ -60,11 +85,23 @@ export interface OgCardProps {
 /**
  * Re-encodes a rendered card as JPEG. Photo cards are ~1.2 MB as PNG; WhatsApp/Viber skip preview images
  * over ~600 KB and Messenger loads them slowly, while the JPEG is ~10× smaller.
+ * If sharp is unavailable or fails, the PNG is served instead – a share card must never be a 500.
  */
 export async function toJpegResponse(card: Response, headers: Record<string, string> = {}): Promise<Response> {
-  const jpeg = await sharp(Buffer.from(await card.arrayBuffer())).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
-  return new Response(new Uint8Array(jpeg), {
-    headers: { "Content-Type": "image/jpeg", "Content-Length": String(jpeg.length), ...headers },
+  const png = Buffer.from(await card.arrayBuffer());
+  const sharp = await loadSharp();
+  if (sharp) {
+    try {
+      const jpeg = await sharp(png).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+      return new Response(new Uint8Array(jpeg), {
+        headers: { "Content-Type": "image/jpeg", "Content-Length": String(jpeg.length), ...headers },
+      });
+    } catch (error) {
+      console.error("[og] JPEG conversion failed, serving PNG:", error);
+    }
+  }
+  return new Response(new Uint8Array(png), {
+    headers: { "Content-Type": "image/png", "Content-Length": String(png.length), ...headers },
   });
 }
 
