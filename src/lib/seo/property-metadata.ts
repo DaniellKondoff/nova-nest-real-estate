@@ -130,8 +130,18 @@ function generatePropertyDescription(property: PropertyWithDetails): string {
 }
 
 /**
+ * Share card URL served by `(site)/properties/[id]/og.jpg/route.tsx`.
+ * Deliberately not absoluteUrl(): a trailing slash would 308 the crawler, and Facebook/Messenger
+ * then show no image. `v` changes on every edit so a re-scrape picks up a new photo or price.
+ */
+export function propertyOgImageUrl(prop: { id: number; slug: string | null; updated_at?: string | null }): string {
+  const updated = prop.updated_at ? Date.parse(prop.updated_at) : NaN;
+  const version = Number.isFinite(updated) ? `?v=${Math.floor(updated / 1000)}` : '';
+  return `${SEO_CONFIG.siteUrl}${propertyPath(prop.id, prop.slug)}og.jpg${version}`;
+}
+
+/**
  * Generates comprehensive metadata for property detail pages.
- * The OG image comes from the route's opengraph-image.tsx (file-based metadata wins).
  * @param property - Property with details
  * @returns Next.js Metadata object optimized for SEO
  */
@@ -142,6 +152,13 @@ export function generatePropertyMetadata(property: PropertyWithDetails): Metadat
   const socialTitle = TITLE_TEMPLATE.replace('%s', title);
   const description = generatePropertyDescription(property);
   const url = absoluteUrl(propertyPath(prop.id, prop.slug));
+  const ogImage = {
+    url: propertyOgImageUrl(prop),
+    width: 1200,
+    height: 630,
+    alt: propertyHeadline(property),
+    type: 'image/jpeg',
+  };
 
   return {
     title,
@@ -154,11 +171,13 @@ export function generatePropertyMetadata(property: PropertyWithDetails): Metadat
       siteName: SEO_CONFIG.siteName,
       locale: SEO_CONFIG.locale,
       type: 'website',
+      images: [ogImage],
     },
     twitter: {
       card: 'summary_large_image',
       title: socialTitle,
       description,
+      images: [ogImage.url],
     },
     alternates: { canonical: url },
   };

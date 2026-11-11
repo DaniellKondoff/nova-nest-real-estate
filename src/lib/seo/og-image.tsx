@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 
 /** Social preview cards (Facebook, Viber, LinkedIn, X) – PNG 1200×630; SVG is not supported by those crawlers */
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -24,6 +25,26 @@ async function publicImageDataUrl(file: string): Promise<string> {
   return `data:image/jpeg;base64,${data.toString("base64")}`;
 }
 
+/**
+ * Satori (next/og) cannot decode WebP, and most listing photos are WebP – a remote WebP URL renders as nothing.
+ * Every photo is fetched and re-encoded as a 1200×630 JPEG; any failure falls back to the brand hero image.
+ */
+async function photoDataUrl(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const jpeg = await sharp(Buffer.from(await res.arrayBuffer()))
+      .rotate()
+      .resize(OG_SIZE.width, OG_SIZE.height, { fit: "cover" })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+    return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+  } catch (error) {
+    console.error("OG photo failed, using fallback:", url, error);
+    return publicImageDataUrl("images/hero-building.jpg");
+  }
+}
+
 export interface OgCardProps {
   /** Small line above the title, e.g. "Апартамент за продажба" */
   eyebrow: string;
@@ -32,20 +53,116 @@ export interface OgCardProps {
   facts?: string[];
   /** Absolute URL of the background photo; falls back to the brand hero image */
   imageUrl?: string | null;
+  /** "brand": photo under a dark navy overlay (site default). "photo": listing photo stays visible, gradient only at the bottom */
+  variant?: "brand" | "photo";
 }
 
-/** Renders the branded social card used by every opengraph-image route */
-export async function renderOgCard({ eyebrow, title, facts = [], imageUrl }: OgCardProps): Promise<ImageResponse> {
+/**
+ * Re-encodes a rendered card as JPEG. Photo cards are ~1.2 MB as PNG; WhatsApp/Viber skip preview images
+ * over ~600 KB and Messenger loads them slowly, while the JPEG is ~10× smaller.
+ */
+export async function toJpegResponse(card: Response, headers: Record<string, string> = {}): Promise<Response> {
+  const jpeg = await sharp(Buffer.from(await card.arrayBuffer())).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+  return new Response(new Uint8Array(jpeg), {
+    headers: { "Content-Type": "image/jpeg", "Content-Length": String(jpeg.length), ...headers },
+  });
+}
+
+function FactPills({ facts, size }: { facts: string[]; size: number }) {
+  return (
+    <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
+      {facts.map((fact, i) => (
+        <div
+          key={fact}
+          style={{
+            display: "flex",
+            padding: size > 28 ? "10px 22px" : "8px 20px",
+            borderRadius: 999,
+            fontSize: size,
+            fontWeight: 700,
+            color: i === 0 ? NAVY : "white",
+            backgroundColor: i === 0 ? GOLD : "rgba(255,255,255,0.18)",
+          }}
+        >
+          {fact}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Renders the branded social card used by every OG image route */
+export async function renderOgCard({
+  eyebrow,
+  title,
+  facts = [],
+  imageUrl,
+  variant = "brand",
+
+}: OgCardProps): Promise<ImageResponse> {
   const [fonts, background] = await Promise.all([
     loadFonts(),
-    imageUrl ? Promise.resolve(imageUrl) : publicImageDataUrl("images/hero-building.jpg"),
+    imageUrl ? photoDataUrl(imageUrl) : publicImageDataUrl("images/hero-building.jpg"),
   ]);
+
+  const photo = (
+    // eslint-disable-next-line @next/next/no-img-element -- next/og renders plain <img>
+    <img src={background} alt="" width={1200} height={630} style={{ position: "absolute", top: 0, left: 0, objectFit: "cover", width: "100%", height: "100%" }} />
+  );
+
+  if (variant === "photo") {
+    return new ImageResponse(
+      (
+        <div style={{ display: "flex", width: "100%", height: "100%", position: "relative", fontFamily: "Inter", backgroundColor: NAVY }}>
+          {photo}
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              bottom: 0,
+              width: "100%",
+              height: "52%",
+              display: "flex",
+              // Only the bottom part is darkened so the photo stays the main subject; listing photos are often
+              // marketing graphics with their own text, so the band under our text must be nearly opaque
+              backgroundImage: "linear-gradient(180deg, rgba(26,38,66,0) 0%, rgba(26,38,66,0.82) 30%, rgba(26,38,66,0.95) 55%, rgba(26,38,66,0.97) 100%)",
+            }}
+          />
+          <div style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between", width: "100%", padding: "36px 48px 40px" }}>
+            <div style={{ display: "flex" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 20px 10px 14px",
+                  borderRadius: 999,
+                  backgroundColor: "rgba(26,38,66,0.82)",
+                }}
+              >
+                <div style={{ display: "flex", width: 8, height: 26, backgroundColor: GOLD, borderRadius: 3 }} />
+                <div style={{ display: "flex", fontSize: 26, fontWeight: 700, color: "white", letterSpacing: -0.4 }}>Nova Nest</div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", fontSize: 24, fontWeight: 500, color: GOLD }}>{eyebrow}</div>
+              <div style={{ display: "flex", fontSize: title.length > 44 ? 42 : 50, fontWeight: 700, color: "white", lineHeight: 1.12, letterSpacing: -0.8 }}>
+                {title}
+              </div>
+              {facts.length > 0 && <FactPills facts={facts} size={28} />}
+            </div>
+          </div>
+        </div>
+      ),
+      { ...OG_SIZE, fonts }
+    );
+  }
 
   return new ImageResponse(
     (
       <div style={{ display: "flex", width: "100%", height: "100%", position: "relative", fontFamily: "Inter", backgroundColor: NAVY }}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- next/og renders plain <img> */}
-        <img src={background} alt="" width={1200} height={630} style={{ position: "absolute", top: 0, left: 0, objectFit: "cover", width: "100%", height: "100%" }} />
+        {photo}
         <div
           style={{
             position: "absolute",
@@ -72,26 +189,7 @@ export async function renderOgCard({ eyebrow, title, facts = [], imageUrl }: OgC
             <div style={{ display: "flex", fontSize: title.length > 48 ? 52 : 62, fontWeight: 700, color: "white", lineHeight: 1.1, letterSpacing: -1 }}>
               {title}
             </div>
-            {facts.length > 0 && (
-              <div style={{ display: "flex", gap: 14, marginTop: 8 }}>
-                {facts.map((fact, i) => (
-                  <div
-                    key={fact}
-                    style={{
-                      display: "flex",
-                      padding: "10px 22px",
-                      borderRadius: 999,
-                      fontSize: 30,
-                      fontWeight: 700,
-                      color: i === 0 ? NAVY : "white",
-                      backgroundColor: i === 0 ? GOLD : "rgba(255,255,255,0.14)",
-                    }}
-                  >
-                    {fact}
-                  </div>
-                ))}
-              </div>
-            )}
+            {facts.length > 0 && <FactPills facts={facts} size={30} />}
           </div>
         </div>
       </div>

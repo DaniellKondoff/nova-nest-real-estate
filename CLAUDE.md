@@ -169,7 +169,8 @@ export async function GET(
 **Dynamic Routes**:
 - `src/app/sitemap.ts` - revalidated hourly; only indexable 200 URLs
 - `src/app/robots.ts` - never disallow `/_next/`
-- `src/app/opengraph-image.tsx`, `(site)/properties/[id]/opengraph-image.tsx` - PNG social cards
+- `src/app/opengraph-image.tsx` (site card), `(site)/properties/[id]/og.jpg/route.tsx` (listing card JPEG, URL from `propertyOgImageUrl()`) - social cards
+- OG image URLs must return 200 directly – a trailing-slash 308 makes Facebook/Messenger drop the image. Use a file-extension path (`og.jpg`) or an explicit trailing slash; never the `opengraph-image` file convention on dynamic routes (its hashed URL has no slash). Satori can't decode WebP – `renderOgCard` re-encodes photos to JPEG via sharp; listing cards are served as JPEG (`toJpegResponse`) – photo PNGs are ~1 MB.
 
 ### 6. Bulgarian Localization
 
