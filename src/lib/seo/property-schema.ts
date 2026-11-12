@@ -83,6 +83,8 @@ export function generatePropertySchema(property: PropertyWithDetails) {
         price: prop.price_eur,
         priceCurrency: 'EUR',
         availability: SCHEMA_AVAILABILITY[prop.status ?? 'available'] ?? SCHEMA_AVAILABILITY.available,
+        // Offer is valid from the moment the listing was published
+        validFrom: prop.created_at ?? undefined,
         businessFunction: isRent ? 'http://purl.org/goodrelations/v1#LeaseOut' : 'http://purl.org/goodrelations/v1#Sell',
         priceSpecification: isRent
           ? { '@type': 'UnitPriceSpecification', price: prop.price_eur, priceCurrency: 'EUR', unitCode: 'MON' }
