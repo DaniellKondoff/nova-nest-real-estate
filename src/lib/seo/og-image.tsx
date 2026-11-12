@@ -45,9 +45,9 @@ function loadSharp(): Promise<typeof SharpFn | null> {
 /**
  * Satori (next/og) cannot decode WebP, and most listing photos are WebP – a remote WebP URL renders as nothing.
  * Every photo is fetched and re-encoded as a 1200×630 JPEG. Without sharp, JPEG/PNG photos are passed through
- * as-is; anything else (or any failure) falls back to the brand hero image.
+ * as-is; anything else (or any failure) falls back to the brand hero image and marks the card as degraded.
  */
-async function photoDataUrl(url: string): Promise<string> {
+async function photoDataUrl(url: string): Promise<{ src: string; degraded: boolean }> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -59,16 +59,23 @@ async function photoDataUrl(url: string): Promise<string> {
         .resize(OG_SIZE.width, OG_SIZE.height, { fit: "cover" })
         .jpeg({ quality: 82 })
         .toBuffer();
-      return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+      return { src: `data:image/jpeg;base64,${jpeg.toString("base64")}`, degraded: false };
     }
     const type = res.headers.get("content-type")?.split(";")[0].trim();
-    if (type === "image/jpeg" || type === "image/png") return `data:${type};base64,${bytes.toString("base64")}`;
+    if (type === "image/jpeg" || type === "image/png") {
+      return { src: `data:${type};base64,${bytes.toString("base64")}`, degraded: false };
+    }
     throw new Error(`cannot render ${type ?? "unknown type"} without sharp`);
   } catch (error) {
     console.error("[og] photo failed, using fallback:", url, error);
-    return publicImageDataUrl("images/hero-building.jpg");
+    return { src: await publicImageDataUrl("images/hero-building.jpg"), degraded: true };
   }
 }
+
+/** Internal marker set by renderOgCard when the listing photo was replaced by the fallback */
+const DEGRADED_HEADER = "X-OG-Degraded";
+/** Degraded cards (fallback photo or PNG) are cached briefly so a transient failure doesn't stick for a week */
+const DEGRADED_CACHE_CONTROL = "public, max-age=300, s-maxage=300";
 
 export interface OgCardProps {
   /** Small line above the title, e.g. "Апартамент за продажба" */
@@ -86,22 +93,34 @@ export interface OgCardProps {
  * Re-encodes a rendered card as JPEG. Photo cards are ~1.2 MB as PNG; WhatsApp/Viber skip preview images
  * over ~600 KB and Messenger loads them slowly, while the JPEG is ~10× smaller.
  * If sharp is unavailable or fails, the PNG is served instead – a share card must never be a 500.
+ * Degraded cards get a short Cache-Control instead of the caller's.
  */
 export async function toJpegResponse(card: Response, headers: Record<string, string> = {}): Promise<Response> {
   const png = Buffer.from(await card.arrayBuffer());
+  const photoDegraded = card.headers.has(DEGRADED_HEADER);
   const sharp = await loadSharp();
   if (sharp) {
     try {
       const jpeg = await sharp(png).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
       return new Response(new Uint8Array(jpeg), {
-        headers: { "Content-Type": "image/jpeg", "Content-Length": String(jpeg.length), ...headers },
+        headers: {
+          "Content-Type": "image/jpeg",
+          "Content-Length": String(jpeg.length),
+          ...headers,
+          ...(photoDegraded ? { "Cache-Control": DEGRADED_CACHE_CONTROL } : {}),
+        },
       });
     } catch (error) {
       console.error("[og] JPEG conversion failed, serving PNG:", error);
     }
   }
   return new Response(new Uint8Array(png), {
-    headers: { "Content-Type": "image/png", "Content-Length": String(png.length), ...headers },
+    headers: {
+      "Content-Type": "image/png",
+      "Content-Length": String(png.length),
+      ...headers,
+      "Cache-Control": DEGRADED_CACHE_CONTROL,
+    },
   });
 }
 
@@ -135,12 +154,14 @@ export async function renderOgCard({
   facts = [],
   imageUrl,
   variant = "brand",
-
 }: OgCardProps): Promise<ImageResponse> {
-  const [fonts, background] = await Promise.all([
+  const [fonts, { src: background, degraded }] = await Promise.all([
     loadFonts(),
-    imageUrl ? photoDataUrl(imageUrl) : publicImageDataUrl("images/hero-building.jpg"),
+    imageUrl
+      ? photoDataUrl(imageUrl)
+      : publicImageDataUrl("images/hero-building.jpg").then((src) => ({ src, degraded: false })),
   ]);
+  const responseInit = { ...OG_SIZE, fonts, headers: degraded ? { [DEGRADED_HEADER]: "1" } : undefined };
 
   const photo = (
     // eslint-disable-next-line @next/next/no-img-element -- next/og renders plain <img>
@@ -192,7 +213,7 @@ export async function renderOgCard({
           </div>
         </div>
       ),
-      { ...OG_SIZE, fonts }
+      responseInit
     );
   }
 
@@ -231,6 +252,6 @@ export async function renderOgCard({
         </div>
       </div>
     ),
-    { ...OG_SIZE, fonts }
+    responseInit
   );
 }

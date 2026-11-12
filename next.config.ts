@@ -94,6 +94,12 @@ const nextConfig: NextConfig = {
     ].filter(Boolean) as any,
   },
   serverExternalPackages: ["@supabase/supabase-js"],
+  // sharp loads its native binary via a computed path (`@img/sharp-${platform}/sharp.node`) that file
+  // tracing can't follow – without this the listing share card has no sharp on Vercel, so WebP photos
+  // fall back to the hero image. On Vercel only the linux-x64 packages are installed, so this stays small.
+  outputFileTracingIncludes: {
+    "/properties/*/og.jpg": ["./node_modules/@img/**/*"],
+  },
   turbopack: {
     root: process.cwd(),
   },

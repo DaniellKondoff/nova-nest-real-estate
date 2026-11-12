@@ -133,11 +133,14 @@ function generatePropertyDescription(property: PropertyWithDetails): string {
  * Share card URL served by `(site)/properties/[id]/og.jpg/route.tsx`.
  * Deliberately not absoluteUrl(): a trailing slash would 308 the crawler, and Facebook/Messenger
  * then show no image. `v` changes on every edit so a re-scrape picks up a new photo or price.
+ * Bump OG_CARD_VERSION when the card design/rendering changes – Facebook caches images by URL.
  */
+const OG_CARD_VERSION = 2;
+
 export function propertyOgImageUrl(prop: { id: number; slug: string | null; updated_at?: string | null }): string {
   const updated = prop.updated_at ? Date.parse(prop.updated_at) : NaN;
-  const version = Number.isFinite(updated) ? `?v=${Math.floor(updated / 1000)}` : '';
-  return `${SEO_CONFIG.siteUrl}${propertyPath(prop.id, prop.slug)}og.jpg${version}`;
+  const edited = Number.isFinite(updated) ? `${Math.floor(updated / 1000)}.` : '';
+  return `${SEO_CONFIG.siteUrl}${propertyPath(prop.id, prop.slug)}og.jpg?v=${edited}${OG_CARD_VERSION}`;
 }
 
 /**
